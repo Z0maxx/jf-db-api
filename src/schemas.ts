@@ -9,10 +9,11 @@ export const GeneralEventSchema = z.object({
 
 export const CreateEventMapSchema = z.object({
   name: z.string().nonempty().max(50),
+  divisionId: z.number().positive(),
 });
 
 export const CreateTimeLimitedEventMapSchema = z.object({
-  name: z.string().nonempty().max(50),
+  ...CreateEventMapSchema.shape,
   timeLimit: z.number().positive(),
 });
 
@@ -41,5 +42,4 @@ export const LeaderboardQuerySchema = z.object({
   mapId: z.coerce.number().positive(),
   page: z.coerce.number().positive(),
   pageSize: z.coerce.number().positive(),
-  order: z.enum(["ASC", "DESC"]),
 });

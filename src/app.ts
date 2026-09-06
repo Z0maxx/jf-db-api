@@ -3,7 +3,7 @@ import express from "express";
 import "dotenv/config";
 import ctx from "./db-context";
 import allOutRouter from "./all-out/all-out.router";
-import steamAuthRouter from "./steam-auth/steam-auth.router";
+import authRouter from "./auth/auth.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 
 const app = express();
@@ -23,7 +23,7 @@ app.use((_, __, next) => {
 });
 
 app.use("/all-out", allOutRouter);
-app.use("/steam-auth", steamAuthRouter);
+app.use("/auth", authRouter);
 app.use(errorHandler);
 
 export default app;

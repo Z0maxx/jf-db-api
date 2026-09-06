@@ -14,11 +14,29 @@ export type GeneralEvent = {
   end: Date;
 };
 
+export type Pr = {
+  seconds: number;
+  timestamp: Date;
+};
+
+export type SteamUser = {
+  steamId64: string;
+  name: string;
+  avatar: string;
+};
+
+export type AppUser = SteamUser & {
+  role: string;
+};
+
+export type Participant = SteamUser & {
+  division: string;
+};
+
 export type LeaderboardItem = {
   id: number;
   user: SteamUser;
-  prSeconds: number;
-  prTimestamp: Date;
+  pr: Pr;
 };
 
 export type CreateEventMap = z.infer<typeof CreateEventMapSchema>;
@@ -28,6 +46,7 @@ export type CreateTimeLimitedEventMap = z.infer<typeof CreateTimeLimitedEventMap
 export type EventMap = {
   id: number;
   name: string;
+  division: string;
 };
 
 export type TimeLimitedEventMap = EventMap & {
@@ -59,9 +78,13 @@ export type AllOutEventDetails = {
   stage3: AllOutStage<EventMap>;
 };
 
+export type Lap = {
+  count: number;
+  lastTimestamp: Date;
+};
+
 export type LapLeaderboardItem = LeaderboardItem & {
-  lapCount: number;
-  lastLapTimestamp: Date;
+  lap: Lap;
 };
 
 export type BountyGroups = {
@@ -87,22 +110,15 @@ export type LeaderboardQuery = z.infer<typeof LeaderboardQuerySchema>;
 
 export type Registration = {
   eventId: number;
-  steamId64: string;
+  userId: number;
 };
 
-export type SteamUser = {
-  steamId64: string;
-  name: string;
-  avatar: string;
+export type JwtUser = {
+  userId: number;
 };
 
-export type AppUser = {
-  steamId64: string;
-  role: string;
-};
-
-export type SteamAuthResponse = {
+export type AuthResponse = {
   token: string;
-  user: SteamUser;
+  user: AppUser;
   role: string;
 };

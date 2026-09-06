@@ -1,4 +1,5 @@
 import "express-serve-static-core";
+import { JwtUser } from "./types";
 
 declare module "express-serve-static-core" {
   interface Request<P = ParamsDictionary> {
@@ -9,7 +10,7 @@ declare module "express-serve-static-core" {
 declare global {
   namespace Express {
     interface Request {
-      user?: AppUser;
+      user?: JwtUser;
     }
   }
 }

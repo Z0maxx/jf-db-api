@@ -1,3 +1,4 @@
+import envConfig from "@/env-config";
 import { SteamFailedError, SteamUsersNotFoundError } from "@/errors";
 import { SteamUser } from "@/types";
 
@@ -47,7 +48,8 @@ async function getPlayerSummariesAsync(steamId64s: string[]) {
   }
 
   try {
-    const resp = await fetch(`${playerSummariesEndpoint}?${getUrlParams(steamId64s)}`, {
+    const url = `${playerSummariesEndpoint}?${getUrlParams(steamId64s)}`;
+    const resp = await fetch(url, {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -60,11 +62,8 @@ async function getPlayerSummariesAsync(steamId64s: string[]) {
 
 function getUrlParams(steamId64s: string[]) {
   const params = new URLSearchParams({
-    key: process.env.STEAM_API_KEY!,
-  });
-
-  steamId64s.forEach((id) => {
-    params.append("steamids", id);
+    key: envConfig.STEAM_API_KEY,
+    steamids: steamId64s.join(","),
   });
 
   return params;

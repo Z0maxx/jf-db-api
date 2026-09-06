@@ -1,35 +1,19 @@
-import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
-import { BountyMap } from "./BountyMap";
+import { BaseEntity, type Ref, defineEntity, p } from '@mikro-orm/core';
+import { BountyMap } from './BountyMap';
+import { User } from './User';
 
 export class BountyCompletion extends BaseEntity {
   id!: number;
-  steamId64!: string;
+  user!: Ref<User>;
   map!: Ref<BountyMap>;
 }
 
 export const BountyCompletionSchema = defineEntity({
   class: BountyCompletion,
-  checks: [
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-  ],
+  indexes: [{ name: 'idx_bounty_completion_3', properties: ['map', 'user'] }],
   properties: {
     id: p.integer().primary(),
-    steamId64: p.string().name("steam_id_64").length(17),
-    map: () =>
-      p
-        .manyToOne(BountyMap)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("restrict")
-        .index("idx_bounty_completion"),
+    user: () => p.manyToOne(User).ref().updateRule('restrict').deleteRule('restrict').index('idx_bounty_completion_2'),
+    map: () => p.manyToOne(BountyMap).ref().updateRule('restrict').index('idx_bounty_completion_1'),
   },
 });

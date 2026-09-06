@@ -26,21 +26,14 @@ allOutRouter.get("/events/:eventId/participants", id("eventId"), async (req, res
   res.status(200).json(await allOutService.getAllEventParticipantsAsync(req.ids.eventId));
 });
 
-allOutRouter.get(
-  "/events/:eventId/is-registered",
-  authenticate,
-  id("eventId"),
-  async (req, res) => {
-    const registration = {
-      eventId: req.ids.eventId,
-      steamId64: req.user!.steamId64,
-    };
+allOutRouter.get("/events/:eventId/registration", authenticate, id("eventId"), async (req, res) => {
+  const registration = {
+    eventId: req.ids.eventId,
+    userId: req.user!.userId,
+  };
 
-    res
-      .status(200)
-      .json({ isRegistered: await allOutService.registrationExistsAsync(registration) });
-  },
-);
+  res.status(200).json({ isRegistered: await allOutService.registrationExistsAsync(registration) });
+});
 
 allOutRouter.get("/leaderboard/stage-1", leaderboardQuery, async (req, res) => {
   res
@@ -72,15 +65,20 @@ allOutRouter.post(
   },
 );
 
-allOutRouter.post("/events/:eventId/register", authenticate, id("eventId"), async (req, res) => {
-  const registration = {
-    eventId: req.ids.eventId,
-    steamId64: req.user!.steamId64,
-  };
+allOutRouter.post(
+  "/events/:eventId/registration",
+  authenticate,
+  id("eventId"),
+  async (req, res) => {
+    const registration = {
+      eventId: req.ids.eventId,
+      userId: req.user!.userId,
+    };
 
-  await allOutService.registerAsync(registration);
-  res.status(204).send();
-});
+    await allOutService.registerAsync(registration);
+    res.status(204).send();
+  },
+);
 
 allOutRouter.put(
   "/events",
@@ -95,13 +93,13 @@ allOutRouter.put(
 );
 
 allOutRouter.delete(
-  "/events/:eventId/unregister",
+  "/events/:eventId/registration",
   authenticate,
   id("eventId"),
   async (req, res) => {
     const registration = {
       eventId: req.ids.eventId,
-      steamId64: req.user!.steamId64,
+      userId: req.user!.userId,
     };
 
     await allOutService.deleteRegistrationAsync(registration);

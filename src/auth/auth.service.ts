@@ -1,4 +1,7 @@
-import { AppUser } from "@/types";
+import ctx from "@/db-context";
+import envConfig from "@/env-config";
+import steamUsers from "@/steam/steam-users";
+import { JwtUser } from "@/types";
 import jwt from "jsonwebtoken";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";
@@ -49,11 +52,11 @@ const steamAuthService = {
     return steamIdMatch[1];
   },
 
-  createToken(user: AppUser): string {
-    const config = getConfig();
-    return jwt.sign(user, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+  async getAuthResponseAsync(steamId64: string) {
+    const steamUser = await steamUsers.getUserAsync(steamId64);
+    const role = await getUserRoleAsync(user.steamId64);
+    const token = authService.createToken({ userId: user });
+    const authResp: authResponse = { token, role, user };
   },
 };
 
@@ -61,8 +64,25 @@ export default steamAuthService;
 
 function getConfig() {
   return {
-    returnUrl: process.env.API_URL + "/steam-auth/callback",
-    jwtSecret: process.env.JWT_SECRET!,
-    jwtExpiresIn: (process.env.JWT_EXPIRES_IN ?? "1h") as NonNullable<jwt.SignOptions["expiresIn"]>,
+    returnUrl: envConfig.API_URL + "/steam-auth/callback",
+    jwtSecret: envConfig.JWT_SECRET,
+    jwtExpiresIn: envConfig.JWT_EXPIRES_IN as NonNullable<jwt.SignOptions["expiresIn"]>,
   };
+}
+
+function createToken(user: JwtUser) {
+  const config = getConfig();
+  return jwt.sign(user, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn,
+  });
+}
+
+function getUser(steamId64: string) {
+  let user = await ctx.users.findOne({ steamId64 })
+    if (!user) {
+      user = ctx.users.create({
+        steamId64,
+
+      })
+    }
 }

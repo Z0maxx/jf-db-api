@@ -1,4 +1,4 @@
-import { EntityManager, EntityRepository, MikroORM } from "@mikro-orm/sql";
+import { MikroORM } from "@mikro-orm/sql";
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { AllOutParticipant } from "./db-entities/AllOutParticipant";
 import { AllOutStage1Map } from "./db-entities/AllOutStage1Map";
@@ -8,16 +8,39 @@ import { AllOutStage2LeaderboardItem } from "./db-entities/AllOutStage2Leaderboa
 import { AllOutStage3LeaderboardItem } from "./db-entities/AllOutStage3LeaderboardItem";
 import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
 import mikroOrmConfig from "./mikro-orm.config";
-import { Admin } from "./db-entities/Admin";
+import { User } from "./db-entities/User";
+import { UserDivision } from "./db-entities/UserDivision";
+import { AllOutParticipantDivision } from "./db-entities/AllOutParticipantDivision";
+import { Role } from "./db-entities/Role";
+import { RoleClaim } from "./db-entities/RoleClaim";
+import { Claim } from "./db-entities/Claim";
 
+const orm: MikroORM = null!;
 const ctx = {
+  orm,
   get em() {
     return this.orm.em;
+  },
+  get users() {
+    return this.em.getRepository(User);
+  },
+  get userDivisions() {
+    return this.em.getRepository(UserDivision);
+  },
+  get roles() {
+    return this.em.getRepository(Role)
+  },
+  get claims() {
+    return this.em.getRepository(Claim)
+  },
+  get roleClaims() {
+    return this.em.getRepository(RoleClaim)
   },
   get allOut() {
     return {
       events: this.em.getRepository(AllOutEvent),
       participants: this.em.getRepository(AllOutParticipant),
+      participantDivisions: this.em.getRepository(AllOutParticipantDivision),
       stage1Maps: this.em.getRepository(AllOutStage1Map),
       stage1Leaderboard: this.em.getRepository(AllOutStage1LeaderboardItem),
       stage2Maps: this.em.getRepository(AllOutStage2Map),
@@ -26,36 +49,45 @@ const ctx = {
       stage3Leaderboard: this.em.getRepository(AllOutStage3LeaderboardItem),
     };
   },
-  get admins() {
-    return this.em.getRepository(Admin);
-  },
   saveAsync() {
     return this.em.flush();
   },
-} as {
-  orm: MikroORM;
-  allOut: {
-    events: EntityRepository<AllOutEvent>;
-    participants: EntityRepository<AllOutParticipant>;
-    stage1Maps: EntityRepository<AllOutStage1Map>;
-    stage1Leaderboard: EntityRepository<AllOutStage1LeaderboardItem>;
-    stage2Maps: EntityRepository<AllOutStage2Map>;
-    stage2Leaderboard: EntityRepository<AllOutStage2LeaderboardItem>;
-    stage3Maps: EntityRepository<AllOutStage3Map>;
-    stage3Leaderboard: EntityRepository<AllOutStage3LeaderboardItem>;
-  };
-  admins: EntityRepository<Admin>;
-  em: EntityManager;
-  saveAsync(): Promise<void>;
 };
+
+export default ctx;
 
 export async function initCtx() {
   if (ctx.orm) {
-    return
+    return;
   }
 
-  const orm = await MikroORM.init(mikroOrmConfig);
-  ctx.orm = orm;
+  ctx.orm = await MikroORM.init(mikroOrmConfig);
+  await seedAsync()
 }
 
-export default ctx;
+async function seedAsync() {
+  let claims: Claim[] = await ctx.claims.findAll()
+  if (claims.length === 0) {
+    const claimNames = [
+      'manage roles',
+      'manage users',
+      'manage divisions',
+      'manage events'
+    ]
+
+    claimNames
+      .map(name => ({ name }))
+      .forEach(claim => ctx.claims.create(claim))
+  }
+
+  if (await ctx.roles.find({ name: 'user' })) {
+    claims.push(ctx.roles.create({ level: 9999, name: 'user' }))
+  }
+
+  if (await ctx.roles.find({ name: 'head admin' })) {
+    const headAdminRole = ctx.roles.create({ level: 0, name: 'head admin' })
+    claims.forEach(claim => ctx.roleClaims.create({ role: headAdminRole, claim }))
+  }
+
+
+}

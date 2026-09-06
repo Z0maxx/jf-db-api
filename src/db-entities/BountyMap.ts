@@ -1,6 +1,6 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
-import { BountyCompletion } from "./BountyCompletion";
-import { BountyPrize } from "./BountyPrize";
+import { BaseEntity, Collection, type Ref, defineEntity, p } from '@mikro-orm/core';
+import { BountyCompletion } from './BountyCompletion';
+import { BountyPrize } from './BountyPrize';
 
 export class BountyMap extends BaseEntity {
   id!: number;
@@ -11,17 +11,11 @@ export class BountyMap extends BaseEntity {
 
 export const BountyMapSchema = defineEntity({
   class: BountyMap,
-  checks: [{ name: "name", expression: "char_length(`name`) > 0" }],
+  checks: [{ name: 'chk_bounty_map_name', expression: 'char_length(`name`) > 0' }],
   properties: {
     id: p.integer().primary(),
     name: p.string().length(50),
-    prize: () =>
-      p
-        .manyToOne(BountyPrize)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("restrict")
-        .index("idx_bounty_map"),
-    bountyCompletionCollection: () => p.oneToMany(BountyCompletion).mappedBy("map"),
+    prize: () => p.manyToOne(BountyPrize).ref().updateRule('restrict').deleteRule('cascade').index('idx_bounty_map'),
+    bountyCompletionCollection: () => p.oneToMany(BountyCompletion).mappedBy('map'),
   },
 });

@@ -1,6 +1,6 @@
-import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
-import { MonthlyMap } from "./MonthlyMap";
-import { MonthlyParticipant } from "./MonthlyParticipant";
+import { BaseEntity, Collection, defineEntity, p } from '@mikro-orm/core';
+import { MonthlyMap } from './MonthlyMap';
+import { MonthlyParticipant } from './MonthlyParticipant';
 
 export class MonthlyEvent extends BaseEntity {
   id!: number;
@@ -18,7 +18,7 @@ export const MonthlyEventSchema = defineEntity({
     description: p.text().length(65535),
     start: p.datetime(),
     end: p.datetime(),
-    monthlyMapCollection: () => p.oneToMany(MonthlyMap).mappedBy("event"),
-    monthlyParticipantCollection: () => p.oneToMany(MonthlyParticipant).mappedBy("event"),
+    monthlyMapCollection: () => p.oneToMany(MonthlyMap).mappedBy('event'),
+    monthlyParticipantCollection: () => p.oneToMany(MonthlyParticipant).mappedBy('event'),
   },
 });

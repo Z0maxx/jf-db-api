@@ -1,11 +1,4 @@
-import {
-  CreateAllOutEvent,
-  CreateEventMap,
-  CreateTimeLimitedEventMap,
-  LeaderboardQuery,
-  Registration,
-  UpdateAllOutEvent,
-} from "@/types";
+import { CreateAllOutEvent, LeaderboardQuery, Registration, UpdateAllOutEvent } from "@/types";
 import allOutRepository from "./all-out.repository";
 import {
   EventNotFoundError,
@@ -83,8 +76,6 @@ function checkTimes(event: CreateAllOutEvent | UpdateAllOutEvent) {
       { name: `Stage ${idx + 1} end time`, time: stage.end },
     ])
     .flat();
-
-  console.log(order);
 
   for (let i = 0; i < order.length - 1; i++) {
     const before = order.slice(i + 1).find((other) => other.time < order[i].time);

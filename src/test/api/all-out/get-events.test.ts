@@ -4,9 +4,10 @@ import ctx, { initCtx } from "@/db-context";
 import { AllOutEvent } from "@/db-entities/AllOutEvent";
 import { it, describe, before, after } from "node:test";
 import assert from "node:assert";
+import { EntityManager } from "@mikro-orm/core";
+import { AllOutEventPreview } from "@/types";
 
 const testEvent = {
-  id: 10,
   description: "test description",
   stage1Start: new Date("2030-01-01 10:00"),
   stage1End: new Date("2030-01-01 16:00"),
@@ -19,29 +20,34 @@ const testEvent = {
   stage3Description: "test stage 3 description",
 };
 
+const eventsToDelete: AllOutEvent[] = [];
+let em: EntityManager = null!;
 describe("GET /all-out/events", () => {
   before(async () => {
     await initCtx();
-    const em = ctx.em.fork();
-    await em.upsert(AllOutEvent, testEvent);
-  });
-
-  it("returns event previews", async () => {
-    const res = await request(app).get("/all-out/events");
-    assert.equal(res.statusCode, 200);
-    const event = (res.body as any[]).find((e) => e.id === testEvent.id);
-    assert.notEqual(event, null);
-    assert.deepEqual(event, {
-      id: testEvent.id,
-      start: testEvent.stage1Start.toISOString(),
-      end: testEvent.stage3End.toISOString(),
-    });
+    em = ctx.em.fork();
   });
 
   after(async () => {
-    const em = ctx.em.fork();
-    em.remove(await em.findOneOrFail(AllOutEvent, { id: testEvent.id }));
+    eventsToDelete.forEach((e) => em.remove(e));
     await em.flush();
     await ctx.orm.close(true);
+  });
+
+  it("returns event previews", async () => {
+    const event = em.create(AllOutEvent, testEvent);
+    eventsToDelete.push(event);
+    await em.flush();
+
+    const res = await request(app).get("/all-out/events");
+
+    assert(res.ok);
+    const returnedEvent = (res.body as AllOutEventPreview[]).find((e) => e.id === event.id);
+    assert.notEqual(returnedEvent, null);
+    assert.deepStrictEqual(returnedEvent, {
+      id: event.id,
+      start: testEvent.stage1Start.toISOString(),
+      end: testEvent.stage3End.toISOString(),
+    });
   });
 });

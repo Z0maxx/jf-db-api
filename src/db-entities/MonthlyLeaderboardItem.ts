@@ -1,40 +1,26 @@
-import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
-import { MonthlyMap } from "./MonthlyMap";
+import { BaseEntity, type Ref, defineEntity, p } from '@mikro-orm/core';
+import { MonthlyMap } from './MonthlyMap';
+import { MonthlyParticipant } from './MonthlyParticipant';
 
 export class MonthlyLeaderboardItem extends BaseEntity {
   id!: number;
-  steamId64!: string;
   prTimestamp!: Date;
   prSeconds!: number;
+  participant!: Ref<MonthlyParticipant>;
   map!: Ref<MonthlyMap>;
 }
 
 export const MonthlyLeaderboardItemSchema = defineEntity({
   class: MonthlyLeaderboardItem,
-  tableName: "monthly_leaderboard",
-  checks: [
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
-    { name: "steam_id_64", expression: "char_length(`steam_id_64`) = 17" },
+  tableName: 'monthly_leaderboard',
+  uniques: [
+    { name: 'unq_monthly_leaderboard', properties: ['map', 'participant'] },
   ],
   properties: {
     id: p.integer().primary(),
-    steamId64: p.string().name("steam_id_64").length(17),
     prTimestamp: p.datetime(),
-    prSeconds: p.float().columnType("float unsigned").unsigned(),
-    map: () =>
-      p
-        .manyToOne(MonthlyMap)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("restrict")
-        .index("idx_monthly_leaderboard"),
+    prSeconds: p.float().columnType('float unsigned').unsigned(),
+    participant: () => p.manyToOne(MonthlyParticipant).ref().updateRule('restrict').deleteRule('cascade').index('fk_monthly_leaderboard_participant_id'),
+    map: () => p.manyToOne(MonthlyMap).ref().updateRule('restrict').deleteRule('cascade').index('idx_monthly_leaderboard'),
   },
 });

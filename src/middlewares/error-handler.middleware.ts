@@ -4,19 +4,19 @@ import { Request, Response, NextFunction } from "express";
 export function errorHandler(err: Error, _: Request, res: Response, __: NextFunction) {
   console.log(err);
   if (err instanceof NotFoundError) {
-    res.status(404).send(err.message);
+    res.status(404).json({ error: err.message });
     return;
   }
 
   if (err instanceof SteamFailedError) {
-    res.status(502).send(err.message);
+    res.status(502).json({ error: err.message });
     return;
   }
 
   if (err instanceof ValidationError) {
-    res.status(400).send(err.message);
+    res.status(400).json({ error: err.message });
     return;
   }
 
-  res.status(500).send("Something went wrong");
+  res.status(500).json({ error: "Something went wrong" });
 }

@@ -35,9 +35,9 @@ const allOutRepository = {
       { id: eventId },
       {
         populate: [
-          "allOutStage1MapCollection",
-          "allOutStage2MapCollection",
-          "allOutStage3MapCollection",
+          "allOutStage1MapCollection.division.name",
+          "allOutStage2MapCollection.division.name",
+          "allOutStage3MapCollection.division.name",
         ],
       },
     );
@@ -52,6 +52,7 @@ const allOutRepository = {
         maps: event.allOutStage1MapCollection.getItems().map((m) => ({
           id: m.id,
           name: m.name,
+          division: m.division.getEntity().name,
           timeLimit: m.timeLimit,
         })),
       },
@@ -62,6 +63,7 @@ const allOutRepository = {
         maps: event.allOutStage2MapCollection.getItems().map((m) => ({
           id: m.id,
           name: m.name,
+          division: m.division.getEntity().name,
         })),
       },
       stage3: {
@@ -71,52 +73,63 @@ const allOutRepository = {
         maps: event.allOutStage3MapCollection.getItems().map((m) => ({
           id: m.id,
           name: m.name,
+          division: m.division.getEntity().name,
         })),
       },
     };
   },
 
   async getAllEventParticipantsAsync(eventId: number): Promise<SteamUser[]> {
-    const participants = await ctx.allOut.participants.find({ event: eventId });
-    return await steamUsers.getUsersAsync(participants.map((p) => p.steamId64));
+    const participants = await ctx.allOut.participants.find(
+      { event: eventId },
+      { populate: ["user"] },
+    );
+    return await steamUsers.getUsersAsync(participants.map((p) => p.user.$.steamId64));
   },
 
   async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
-    const filter = getLeaderboardFilter(query);
+    const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage1Leaderboard.findAndCount(filter.query, filter.options);
-    console.log(items);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.steamId64));
+    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
     return items.map((i) => ({
       id: i.id,
-      user: users.find((u) => u.steamId64 === u.steamId64)!,
-      prSeconds: i.prSeconds,
-      prTimestamp: i.prTimestamp,
+      user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
     }));
   },
 
   async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItem[]> {
-    const filter = getLeaderboardFilter(query);
+    const filter = getLeaderboardFilter(query, { lapCount: "DESC" });
     const [items] = await ctx.allOut.stage2Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.steamId64));
+    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
     return items.map((i) => ({
       id: i.id,
-      user: users.find((u) => u.steamId64 === u.steamId64)!,
-      prSeconds: i.prSeconds,
-      prTimestamp: i.prTimestamp,
-      lapCount: i.lapCount,
-      lastLapTimestamp: i.lastLapTimestamp,
+      user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
+      lap: {
+        count: i.lapCount,
+        lastTimestamp: i.lastLapTimestamp,
+      },
     }));
   },
 
   async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
-    const filter = getLeaderboardFilter(query);
+    const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage3Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.steamId64));
+    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
     return items.map((i) => ({
       id: i.id,
-      user: users.find((u) => u.steamId64 === u.steamId64)!,
-      prSeconds: i.prSeconds,
-      prTimestamp: i.prTimestamp,
+      user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
     }));
   },
 
@@ -138,7 +151,7 @@ const allOutRepository = {
 
   async registrationExistsAsync(registration: Registration): Promise<boolean> {
     return !!(await ctx.allOut.participants.findOne({
-      steamId64: registration.steamId64,
+      user: registration.userId,
       event: registration.eventId,
     }));
   },
@@ -169,15 +182,24 @@ const allOutRepository = {
     }
 
     const event = await ctx.allOut.events.findOneOrFail({ id: registration.eventId });
-    ctx.allOut.participants.create({ steamId64: registration.steamId64, event });
+    const participant = ctx.allOut.participants.create({ user: registration.userId, event });
+    const userDivisions = await ctx.userDivisions.find({ user: registration.userId });
+    userDivisions.forEach((ud) => {
+      ctx.allOut.participantDivisions.create({
+        participant,
+        division: ud.division,
+      });
+    });
+
     await ctx.saveAsync();
   },
 
   async deleteRegistrationAsync(registration: Registration): Promise<void> {
     const participant = await ctx.allOut.participants.findOneOrFail({
-      steamId64: registration.steamId64,
+      user: registration.userId,
       event: registration.eventId,
     });
+
     ctx.em.remove(participant);
     await ctx.saveAsync();
   },

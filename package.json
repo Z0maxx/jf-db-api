@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch '.src/**/*.ts' --exec tsx src/server.ts",
+    "dev": "nodemon --watch src --ext ts,json --ignore src/test --exec tsx src/server.ts",
     "format": "oxfmt src/",
     "test": "node --import tsx --test"
   },
