@@ -1,7 +1,7 @@
 import ctx from "@/db-context";
 import envConfig from "@/env-config";
 import steamUsers from "@/steam/steam-users";
-import { JwtUser } from "@/types";
+import { AppUser, AuthResponse, JwtUser } from "@/types";
 import jwt from "jsonwebtoken";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";
@@ -52,11 +52,13 @@ const steamAuthService = {
     return steamIdMatch[1];
   },
 
-  async getAuthResponseAsync(steamId64: string) {
-    const steamUser = await steamUsers.getUserAsync(steamId64);
-    const role = await getUserRoleAsync(user.steamId64);
-    const token = authService.createToken({ userId: user });
-    const authResp: authResponse = { token, role, user };
+  async getAuthResponseAsync(steamId64: string): Promise<AuthResponse> {
+    const user = await getUserAsync(steamId64);
+    const token = createToken({ id: user.id });
+    return {
+      token,
+      user,
+    };
   },
 };
 
@@ -64,7 +66,7 @@ export default steamAuthService;
 
 function getConfig() {
   return {
-    returnUrl: envConfig.API_URL + "/steam-auth/callback",
+    returnUrl: envConfig.API_URL + "/auth/callback",
     jwtSecret: envConfig.JWT_SECRET,
     jwtExpiresIn: envConfig.JWT_EXPIRES_IN as NonNullable<jwt.SignOptions["expiresIn"]>,
   };
@@ -77,12 +79,37 @@ function createToken(user: JwtUser) {
   });
 }
 
-function getUser(steamId64: string) {
-  let user = await ctx.users.findOne({ steamId64 })
-    if (!user) {
-      user = ctx.users.create({
-        steamId64,
-
-      })
+async function getUserAsync(steamId64: string): Promise<AppUser> {
+  const steamUser = await steamUsers.getUserAsync(steamId64);
+  const user = await ctx.users.findOne({ steamId64 }, { populate: ["role"] });
+  if (!user) {
+    const role = await ctx.roles.findOne({ name: "user" });
+    if (!role) {
+      throw new Error("User role must exist");
     }
+
+    const newUser = ctx.users.create({
+      steamId64,
+      tempusId: 0,
+      role,
+    });
+
+    await ctx.saveAsync();
+    return {
+      ...steamUser,
+      id: newUser.id,
+      tempusId: 0,
+      role: role.name,
+      claims: [],
+    };
+  }
+
+  const roleClaims = await ctx.roleClaims.find({ role: user.role.id }, { populate: ["claim"] });
+  return {
+    ...steamUser,
+    id: user.id,
+    tempusId: user.tempusId,
+    role: user.role.$.name,
+    claims: roleClaims.map((rc) => rc.claim.$.name),
+  };
 }

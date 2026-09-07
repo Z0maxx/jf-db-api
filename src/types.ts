@@ -6,6 +6,7 @@ import {
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
 } from "./schemas";
+import { TDivisionType } from "./db-entities/Division";
 
 export type GeneralEvent = {
   id: number;
@@ -26,7 +27,10 @@ export type SteamUser = {
 };
 
 export type AppUser = SteamUser & {
+  id: number;
   role: string;
+  tempusId: number;
+  claims: string[];
 };
 
 export type Participant = SteamUser & {
@@ -46,7 +50,6 @@ export type CreateTimeLimitedEventMap = z.infer<typeof CreateTimeLimitedEventMap
 export type EventMap = {
   id: number;
   name: string;
-  division: string;
 };
 
 export type TimeLimitedEventMap = EventMap & {
@@ -67,7 +70,9 @@ export type AllOutStage<TEventMap extends EventMap> = {
   description: string;
   start: Date;
   end: Date;
-  maps: TEventMap[];
+  maps: {
+    [K in TDivisionType]: TEventMap[];
+  };
 };
 
 export type AllOutEventDetails = {
@@ -114,11 +119,10 @@ export type Registration = {
 };
 
 export type JwtUser = {
-  userId: number;
+  id: number;
 };
 
 export type AuthResponse = {
   token: string;
   user: AppUser;
-  role: string;
 };

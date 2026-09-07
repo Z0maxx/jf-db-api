@@ -28,13 +28,13 @@ const ctx = {
     return this.em.getRepository(UserDivision);
   },
   get roles() {
-    return this.em.getRepository(Role)
+    return this.em.getRepository(Role);
   },
   get claims() {
-    return this.em.getRepository(Claim)
+    return this.em.getRepository(Claim);
   },
   get roleClaims() {
-    return this.em.getRepository(RoleClaim)
+    return this.em.getRepository(RoleClaim);
   },
   get allOut() {
     return {
@@ -62,32 +62,24 @@ export async function initCtx() {
   }
 
   ctx.orm = await MikroORM.init(mikroOrmConfig);
-  await seedAsync()
+  await seedAsync();
 }
 
 async function seedAsync() {
-  let claims: Claim[] = await ctx.claims.findAll()
+  ctx.orm.em = ctx.orm.em.fork();
+  let claims: Claim[] = await ctx.claims.findAll();
   if (claims.length === 0) {
-    const claimNames = [
-      'manage roles',
-      'manage users',
-      'manage divisions',
-      'manage events'
-    ]
+    const claimNames = ["manage roles", "manage users", "manage divisions", "manage events"];
 
-    claimNames
-      .map(name => ({ name }))
-      .forEach(claim => ctx.claims.create(claim))
+    claimNames.map((name) => ({ name })).forEach((claim) => ctx.claims.create(claim));
   }
 
-  if (await ctx.roles.find({ name: 'user' })) {
-    claims.push(ctx.roles.create({ level: 9999, name: 'user' }))
+  if (!(await ctx.roles.find({ name: "user" }))) {
+    ctx.roles.create({ level: 9999, name: "user" });
   }
 
-  if (await ctx.roles.find({ name: 'head admin' })) {
-    const headAdminRole = ctx.roles.create({ level: 0, name: 'head admin' })
-    claims.forEach(claim => ctx.roleClaims.create({ role: headAdminRole, claim }))
+  if (!(await ctx.roles.find({ name: "head admin" }))) {
+    const headAdminRole = ctx.roles.create({ level: 0, name: "head admin" });
+    claims.forEach((claim) => ctx.roleClaims.create({ role: headAdminRole, claim }));
   }
-
-
 }

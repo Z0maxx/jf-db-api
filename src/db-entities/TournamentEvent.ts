@@ -1,6 +1,6 @@
-import { BaseEntity, Collection, defineEntity, p } from '@mikro-orm/core';
-import { TournamentMap } from './TournamentMap';
-import { TournamentParticipant } from './TournamentParticipant';
+import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
+import { TournamentMap } from "./TournamentMap";
+import { TournamentParticipant } from "./TournamentParticipant";
 
 export class TournamentEvent extends BaseEntity {
   id!: number;
@@ -18,7 +18,7 @@ export const TournamentEventSchema = defineEntity({
     description: p.text().length(65535),
     start: p.datetime(),
     end: p.datetime(),
-    tournamentMapCollection: () => p.oneToMany(TournamentMap).mappedBy('event'),
-    tournamentParticipantCollection: () => p.oneToMany(TournamentParticipant).mappedBy('event'),
+    tournamentMapCollection: () => p.oneToMany(TournamentMap).mappedBy("event"),
+    tournamentParticipantCollection: () => p.oneToMany(TournamentParticipant).mappedBy("event"),
   },
 });

@@ -29,7 +29,7 @@ allOutRouter.get("/events/:eventId/participants", id("eventId"), async (req, res
 allOutRouter.get("/events/:eventId/registration", authenticate, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
-    userId: req.user!.userId,
+    userId: req.user!.id,
   };
 
   res.status(200).json({ isRegistered: await allOutService.registrationExistsAsync(registration) });
@@ -72,7 +72,7 @@ allOutRouter.post(
   async (req, res) => {
     const registration = {
       eventId: req.ids.eventId,
-      userId: req.user!.userId,
+      userId: req.user!.id,
     };
 
     await allOutService.registerAsync(registration);
@@ -99,7 +99,7 @@ allOutRouter.delete(
   async (req, res) => {
     const registration = {
       eventId: req.ids.eventId,
-      userId: req.user!.userId,
+      userId: req.user!.id,
     };
 
     await allOutService.deleteRegistrationAsync(registration);

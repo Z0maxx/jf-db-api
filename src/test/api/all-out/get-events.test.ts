@@ -4,7 +4,6 @@ import ctx, { initCtx } from "@/db-context";
 import { AllOutEvent } from "@/db-entities/AllOutEvent";
 import { it, describe, before, after } from "node:test";
 import assert from "node:assert";
-import { EntityManager } from "@mikro-orm/core";
 import { AllOutEventPreview } from "@/types";
 
 const testEvent = {
@@ -21,23 +20,22 @@ const testEvent = {
 };
 
 const eventsToDelete: AllOutEvent[] = [];
-let em: EntityManager = null!;
 describe("GET /all-out/events", () => {
   before(async () => {
     await initCtx();
-    em = ctx.em.fork();
+    ctx.orm.em = ctx.em.fork();
   });
 
   after(async () => {
-    eventsToDelete.forEach((e) => em.remove(e));
-    await em.flush();
+    eventsToDelete.forEach((e) => ctx.em.remove(e));
+    await ctx.saveAsync();
     await ctx.orm.close(true);
   });
 
   it("returns event previews", async () => {
-    const event = em.create(AllOutEvent, testEvent);
+    const event = ctx.allOut.events.create(testEvent);
     eventsToDelete.push(event);
-    await em.flush();
+    await ctx.saveAsync();
 
     const res = await request(app).get("/all-out/events");
 

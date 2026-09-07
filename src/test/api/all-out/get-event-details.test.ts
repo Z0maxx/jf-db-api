@@ -23,6 +23,10 @@ const testEvent = {
   stage3Description: "test stage 3 description",
 };
 
+const testDivision = {
+  name: "",
+};
+
 const testStage1Map = {
   name: "jump_stage_1_map",
   timeLimit: 10,
@@ -37,27 +41,26 @@ const testStage3Map = {
 };
 
 const eventsToDelete: AllOutEvent[] = [];
-let em: EntityManager = null!;
 describe("GET /all-out/events/:eventId", () => {
   before(async () => {
     await initCtx();
-    em = ctx.em.fork();
+    ctx.orm.em = ctx.em.fork();
   });
 
   after(async () => {
-    eventsToDelete.forEach((e) => em.remove(e));
-    await em.flush();
+    eventsToDelete.forEach((e) => ctx.em.remove(e));
+    await ctx.saveAsync();
     await ctx.orm.close(true);
   });
 
   it("returns event details", async () => {
-    const event = em.create(AllOutEvent, testEvent);
+    const event = ctx.allOut.events.create(testEvent);
     eventsToDelete.push(event);
-    const stage1Map = em.create(AllOutStage1Map, {
+    const stage1Map = ctx.allOut.stage1Maps.create({
       ...testStage1Map,
       event,
     });
-    const stage2Map = em.create(AllOutStage2Map, {
+    const stage2Map = ctx.allOut.stage1Maps.create({
       ...testStage2Map,
       event,
     });
@@ -72,7 +75,7 @@ describe("GET /all-out/events/:eventId", () => {
     assert(res.ok);
     assert.deepStrictEqual(res.body, {
       id: event.id,
-      description: testEvent.description,
+      description: event.description,
       stage1: {
         description: testEvent.stage1Description,
         start: testEvent.stage1Start.toISOString(),

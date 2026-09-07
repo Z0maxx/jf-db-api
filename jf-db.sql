@@ -43,6 +43,7 @@ CREATE TABLE division (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(30) NOT NULL,
   color VARCHAR(6) NOT NULL,
+  type ENUM('soldier', 'demoman') NOT NULL,
   CONSTRAINT chk_division_name
     CHECK (CHAR_LENGTH(name) > 0),
   CONSTRAINT chk_division_color

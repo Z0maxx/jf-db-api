@@ -2,6 +2,7 @@ import ctx from "@/db-context";
 import { AllOutStage1Map } from "@/db-entities/AllOutStage1Map";
 import { AllOutStage2Map } from "@/db-entities/AllOutStage2Map";
 import { AllOutStage3Map } from "@/db-entities/AllOutStage3Map";
+import { TDivisionType } from "@/db-entities/Division";
 import { getLeaderboardFilter } from "@/mikro-filters";
 import steamUsers from "@/steam/steam-users";
 import {
@@ -17,7 +18,8 @@ import {
   SteamUser,
   UpdateAllOutEvent,
 } from "@/types";
-import { EntityClass, wrap } from "@mikro-orm/core";
+import { getDivisionMaps } from "@/util";
+import { Collection, EntityClass, Loaded, wrap } from "@mikro-orm/core";
 
 const allOutRepository = {
   async getAllEventPreviewsAsync(): Promise<AllOutEventPreview[]> {
@@ -35,12 +37,28 @@ const allOutRepository = {
       { id: eventId },
       {
         populate: [
-          "allOutStage1MapCollection.division.name",
-          "allOutStage2MapCollection.division.name",
-          "allOutStage3MapCollection.division.name",
+          "allOutStage1MapCollection.division",
+          "allOutStage2MapCollection.division",
+          "allOutStage3MapCollection.division",
         ],
       },
     );
+
+    const stage1Maps = getDivisionMaps(event.allOutStage1MapCollection, (map) => ({
+      id: map.id,
+      name: map.name,
+      timeLimit: map.timeLimit,
+    }));
+
+    const stage2Maps = getDivisionMaps(event.allOutStage2MapCollection, (map) => ({
+      id: map.id,
+      name: map.name,
+    }));
+
+    const stage3Maps = getDivisionMaps(event.allOutStage3MapCollection, (map) => ({
+      id: map.id,
+      name: map.name,
+    }));
 
     return {
       id: event.id,
@@ -49,32 +67,19 @@ const allOutRepository = {
         description: event.stage1Description,
         start: event.stage1Start,
         end: event.stage1End,
-        maps: event.allOutStage1MapCollection.getItems().map((m) => ({
-          id: m.id,
-          name: m.name,
-          division: m.division.getEntity().name,
-          timeLimit: m.timeLimit,
-        })),
+        maps: stage1Maps,
       },
       stage2: {
         description: event.stage2Description,
         start: event.stage2Start,
         end: event.stage2End,
-        maps: event.allOutStage2MapCollection.getItems().map((m) => ({
-          id: m.id,
-          name: m.name,
-          division: m.division.getEntity().name,
-        })),
+        maps: stage2Maps,
       },
       stage3: {
         description: event.stage3Description,
         start: event.stage3Start,
         end: event.stage3End,
-        maps: event.allOutStage3MapCollection.getItems().map((m) => ({
-          id: m.id,
-          name: m.name,
-          division: m.division.getEntity().name,
-        })),
+        maps: stage3Maps,
       },
     };
   },
@@ -90,7 +95,9 @@ const allOutRepository = {
   async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
     const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage1Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
     return items.map((i) => ({
       id: i.id,
       user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
@@ -104,7 +111,9 @@ const allOutRepository = {
   async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItem[]> {
     const filter = getLeaderboardFilter(query, { lapCount: "DESC" });
     const [items] = await ctx.allOut.stage2Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
     return items.map((i) => ({
       id: i.id,
       user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
@@ -122,7 +131,9 @@ const allOutRepository = {
   async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
     const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage3Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(items.map((i) => i.participant.$.user.$.steamId64));
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
     return items.map((i) => ({
       id: i.id,
       user: users.find((u) => i.participant.$.user.$.steamId64 === u.steamId64)!,
