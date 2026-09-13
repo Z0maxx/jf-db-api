@@ -1,68 +1,76 @@
-import app from "@/app";
+import { app } from "@/app";
 import request from "supertest";
-import ctx, { initCtx } from "@/db-context";
-import { AllOutEvent } from "@/db-entities/AllOutEvent";
+import { ctx } from "@/db-context";
 import { it, describe, before, after } from "node:test";
 import assert from "node:assert";
-import { AllOutParticipant } from "@/db-entities/AllOutParticipant";
-import { EntityManager } from "@mikro-orm/core";
 import { EventNotFoundError } from "@/errors";
+import { testDemomanDivision, testSoldierDivision, testUser1, testUser2 } from "../test-entities";
+import {
+  testAllOutEvent,
+  testAllOutParticipant1,
+  testAllOutParticipant2,
+} from "./test-all-out-entities";
+import { initAllOutTestsAsync } from "./all-out-util";
 
-const testEvent = {
-  description: "test description",
-  stage1Start: new Date("2030-01-01 10:00"),
-  stage1End: new Date("2030-01-01 16:00"),
-  stage2Start: new Date("2030-01-02 10:00"),
-  stage2End: new Date("2030-01-02 16:00"),
-  stage3Start: new Date("2030-01-03 10:00"),
-  stage3End: new Date("2030-01-03 16:00"),
-  stage1Description: "test stage 1 description",
-  stage2Description: "test stage 2 description",
-  stage3Description: "test stage 3 description",
-};
-
-const testParticipant = {
-  steamId64: "76561198138925802",
-  division: "bronze soldier",
-};
-
-const eventsToDelete: AllOutEvent[] = [];
-let em: EntityManager = null!;
 describe("GET /all-out/event/:eventId/participants", () => {
   before(async () => {
-    await initCtx();
-    em = ctx.em.fork();
+    await initAllOutTestsAsync();
   });
 
   after(async () => {
-    eventsToDelete.forEach((e) => em.remove(e));
-    await em.flush();
     await ctx.orm.close(true);
   });
 
   it("returns event participants", async () => {
-    const event = em.create(AllOutEvent, testEvent);
-    eventsToDelete.push(event);
-    em.create(AllOutParticipant, {
-      ...testParticipant,
-      event,
-    });
-    await em.flush();
-
-    const res = await request(app).get(`/all-out/events/${event.id}/participants`);
+    const res = await request(app).get(`/all-out/events/${testAllOutEvent.id}/participants`);
 
     assert(res.ok);
     assert.notEqual(res.body, null);
-    assert.equal(res.body.length, 1);
-    const steamUser = res.body[0];
-    assert.deepStrictEqual(Object.keys(steamUser), ["steamId64", "name", "avatar"]);
-    assert.equal(steamUser.steamId64, testParticipant.steamId64);
+    assert.equal(res.body.length, 2);
+    assert.partialDeepStrictEqual(res.body, [
+      {
+        id: testAllOutParticipant1.id,
+        steamId64: testUser1.steamId64,
+        divisions: [
+          {
+            type: testSoldierDivision.type,
+            color: testSoldierDivision.color,
+            name: testSoldierDivision.name,
+          },
+          {
+            type: testDemomanDivision.type,
+            color: testDemomanDivision.color,
+            name: testDemomanDivision.name,
+          },
+        ],
+      },
+      {
+        id: testAllOutParticipant2.id,
+        steamId64: testUser2.steamId64,
+        divisions: [
+          {
+            type: testSoldierDivision.type,
+            color: testSoldierDivision.color,
+            name: testSoldierDivision.name,
+          },
+          {
+            type: testDemomanDivision.type,
+            color: testDemomanDivision.color,
+            name: testDemomanDivision.name,
+          },
+        ],
+      },
+    ]);
+    assert.partialDeepStrictEqual(Object.keys(res.body[0]), ["name", "avatar"]);
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await request(app).get(`/all-out/events/${100_000}/participants`);
+    const res = await request(app).get(`/all-out/events/200000/participants`);
 
     assert.equal(res.statusCode, 404);
-    assert.equal(res.body.error, new EventNotFoundError(100_000).message);
+    assert.deepStrictEqual(res.body, {
+      errorCode: "EventNotFoundError",
+      errorMessage: new EventNotFoundError(200_000).message,
+    });
   });
 });

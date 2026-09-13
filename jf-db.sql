@@ -49,7 +49,7 @@ CREATE TABLE division (
   CONSTRAINT chk_division_color
     CHECK (CHAR_LENGTH(color) = 6),
   CONSTRAINT unq_division
-    UNIQUE (name)
+    UNIQUE (name, type)
 );
 
 CREATE TABLE user (
@@ -356,7 +356,11 @@ ALTER TABLE monthly_participant_division ADD INDEX idx_monthly_participant_divis
 CREATE TABLE monthly_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL,
+  division_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
+  CONSTRAINT fk_monthly_map_divison_id
+    FOREIGN KEY (division_id)
+    REFERENCES division(id),
   CONSTRAINT fk_monthly_map_event_id
     FOREIGN KEY (event_id)
     REFERENCES monthly_event(id)
@@ -389,6 +393,7 @@ ALTER TABLE monthly_leaderboard ADD INDEX idx_monthly_leaderboard (map_id);
 
 CREATE TABLE tournament_event (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('soldier', 'demoman') NOT NULL,
   description TEXT NOT NULL,
   start DATETIME NOT NULL,
   end DATETIME NOT NULL

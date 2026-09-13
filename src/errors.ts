@@ -21,15 +21,6 @@ export class MapNotFoundError extends NotFoundError {
   }
 }
 
-export class RegistrationNotFoundError extends NotFoundError {
-  constructor(registration: Registration) {
-    super(
-      `Registration for user '${registration.userId}' not found for event with id '${registration.eventId}'`,
-    );
-    this.name = "RegistrationNotFoundError";
-  }
-}
-
 export class SteamUsersNotFoundError extends NotFoundError {
   constructor(steamId64s: string[]) {
     const idsStr = `'${steamId64s.join("' '")}'`;
@@ -38,10 +29,27 @@ export class SteamUsersNotFoundError extends NotFoundError {
   }
 }
 
+export class DivisionsNotFoundError extends NotFoundError {
+  constructor(divisionIds: number[]) {
+    const idsStr = `'${divisionIds.join("' '")}'`;
+    super(`Divisions with ids ${idsStr} not found`);
+    this.name = "DivisionsNotFoundError";
+  }
+}
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ValidationError";
+  }
+}
+
+export class CannotRegisterError extends Error {
+  constructor(registration: Registration) {
+    super(
+      `User with id '${registration.userId}' cannot register to event with id '${registration.eventId}'`,
+    );
+    this.name = "CannotRegisterError";
   }
 }
 

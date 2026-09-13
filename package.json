@@ -29,7 +29,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts,json --ignore src/test --exec tsx src/server.ts",
     "format": "oxfmt src/",
-    "test": "node --import tsx --test"
+    "test": "node --import tsx --test \"src/test/**/*.test.ts\""
   },
   "imports": {
     "#/*": "./src/*"

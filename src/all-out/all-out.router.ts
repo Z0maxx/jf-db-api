@@ -4,15 +4,15 @@ import {
   UpdateAllOutEventSchema,
 } from "@/schemas";
 import express from "express";
-import allOutService from "./all-out.service";
-import allOutRepository from "./all-out.repository";
+import { allOutService } from "./all-out.service";
+import { allOutRepository } from "./all-out.repository";
 import { id } from "@/middlewares/id.middleware";
-import { authenticate } from "@/middlewares/authenticate.middleware";
+import { loggedIn } from "@/middlewares/logged-in.middleware";
 import { leaderboardQuery } from "@/middlewares/leaderboard-query.middleware";
-import { admin } from "@/middlewares/admin.middleware";
 import { bodySchema } from "@/middlewares/body-schema.middleware";
+import { userCan } from "@/middlewares/user-can.middleware";
 
-const allOutRouter = express.Router();
+export const allOutRouter = express.Router();
 
 allOutRouter.get("/events", async (_, res) => {
   res.status(200).json(await allOutRepository.getAllEventPreviewsAsync());
@@ -26,7 +26,7 @@ allOutRouter.get("/events/:eventId/participants", id("eventId"), async (req, res
   res.status(200).json(await allOutService.getAllEventParticipantsAsync(req.ids.eventId));
 });
 
-allOutRouter.get("/events/:eventId/registration", authenticate, id("eventId"), async (req, res) => {
+allOutRouter.get("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
     userId: req.user!.id,
@@ -55,8 +55,8 @@ allOutRouter.get("/leaderboard/stage-3", leaderboardQuery, async (req, res) => {
 
 allOutRouter.post(
   "/events",
-  authenticate,
-  admin,
+  loggedIn,
+  userCan("manage events"),
   bodySchema(CreateAllOutEventSchema),
   async (req, res) => {
     res
@@ -65,25 +65,20 @@ allOutRouter.post(
   },
 );
 
-allOutRouter.post(
-  "/events/:eventId/registration",
-  authenticate,
-  id("eventId"),
-  async (req, res) => {
-    const registration = {
-      eventId: req.ids.eventId,
-      userId: req.user!.id,
-    };
+allOutRouter.post("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
+  const registration = {
+    eventId: req.ids.eventId,
+    userId: req.user!.id,
+  };
 
-    await allOutService.registerAsync(registration);
-    res.status(204).send();
-  },
-);
+  await allOutService.registerAsync(registration);
+  res.status(204).send();
+});
 
 allOutRouter.put(
   "/events",
-  authenticate,
-  admin,
+  loggedIn,
+  userCan("manage events"),
   bodySchema(UpdateAllOutEventSchema),
   async (req, res) => {
     res
@@ -92,24 +87,23 @@ allOutRouter.put(
   },
 );
 
-allOutRouter.delete(
-  "/events/:eventId/registration",
-  authenticate,
-  id("eventId"),
-  async (req, res) => {
-    const registration = {
-      eventId: req.ids.eventId,
-      userId: req.user!.id,
-    };
+allOutRouter.delete("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
+  const registration = {
+    eventId: req.ids.eventId,
+    userId: req.user!.id,
+  };
 
-    await allOutService.deleteRegistrationAsync(registration);
-    res.status(204).send();
-  },
-);
-
-allOutRouter.delete("/events/:eventId", authenticate, admin, id("eventId"), async (req, res) => {
-  await allOutService.deleteEventAsync(req.ids.eventId);
+  await allOutService.deleteRegistrationAsync(registration);
   res.status(204).send();
 });
 
-export default allOutRouter;
+allOutRouter.delete(
+  "/events/:eventId",
+  loggedIn,
+  userCan("manage events"),
+  id("eventId"),
+  async (req, res) => {
+    await allOutService.deleteEventAsync(req.ids.eventId);
+    res.status(204).send();
+  },
+);

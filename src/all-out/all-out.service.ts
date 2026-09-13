@@ -1,13 +1,15 @@
 import { CreateAllOutEvent, LeaderboardQuery, Registration, UpdateAllOutEvent } from "@/types";
-import allOutRepository from "./all-out.repository";
+import { allOutRepository } from "./all-out.repository";
 import {
+  CannotRegisterError,
+  DivisionsNotFoundError,
   EventNotFoundError,
   MapNotFoundError,
-  RegistrationNotFoundError,
   ValidationError,
 } from "@/errors";
+import { ctx } from "@/db-context";
 
-const allOutService = {
+export const allOutService = {
   async getEventDetailsAsync(eventId: number) {
     await checkEventExistsAsync(eventId);
     return await allOutRepository.getEventDetailsAsync(eventId);
@@ -45,18 +47,19 @@ const allOutService = {
 
   async updateEventAsync(event: UpdateAllOutEvent) {
     await checkEventExistsAsync(event.id);
+    await checkDivisionsExistAsync(event);
     checkTimes(event);
     return await allOutRepository.updateEventAsync(event);
   },
 
   async registerAsync(registration: Registration) {
     await checkEventExistsAsync(registration.eventId);
+    await checkUserCanRegisterAsync(registration);
     await allOutRepository.registerAsync(registration);
   },
 
   async deleteRegistrationAsync(registration: Registration) {
     await checkEventExistsAsync(registration.eventId);
-    await checkRegistrationExistsAsync(registration);
     await allOutRepository.deleteRegistrationAsync(registration);
   },
 
@@ -65,8 +68,6 @@ const allOutService = {
     await allOutRepository.deleteEventAsync(eventId);
   },
 };
-
-export default allOutService;
 
 function checkTimes(event: CreateAllOutEvent | UpdateAllOutEvent) {
   const { stage1, stage2, stage3 } = event;
@@ -91,6 +92,12 @@ async function checkEventExistsAsync(eventId: number) {
   }
 }
 
+async function checkUserCanRegisterAsync(registration: Registration) {
+  if (!(await allOutRepository.canUserRegister(registration))) {
+    throw new CannotRegisterError(registration);
+  }
+}
+
 async function checkStage1MapExistsAsync(mapId: number) {
   if (!(await allOutRepository.stage1MapExistsAsync(mapId))) {
     throw new MapNotFoundError(mapId);
@@ -109,8 +116,19 @@ async function checkStage3MapExistsAsync(mapId: number) {
   }
 }
 
-async function checkRegistrationExistsAsync(registration: Registration) {
-  if (!(await allOutRepository.registrationExistsAsync(registration))) {
-    throw new RegistrationNotFoundError(registration);
+async function checkDivisionsExistAsync(event: CreateAllOutEvent | UpdateAllOutEvent) {
+  const divisionIds = Array.from(
+    new Set([
+      ...event.stage1.maps.map((m) => m.divisionId),
+      ...event.stage2.maps.map((m) => m.divisionId),
+      ...event.stage3.maps.map((m) => m.divisionId),
+    ]),
+  );
+
+  const exisitingDivisions = await ctx.divisions.find({ id: { $in: divisionIds } });
+  if (exisitingDivisions.length !== divisionIds.length) {
+    throw new DivisionsNotFoundError(
+      divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
+    );
   }
 }

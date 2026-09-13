@@ -1,12 +1,12 @@
-import ctx from "@/db-context";
-import envConfig from "@/env-config";
-import steamUsers from "@/steam/steam-users";
-import { AppUser, AuthResponse, JwtUser } from "@/types";
+import { ctx } from "@/db-context";
+import { envConfig } from "@/env-config";
+import { steamUsers } from "@/steam/steam-users";
+import { AppUser, AuthResponse, JwtUser, SteamUser } from "@/types";
 import jwt from "jsonwebtoken";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";
 
-const steamAuthService = {
+export const authService = {
   getLoginUrl(): string {
     const config = getConfig();
     const params = new URLSearchParams({
@@ -53,16 +53,26 @@ const steamAuthService = {
   },
 
   async getAuthResponseAsync(steamId64: string): Promise<AuthResponse> {
-    const user = await getUserAsync(steamId64);
-    const token = createToken({ id: user.id });
+    const steamUser = await steamUsers.getUserAsync(steamId64);
+    let user = await getUserAsync(steamUser);
+    if (!user) {
+      user = await createUserAsync(steamUser);
+    }
+
+    const token = this.getToken({ id: user.id });
     return {
       token,
       user,
     };
   },
-};
 
-export default steamAuthService;
+  getToken(user: JwtUser) {
+    const config = getConfig();
+    return jwt.sign(user, config.jwtSecret, {
+      expiresIn: config.jwtExpiresIn,
+    });
+  },
+};
 
 function getConfig() {
   return {
@@ -72,44 +82,60 @@ function getConfig() {
   };
 }
 
-function createToken(user: JwtUser) {
-  const config = getConfig();
-  return jwt.sign(user, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn,
-  });
-}
-
-async function getUserAsync(steamId64: string): Promise<AppUser> {
-  const steamUser = await steamUsers.getUserAsync(steamId64);
-  const user = await ctx.users.findOne({ steamId64 }, { populate: ["role"] });
+async function getUserAsync(steamUser: SteamUser): Promise<AppUser | null> {
+  const user = await ctx.users.findOne({ steamId64: steamUser.steamId64 }, { populate: ["role"] });
   if (!user) {
-    const role = await ctx.roles.findOne({ name: "user" });
-    if (!role) {
-      throw new Error("User role must exist");
-    }
-
-    const newUser = ctx.users.create({
-      steamId64,
-      tempusId: 0,
-      role,
-    });
-
-    await ctx.saveAsync();
-    return {
-      ...steamUser,
-      id: newUser.id,
-      tempusId: 0,
-      role: role.name,
-      claims: [],
-    };
+    return null;
   }
 
   const roleClaims = await ctx.roleClaims.find({ role: user.role.id }, { populate: ["claim"] });
+  const userDivisions = await ctx.userDivisions.find({ user }, { populate: ["division"] });
   return {
     ...steamUser,
     id: user.id,
     tempusId: user.tempusId,
     role: user.role.$.name,
     claims: roleClaims.map((rc) => rc.claim.$.name),
+    divisions: userDivisions.map((ud) => {
+      const division = ud.division.$;
+      return {
+        type: division.type,
+        name: division.name,
+        color: division.color,
+      };
+    }),
+  };
+}
+
+async function createUserAsync(steamUser: SteamUser): Promise<AppUser> {
+  const role = await ctx.roles.findOne({ name: "user" });
+  if (!role) {
+    throw new Error("User role must exist");
+  }
+
+  const user = ctx.users.create({
+    steamId64: steamUser.steamId64,
+    tempusId: 0,
+    role,
+  });
+
+  const divisions = await ctx.divisions.find({ name: "unassigned" });
+  if (divisions.length < 2) {
+    throw new Error("Unassigned divisions must exist");
+  }
+
+  divisions.forEach((division) => ctx.userDivisions.create({ user, division }));
+  await ctx.saveAsync();
+  return {
+    ...steamUser,
+    id: user.id,
+    tempusId: 0,
+    role: role.name,
+    claims: [],
+    divisions: divisions.map((d) => ({
+      type: d.type,
+      name: d.name,
+      color: d.color,
+    })),
   };
 }

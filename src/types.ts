@@ -31,10 +31,18 @@ export type AppUser = SteamUser & {
   role: string;
   tempusId: number;
   claims: string[];
+  divisions: Division[];
+};
+
+export type Division = {
+  type: string;
+  name: string;
+  color: string;
 };
 
 export type Participant = SteamUser & {
-  division: string;
+  id: number;
+  divisions: Division[];
 };
 
 export type LeaderboardItem = {
@@ -50,6 +58,7 @@ export type CreateTimeLimitedEventMap = z.infer<typeof CreateTimeLimitedEventMap
 export type EventMap = {
   id: number;
   name: string;
+  division: Division;
 };
 
 export type TimeLimitedEventMap = EventMap & {
@@ -66,13 +75,17 @@ export type CreateAllOutEvent = z.infer<typeof CreateAllOutEventSchema>;
 
 export type UpdateAllOutEvent = z.infer<typeof UpdateAllOutEventSchema>;
 
+export type Maps<TEventMap extends EventMap> = { [K in TDivisionType]: TEventMap[] };
+
+export type CreateMaps<TCreateEventMap extends CreateEventMap> = {
+  [K in TDivisionType]: TCreateEventMap[];
+};
+
 export type AllOutStage<TEventMap extends EventMap> = {
   description: string;
   start: Date;
   end: Date;
-  maps: {
-    [K in TDivisionType]: TEventMap[];
-  };
+  maps: Maps<TEventMap>;
 };
 
 export type AllOutEventDetails = {

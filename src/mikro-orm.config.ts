@@ -24,7 +24,7 @@ export default defineConfig({
   host: "localhost",
   user: "root",
   dbName: "jumpfortress",
-  debug: true,
+  debug: Boolean(parseInt(process.env.MIKRO_DEBUG ?? "0")),
   entityGenerator: {
     save: true,
     path: "src/db-entities",

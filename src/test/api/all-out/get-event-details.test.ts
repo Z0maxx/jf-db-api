@@ -1,121 +1,136 @@
-import app from "@/app";
+import { app } from "@/app";
 import request from "supertest";
-import ctx, { initCtx } from "@/db-context";
-import { AllOutEvent } from "@/db-entities/AllOutEvent";
 import { it, describe, before, after } from "node:test";
 import assert from "node:assert";
-import { AllOutStage1Map } from "@/db-entities/AllOutStage1Map";
-import { AllOutStage2Map } from "@/db-entities/AllOutStage2Map";
-import { AllOutStage3Map } from "@/db-entities/AllOutStage3Map";
-import { EntityManager } from "@mikro-orm/core";
 import { EventNotFoundError } from "@/errors";
+import {
+  testAllOutEvent,
+  testAllOutStage1DemomanMap,
+  testAllOutStage1SoldierMap,
+  testAllOutStage2DemomanMap,
+  testAllOutStage2SoldierMap,
+  testAllOutStage3DemomanMap,
+  testAllOutStage3SoldierMap,
+} from "./test-all-out-entities";
+import { testDemomanDivision, testSoldierDivision } from "../test-entities";
+import { initAllOutTestsAsync } from "./all-out-util";
+import { ctx } from "@/db-context";
 
-const testEvent = {
-  description: "test description",
-  stage1Start: new Date("2030-01-01 10:00"),
-  stage1End: new Date("2030-01-01 16:00"),
-  stage2Start: new Date("2030-01-02 10:00"),
-  stage2End: new Date("2030-01-02 16:00"),
-  stage3Start: new Date("2030-01-03 10:00"),
-  stage3End: new Date("2030-01-03 16:00"),
-  stage1Description: "test stage 1 description",
-  stage2Description: "test stage 2 description",
-  stage3Description: "test stage 3 description",
-};
-
-const testDivision = {
-  name: "",
-};
-
-const testStage1Map = {
-  name: "jump_stage_1_map",
-  timeLimit: 10,
-};
-
-const testStage2Map = {
-  name: "jump_stage_2_map",
-};
-
-const testStage3Map = {
-  name: "jump_stage_3_map",
-};
-
-const eventsToDelete: AllOutEvent[] = [];
 describe("GET /all-out/events/:eventId", () => {
   before(async () => {
-    await initCtx();
-    ctx.orm.em = ctx.em.fork();
+    await initAllOutTestsAsync();
   });
 
   after(async () => {
-    eventsToDelete.forEach((e) => ctx.em.remove(e));
-    await ctx.saveAsync();
     await ctx.orm.close(true);
   });
 
   it("returns event details", async () => {
-    const event = ctx.allOut.events.create(testEvent);
-    eventsToDelete.push(event);
-    const stage1Map = ctx.allOut.stage1Maps.create({
-      ...testStage1Map,
-      event,
-    });
-    const stage2Map = ctx.allOut.stage1Maps.create({
-      ...testStage2Map,
-      event,
-    });
-    const stage3Map = em.create(AllOutStage3Map, {
-      ...testStage3Map,
-      event,
-    });
-    await em.flush();
-
-    const res = await request(app).get("/all-out/events/" + event.id);
+    const res = await request(app).get("/all-out/events/" + testAllOutEvent.id);
 
     assert(res.ok);
     assert.deepStrictEqual(res.body, {
-      id: event.id,
-      description: event.description,
+      id: testAllOutEvent.id,
+      description: testAllOutEvent.description,
       stage1: {
-        description: testEvent.stage1Description,
-        start: testEvent.stage1Start.toISOString(),
-        end: testEvent.stage1End.toISOString(),
-        maps: [
-          {
-            id: stage1Map.id,
-            ...testStage1Map,
-          },
-        ],
+        description: testAllOutEvent.stage1Description,
+        start: testAllOutEvent.stage1Start.toISOString(),
+        end: testAllOutEvent.stage1End.toISOString(),
+        maps: {
+          soldier: [
+            {
+              id: testAllOutStage1SoldierMap.id,
+              name: testAllOutStage1SoldierMap.name,
+              timeLimit: testAllOutStage1SoldierMap.timeLimit,
+              division: {
+                name: testSoldierDivision.name,
+                color: testSoldierDivision.color,
+                type: 'soldier'
+              }
+            },
+          ],
+          demoman: [
+            {
+              id: testAllOutStage1DemomanMap.id,
+              name: testAllOutStage1DemomanMap.name,
+              timeLimit: testAllOutStage1DemomanMap.timeLimit,
+              division: {
+                name: testDemomanDivision.name,
+                color: testDemomanDivision.color,
+                type: 'demoman'
+              },
+            },
+          ],
+        },
       },
       stage2: {
-        description: testEvent.stage2Description,
-        start: testEvent.stage2Start.toISOString(),
-        end: testEvent.stage2End.toISOString(),
-        maps: [
-          {
-            id: stage2Map.id,
-            ...testStage2Map,
-          },
-        ],
+        description: testAllOutEvent.stage2Description,
+        start: testAllOutEvent.stage2Start.toISOString(),
+        end: testAllOutEvent.stage2End.toISOString(),
+        maps: {
+          soldier: [
+            {
+              id: testAllOutStage2SoldierMap.id,
+              name: testAllOutStage2SoldierMap.name,
+              division: {
+                name: testSoldierDivision.name,
+                color: testSoldierDivision.color,
+                type: 'soldier'
+              }
+            },
+          ],
+          demoman: [
+            {
+              id: testAllOutStage2DemomanMap.id,
+              name: testAllOutStage2DemomanMap.name,
+              division: {
+                name: testDemomanDivision.name,
+                color: testDemomanDivision.color,
+                type: 'demoman'
+              },
+            },
+          ],
+        },
       },
       stage3: {
-        description: testEvent.stage3Description,
-        start: testEvent.stage3Start.toISOString(),
-        end: testEvent.stage3End.toISOString(),
-        maps: [
-          {
-            id: stage3Map.id,
-            ...testStage3Map,
-          },
-        ],
+        description: testAllOutEvent.stage3Description,
+        start: testAllOutEvent.stage3Start.toISOString(),
+        end: testAllOutEvent.stage3End.toISOString(),
+        maps: {
+          soldier: [
+            {
+              id: testAllOutStage3SoldierMap.id,
+              name: testAllOutStage3SoldierMap.name,
+              division: {
+                name: testSoldierDivision.name,
+                color: testSoldierDivision.color,
+                type: 'soldier'
+              }
+            },
+          ],
+          demoman: [
+            {
+              id: testAllOutStage3DemomanMap.id,
+              name: testAllOutStage3DemomanMap.name,
+              division: {
+                name: testDemomanDivision.name,
+                color: testDemomanDivision.color,
+                type: 'demoman'
+              },
+            },
+          ],
+        },
       },
     });
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await request(app).get("/all-out/events/" + 100_000);
+    const res = await request(app).get("/all-out/events/" + 200_000);
 
     assert.equal(res.statusCode, 404);
-    assert.equal(res.body.error, new EventNotFoundError(100_000).message);
+    assert.deepStrictEqual(res.body, {
+      errorCode: "EventNotFoundError",
+      errorMessage: new EventNotFoundError(200_000).message,
+    });
   });
 });

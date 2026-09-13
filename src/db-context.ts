@@ -14,12 +14,17 @@ import { AllOutParticipantDivision } from "./db-entities/AllOutParticipantDivisi
 import { Role } from "./db-entities/Role";
 import { RoleClaim } from "./db-entities/RoleClaim";
 import { Claim } from "./db-entities/Claim";
+import { Division, DivisionType } from "./db-entities/Division";
+import { claimNames } from "./claim-names";
 
 const orm: MikroORM = null!;
-const ctx = {
+export const ctx = {
   orm,
   get em() {
     return this.orm.em;
+  },
+  get divisions() {
+    return this.em.getRepository(Division);
   },
   get users() {
     return this.em.getRepository(User);
@@ -49,12 +54,10 @@ const ctx = {
       stage3Leaderboard: this.em.getRepository(AllOutStage3LeaderboardItem),
     };
   },
-  saveAsync() {
-    return this.em.flush();
+  async saveAsync() {
+    return await this.em.flush();
   },
 };
-
-export default ctx;
 
 export async function initCtx() {
   if (ctx.orm) {
@@ -69,17 +72,25 @@ async function seedAsync() {
   ctx.orm.em = ctx.orm.em.fork();
   let claims: Claim[] = await ctx.claims.findAll();
   if (claims.length === 0) {
-    const claimNames = ["manage roles", "manage users", "manage divisions", "manage events"];
-
-    claimNames.map((name) => ({ name })).forEach((claim) => ctx.claims.create(claim));
+    claims = claimNames.map((name) => ctx.claims.create({ name }));
   }
 
-  if (!(await ctx.roles.find({ name: "user" }))) {
+  if (!(await ctx.roles.findOne({ name: "user" }))) {
     ctx.roles.create({ level: 9999, name: "user" });
   }
 
-  if (!(await ctx.roles.find({ name: "head admin" }))) {
+  if (!(await ctx.roles.findOne({ name: "head admin" }))) {
     const headAdminRole = ctx.roles.create({ level: 0, name: "head admin" });
     claims.forEach((claim) => ctx.roleClaims.create({ role: headAdminRole, claim }));
   }
+
+  if (!(await ctx.divisions.findOne({ name: "unassigned", type: DivisionType.SOLDIER }))) {
+    ctx.divisions.create({ type: DivisionType.SOLDIER, name: "unassigned", color: "FFFFFF" });
+  }
+
+  if (!(await ctx.divisions.findOne({ name: "unassigned", type: DivisionType.DEMOMAN }))) {
+    ctx.divisions.create({ type: DivisionType.DEMOMAN, name: "unassigned", color: "FFFFFF" });
+  }
+
+  await ctx.saveAsync();
 }

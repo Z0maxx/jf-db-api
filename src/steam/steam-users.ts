@@ -1,4 +1,4 @@
-import envConfig from "@/env-config";
+import { envConfig } from "@/env-config";
 import { SteamFailedError, SteamUsersNotFoundError } from "@/errors";
 import { SteamUser } from "@/types";
 
@@ -15,7 +15,7 @@ type SteamPlayerSummaries = {
 const playerSummariesEndpoint = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002";
 
 export const steamUsers = {
-  async getUsersAsync(steamId64s: string[]): Promise<SteamUser[]> {
+  async getUsersAsync(steamId64s: string[]): Promise<Map<string, SteamUser>> {
     const players = await getPlayerSummariesAsync(steamId64s);
     const users = players.map((p) => ({
       steamId64: p.steamid,
@@ -24,15 +24,13 @@ export const steamUsers = {
     }));
 
     checkAllUsersFound(steamId64s, users);
-    return users;
+    return new Map(users.map((u) => [u.steamId64, u]));
   },
 
   async getUserAsync(steamId64: string): Promise<SteamUser> {
-    return (await this.getUsersAsync([steamId64]))[0];
+    return (await this.getUsersAsync([steamId64])).values().next().value!;
   },
 };
-
-export default steamUsers;
 
 function checkAllUsersFound(steamId64s: string[], foundUsers: SteamUser[]) {
   const foundIds = foundUsers.map((u) => u.steamId64);

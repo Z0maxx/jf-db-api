@@ -11,6 +11,4 @@ const EnvConfigSchema = z.object({
   STEAM_API_KEY: z.string(),
 });
 
-const envConfig = EnvConfigSchema.parse(process.env);
-
-export default envConfig;
+export const envConfig = EnvConfigSchema.parse(process.env);

@@ -1,9 +1,9 @@
-import envConfig from "@/env-config";
+import { envConfig } from "@/env-config";
 import { AppUser } from "@/types";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export function loggedIn(req: Request, res: Response, next: NextFunction) {
   try {
     const header = req.headers.authorization;
     if (!header) {

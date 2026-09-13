@@ -1,10 +1,12 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { Division } from "./Division";
 import { MonthlyEvent } from "./MonthlyEvent";
 import { MonthlyLeaderboardItem } from "./MonthlyLeaderboardItem";
 
 export class MonthlyMap extends BaseEntity {
   id!: number;
   name!: string;
+  division!: Ref<Division>;
   event!: Ref<MonthlyEvent>;
   monthlyLeaderboardItemCollection = new Collection<MonthlyLeaderboardItem>(this);
 }
@@ -15,6 +17,13 @@ export const MonthlyMapSchema = defineEntity({
   properties: {
     id: p.integer().primary(),
     name: p.string().length(50),
+    division: () =>
+      p
+        .manyToOne(Division)
+        .ref()
+        .updateRule("restrict")
+        .deleteRule("restrict")
+        .index("fk_monthly_map_divison_id"),
     event: () =>
       p
         .manyToOne(MonthlyEvent)

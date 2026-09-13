@@ -1,7 +1,7 @@
 import express from "express";
-import authService from "./auth.service";
+import { authService } from "./auth.service";
 
-const authRouter = express.Router();
+export const authRouter = express.Router();
 
 authRouter.get("/init", (_, res) => {
   res.redirect(authService.getLoginUrl());
@@ -12,5 +12,3 @@ authRouter.get("/callback", async (req, res) => {
   const steamId64 = await authService.verifyCallbackAsync(new URLSearchParams(queryString));
   res.status(200).json(await authService.getAuthResponseAsync(steamId64));
 });
-
-export default authRouter;
