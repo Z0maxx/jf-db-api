@@ -1,9 +1,9 @@
-import { ctx } from "@/db-context";
-import { AllOutEvent } from "@/db-entities/AllOutEvent";
-import { Division } from "@/db-entities/Division";
-import { transformDbMaps, setMapsAsync } from "@/helpers/map.helper";
-import { getLeaderboardFilter } from "@/mikro-filters";
-import { steamUsers } from "@/steam/steam-users";
+import { ctx } from "#/db-context";
+import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { Division } from "#/db-entities/Division";
+import { transformDbMaps, setMapsAsync } from "#/helpers/map.helper";
+import { getLeaderboardFilter } from "#/mikro-filters";
+import { steamUsers } from "#/steam/steam-users";
 import {
   AllOutEventDetails,
   AllOutEventPreview,
@@ -16,10 +16,14 @@ import {
   Participant,
   Registration,
   UpdateAllOutEvent,
-} from "@/types";
+} from "#/types";
 import { wrap } from "@mikro-orm/core";
 
 export const allOutRepository = {
+  async getEventByIdAsync(eventId: number) {
+    return ctx.allOut.events.findOneOrFail({ id: eventId });
+  },
+
   async getAllEventPreviewsAsync(): Promise<AllOutEventPreview[]> {
     const events = await ctx.allOut.events.findAll();
 
@@ -278,19 +282,17 @@ export const allOutRepository = {
   },
 
   async deleteRegistrationAsync(registration: Registration): Promise<void> {
-    const participant = await ctx.allOut.participants.findOne({
+    const participant = await ctx.allOut.participants.findOneOrFail({
       user: registration.userId,
       event: registration.eventId,
     });
 
-    if (participant) {
-      ctx.em.remove(participant);
-      await ctx.saveAsync();
-    }
+    ctx.em.remove(participant);
+    await ctx.saveAsync();
   },
 
   async deleteEventAsync(eventId: number): Promise<void> {
-    ctx.em.remove(ctx.allOut.events.findOneOrFail({ id: eventId }));
+    ctx.em.remove(await ctx.allOut.events.findOneOrFail({ id: eventId }));
     await ctx.saveAsync();
   },
 };

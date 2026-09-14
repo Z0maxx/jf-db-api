@@ -22,14 +22,15 @@
     "supertest": "^7.2.2",
     "ts-node": "10.9.2",
     "tsx": "^4.23.13",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^5.0.0"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts,json --ignore src/test --exec tsx src/server.ts",
     "format": "oxfmt src/",
-    "test": "node --import tsx --test \"src/test/**/*.test.ts\""
+    "test:api": "vitest --config ./vitest.api.config.ts --configLoader runner"
   },
   "imports": {
     "#/*": "./src/*"

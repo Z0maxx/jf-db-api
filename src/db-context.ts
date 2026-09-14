@@ -7,7 +7,7 @@ import { AllOutStage2Map } from "./db-entities/AllOutStage2Map";
 import { AllOutStage2LeaderboardItem } from "./db-entities/AllOutStage2LeaderboardItem";
 import { AllOutStage3LeaderboardItem } from "./db-entities/AllOutStage3LeaderboardItem";
 import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
-import mikroOrmConfig from "./mikro-orm.config";
+import mikroOrmConfig from "../mikro-orm.config";
 import { User } from "./db-entities/User";
 import { UserDivision } from "./db-entities/UserDivision";
 import { AllOutParticipantDivision } from "./db-entities/AllOutParticipantDivision";

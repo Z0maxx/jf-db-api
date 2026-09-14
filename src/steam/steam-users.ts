@@ -1,6 +1,6 @@
-import { envConfig } from "@/env-config";
-import { SteamFailedError, SteamUsersNotFoundError } from "@/errors";
-import { SteamUser } from "@/types";
+import { envConfig } from "#/env-config";
+import { SteamFailedError, SteamUsersNotFoundError } from "#/errors";
+import { SteamUser } from "#/types";
 
 type SteamPlayerSummaries = {
   response: {

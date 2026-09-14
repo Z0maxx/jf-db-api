@@ -1,29 +1,25 @@
-import { ctx } from "@/db-context";
-import { after, before, describe, it } from "node:test";
-import { initAllOutTestsAsync } from "./all-out-util";
+import { ctx } from "#/db-context";
 import request from "supertest";
-import { app } from "@/app";
-import { testAllOutEvent } from "./test-all-out-entities";
+import { app } from "#/app";
+import { testAllOutEvent } from "./all-out-test-entities";
 import { testUser1 } from "../test-entities";
-import assert from "node:assert";
-import { deleteEntitiesAsync, loginAs } from "../util";
-import { EventNotFoundError } from "@/errors";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import { EventNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 const entities: BaseEntity[] = [];
 describe("GET /all-out/events/:eventId/registration", () => {
-  before(async () => {
-    await initAllOutTestsAsync();
+  beforeAll(async () => {
+    await setupApiTestSuiteAsync();
   });
 
-  after(async () => {
-    await deleteEntitiesAsync(entities);
-    await ctx.orm.close(true);
+  afterAll(async () => {
+    await teardownApiTestSuiteAsync(entities);
   });
 
   it("returns if a user is registered to an event", async () => {
     const otherTestEvent = await ctx.allOut.events.upsert({
-      id: 100_100,
       description: "test description",
       stage1Start: new Date("2030-01-01 10:00"),
       stage1End: new Date("2030-01-01 16:00"),

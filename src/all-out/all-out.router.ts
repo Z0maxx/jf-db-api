@@ -2,15 +2,15 @@ import {
   CreateAllOutEventSchema,
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
-} from "@/schemas";
+} from "#/schemas";
 import express from "express";
 import { allOutService } from "./all-out.service";
 import { allOutRepository } from "./all-out.repository";
-import { id } from "@/middlewares/id.middleware";
-import { loggedIn } from "@/middlewares/logged-in.middleware";
-import { leaderboardQuery } from "@/middlewares/leaderboard-query.middleware";
-import { bodySchema } from "@/middlewares/body-schema.middleware";
-import { userCan } from "@/middlewares/user-can.middleware";
+import { id } from "#/middlewares/id.middleware";
+import { loggedIn } from "#/middlewares/logged-in.middleware";
+import { leaderboardQuery } from "#/middlewares/leaderboard-query.middleware";
+import { bodySchema } from "#/middlewares/body-schema.middleware";
+import { userCan } from "#/middlewares/user-can.middleware";
 
 export const allOutRouter = express.Router();
 

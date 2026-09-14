@@ -1,13 +1,16 @@
-import { CreateAllOutEvent, LeaderboardQuery, Registration, UpdateAllOutEvent } from "@/types";
+import { CreateAllOutEvent, LeaderboardQuery, Registration, UpdateAllOutEvent } from "#/types";
 import { allOutRepository } from "./all-out.repository";
 import {
+  AlreadyRegisteredError,
   CannotRegisterError,
   DivisionsNotFoundError,
+  EventAlreadyStartedError,
   EventNotFoundError,
   MapNotFoundError,
+  RegistrationNotFoundError,
   ValidationError,
-} from "@/errors";
-import { ctx } from "@/db-context";
+} from "#/errors";
+import { ctx } from "#/db-context";
 
 export const allOutService = {
   async getEventDetailsAsync(eventId: number) {
@@ -42,29 +45,34 @@ export const allOutService = {
 
   async createEventAsync(event: CreateAllOutEvent) {
     checkTimes(event);
+    await checkDivisionsExistAsync(event);
     return await allOutRepository.createEventAsync(event);
   },
 
   async updateEventAsync(event: UpdateAllOutEvent) {
+    checkTimes(event);
     await checkEventExistsAsync(event.id);
     await checkDivisionsExistAsync(event);
-    checkTimes(event);
     return await allOutRepository.updateEventAsync(event);
   },
 
   async registerAsync(registration: Registration) {
     await checkEventExistsAsync(registration.eventId);
     await checkUserCanRegisterAsync(registration);
+    await checkNotAlreadyRegisteredAsync(registration);
     await allOutRepository.registerAsync(registration);
   },
 
   async deleteRegistrationAsync(registration: Registration) {
     await checkEventExistsAsync(registration.eventId);
+    await checkRegistrationExistsAsync(registration);
+    await checkEventNotStartedYetAsync(registration.eventId);
     await allOutRepository.deleteRegistrationAsync(registration);
   },
 
   async deleteEventAsync(eventId: number) {
     await checkEventExistsAsync(eventId);
+    await checkEventNotStartedYetAsync(eventId);
     await allOutRepository.deleteEventAsync(eventId);
   },
 };
@@ -92,9 +100,21 @@ async function checkEventExistsAsync(eventId: number) {
   }
 }
 
+async function checkRegistrationExistsAsync(registration: Registration) {
+  if (!(await allOutRepository.registrationExistsAsync(registration))) {
+    throw new RegistrationNotFoundError(registration);
+  }
+}
+
 async function checkUserCanRegisterAsync(registration: Registration) {
   if (!(await allOutRepository.canUserRegister(registration))) {
     throw new CannotRegisterError(registration);
+  }
+}
+
+async function checkNotAlreadyRegisteredAsync(registration: Registration) {
+  if (await allOutRepository.registrationExistsAsync(registration)) {
+    throw new AlreadyRegisteredError(registration);
   }
 }
 
@@ -113,6 +133,14 @@ async function checkStage2MapExistsAsync(mapId: number) {
 async function checkStage3MapExistsAsync(mapId: number) {
   if (!(await allOutRepository.stage3MapExistsAsync(mapId))) {
     throw new MapNotFoundError(mapId);
+  }
+}
+
+async function checkEventNotStartedYetAsync(eventId: number) {
+  const event = await allOutRepository.getEventByIdAsync(eventId);
+  const now = new Date();
+  if (event.stage1Start <= now) {
+    throw new EventAlreadyStartedError(eventId);
   }
 }
 

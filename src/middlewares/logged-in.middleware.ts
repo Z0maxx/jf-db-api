@@ -1,5 +1,5 @@
-import { envConfig } from "@/env-config";
-import { AppUser } from "@/types";
+import { envConfig } from "#/env-config";
+import { AppUser } from "#/types";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 

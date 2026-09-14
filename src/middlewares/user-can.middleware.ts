@@ -1,5 +1,5 @@
-import { claimNames } from "@/claim-names";
-import { ctx } from "@/db-context";
+import { claimNames } from "#/claim-names";
+import { ctx } from "#/db-context";
 import { NextFunction, Request, Response } from "express";
 
 export function userCan(claim: (typeof claimNames)[number]) {

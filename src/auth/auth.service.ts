@@ -1,7 +1,7 @@
-import { ctx } from "@/db-context";
-import { envConfig } from "@/env-config";
-import { steamUsers } from "@/steam/steam-users";
-import { AppUser, AuthResponse, JwtUser, SteamUser } from "@/types";
+import { ctx } from "#/db-context";
+import { envConfig } from "#/env-config";
+import { steamUsers } from "#/steam/steam-users";
+import { AppUser, AuthResponse, JwtUser, SteamUser } from "#/types";
 import jwt from "jsonwebtoken";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";

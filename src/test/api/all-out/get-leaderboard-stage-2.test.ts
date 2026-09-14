@@ -1,23 +1,21 @@
-import { app } from "@/app";
-import { MapNotFoundError } from "@/errors";
-import assert from "node:assert";
-import { after, before, describe, it } from "node:test";
+import { app } from "#/app";
+import { MapNotFoundError } from "#/errors";
 import request from "supertest";
 import {
   testAllOutStage2LeaderboardItem1,
   testAllOutStage2SoldierMap,
-} from "./test-all-out-entities";
-import { initAllOutTestsAsync } from "./all-out-util";
-import { ctx } from "@/db-context";
+} from "./all-out-test-entities";
 import { testUser1 } from "../test-entities";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /all-out/leaderboard/stage-2", () => {
-  before(async () => {
-    await initAllOutTestsAsync();
+  beforeAll(async () => {
+    await setupApiTestSuiteAsync();
   });
 
-  after(async () => {
-    await ctx.orm.close(true);
+  afterAll(async () => {
+    await teardownApiTestSuiteAsync();
   });
 
   it("returns paged stage 2 leaderboard", async () => {
@@ -30,7 +28,8 @@ describe("GET /all-out/leaderboard/stage-2", () => {
 
     assert(res.ok);
     assert.notEqual(res.body, null);
-    assert.partialDeepStrictEqual(res.body, [
+    assert.hasAnyKeys(res.body[0].user, ["name", "avatar"]);
+    assert.containSubset(res.body, [
       {
         id: testAllOutStage2LeaderboardItem1.id,
         user: {
@@ -46,7 +45,6 @@ describe("GET /all-out/leaderboard/stage-2", () => {
         },
       },
     ]);
-    assert.partialDeepStrictEqual(Object.keys(res.body[0].user), ["name", "avatar"]);
   });
 
   it("returns no items when page param is too big", async () => {

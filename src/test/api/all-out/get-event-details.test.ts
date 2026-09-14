@@ -1,8 +1,6 @@
-import { app } from "@/app";
+import { app } from "#/app";
 import request from "supertest";
-import { it, describe, before, after } from "node:test";
-import assert from "node:assert";
-import { EventNotFoundError } from "@/errors";
+import { EventNotFoundError } from "#/errors";
 import {
   testAllOutEvent,
   testAllOutStage1DemomanMap,
@@ -11,18 +9,18 @@ import {
   testAllOutStage2SoldierMap,
   testAllOutStage3DemomanMap,
   testAllOutStage3SoldierMap,
-} from "./test-all-out-entities";
+} from "./all-out-test-entities";
 import { testDemomanDivision, testSoldierDivision } from "../test-entities";
-import { initAllOutTestsAsync } from "./all-out-util";
-import { ctx } from "@/db-context";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /all-out/events/:eventId", () => {
-  before(async () => {
-    await initAllOutTestsAsync();
+  beforeAll(async () => {
+    await setupApiTestSuiteAsync();
   });
 
-  after(async () => {
-    await ctx.orm.close(true);
+  afterAll(async () => {
+    await teardownApiTestSuiteAsync();
   });
 
   it("returns event details", async () => {
@@ -45,8 +43,8 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: 'soldier'
-              }
+                type: "soldier",
+              },
             },
           ],
           demoman: [
@@ -57,7 +55,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: 'demoman'
+                type: "demoman",
               },
             },
           ],
@@ -75,8 +73,8 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: 'soldier'
-              }
+                type: "soldier",
+              },
             },
           ],
           demoman: [
@@ -86,7 +84,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: 'demoman'
+                type: "demoman",
               },
             },
           ],
@@ -104,8 +102,8 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: 'soldier'
-              }
+                type: "soldier",
+              },
             },
           ],
           demoman: [
@@ -115,7 +113,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: 'demoman'
+                type: "demoman",
               },
             },
           ],

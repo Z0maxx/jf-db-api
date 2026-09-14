@@ -1,28 +1,23 @@
-import { app } from "@/app";
+import { app } from "#/app";
 import request from "supertest";
-import { ctx } from "@/db-context";
-import { it, describe, before, after } from "node:test";
-import assert from "node:assert";
-import { AllOutEventPreview } from "@/types";
-import { initAllOutTestsAsync } from "./all-out-util";
-import { testAllOutEvent } from "./test-all-out-entities";
+import { testAllOutEvent } from "./all-out-test-entities";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /all-out/events", () => {
-  before(async () => {
-    await initAllOutTestsAsync();
+  beforeAll(async () => {
+    await setupApiTestSuiteAsync();
   });
 
-  after(async () => {
-    await ctx.orm.close(true);
+  afterAll(async () => {
+    await teardownApiTestSuiteAsync();
   });
 
   it("returns event previews", async () => {
     const res = await request(app).get("/all-out/events");
 
     assert(res.ok);
-    const returnedEvent = (res.body as AllOutEventPreview[]).find(
-      (e) => e.id === testAllOutEvent.id,
-    );
+    const returnedEvent = (res.body as any[]).find((e) => e.id === testAllOutEvent.id);
     assert.notEqual(returnedEvent, null);
     assert.deepStrictEqual(returnedEvent, {
       id: testAllOutEvent.id,

@@ -1,13 +1,13 @@
-import { ctx } from "@/db-context";
+import { ctx } from "#/db-context";
 import { testSoldierDivision, testDemomanDivision, testUser1, testUser2 } from "../test-entities";
-import { AllOutStage3LeaderboardItem } from "@/db-entities/AllOutStage3LeaderboardItem";
-import { AllOutStage2LeaderboardItem } from "@/db-entities/AllOutStage2LeaderboardItem";
-import { AllOutStage1LeaderboardItem } from "@/db-entities/AllOutStage1LeaderboardItem";
-import { AllOutParticipant } from "@/db-entities/AllOutParticipant";
-import { AllOutStage3Map } from "@/db-entities/AllOutStage3Map";
-import { AllOutEvent } from "@/db-entities/AllOutEvent";
-import { AllOutStage2Map } from "@/db-entities/AllOutStage2Map";
-import { AllOutStage1Map } from "@/db-entities/AllOutStage1Map";
+import { AllOutStage3LeaderboardItem } from "#/db-entities/AllOutStage3LeaderboardItem";
+import { AllOutStage2LeaderboardItem } from "#/db-entities/AllOutStage2LeaderboardItem";
+import { AllOutStage1LeaderboardItem } from "#/db-entities/AllOutStage1LeaderboardItem";
+import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
+import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
+import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
+import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
 
 export let testAllOutEvent: AllOutEvent;
 export let testAllOutStage1SoldierMap: AllOutStage1Map;
@@ -132,14 +132,14 @@ export async function createAllOutTestEntitiesAsync() {
   [testAllOutStage1LeaderboardItem1, testAllOutStage1LeaderboardItem2] =
     await ctx.allOut.stage1Leaderboard.upsertMany([
       {
-        id: 100_000,
+        id: 100_001,
         prSeconds: 101,
         prTimestamp: new Date("2030-01-01 11:11"),
         participant: testAllOutParticipant1,
         map: testAllOutStage1SoldierMap,
       },
       {
-        id: 100_001,
+        id: 100_002,
         prSeconds: 102,
         prTimestamp: new Date("2030-01-01 11:12"),
         participant: testAllOutParticipant2,

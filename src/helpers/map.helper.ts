@@ -1,10 +1,10 @@
-import { ctx } from "@/db-context";
-import { AllOutEvent } from "@/db-entities/AllOutEvent";
-import { AllOutStage1Map } from "@/db-entities/AllOutStage1Map";
-import { AllOutStage2Map } from "@/db-entities/AllOutStage2Map";
-import { AllOutStage3Map } from "@/db-entities/AllOutStage3Map";
-import { MonthlyMap } from "@/db-entities/MonthlyMap";
-import { CreateEventMap, EventMap, Maps } from "@/types";
+import { ctx } from "#/db-context";
+import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
+import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
+import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
+import { MonthlyMap } from "#/db-entities/MonthlyMap";
+import { CreateEventMap, EventMap, Maps } from "#/types";
 import {
   EntityData,
   FromEntityType,
@@ -28,9 +28,9 @@ export async function setMapsAsync<
 ) {
   const mapsMap = new Map<string, TCreateMap>(maps.map((m) => [`${m.name}|${m.divisionId}`, m]));
   const existingMaps = await repository.find({ event } as FilterQuery<TDbMap>);
-  const removed = existingMaps.filter((e) => !mapsMap.get(`${e.name}|${e.division.id}`));
-  removed.forEach((r) => ctx.em.remove(r));
-  const updated = existingMaps.filter((e) => !removed.includes(e));
+  const deleted = existingMaps.filter((e) => !mapsMap.get(`${e.name}|${e.division.id}`));
+  deleted.forEach((r) => ctx.em.remove(r));
+  const updated = existingMaps.filter((e) => !deleted.includes(e));
   updated.forEach((u) => {
     const key = `${u.name}|${u.division.id}`;
     wrap(u).assign(assignTransformFn(mapsMap.get(key)!));

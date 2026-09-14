@@ -277,11 +277,9 @@ CREATE TABLE all_out_stage_2_leaderboard (
   CONSTRAINT fk_all_out_stage_2_leaderboard_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES all_out_participant(id)
-    ON DELETE CASCADE,
   CONSTRAINT fk_all_out_stage_2_leaderboard_map_id
     FOREIGN KEY (map_id)
     REFERENCES all_out_stage_2_map(id)
-    ON DELETE CASCADE,
   CONSTRAINT unq_all_out_stage_2_leaderboard
     UNIQUE (map_id, participant_id)
 );
@@ -297,11 +295,9 @@ CREATE TABLE all_out_stage_3_leaderboard (
   CONSTRAINT fk_all_out_stage_3_leaderboard_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES all_out_participant(id)
-    ON DELETE CASCADE,
   CONSTRAINT fk_all_out_stage_3_leaderboard_map_id
     FOREIGN KEY (map_id)
     REFERENCES all_out_stage_3_map(id)
-    ON DELETE CASCADE,
   CONSTRAINT unq_all_out_stage_3_leaderboard
     UNIQUE (map_id, participant_id)
 );
@@ -380,11 +376,9 @@ CREATE TABLE monthly_leaderboard (
   CONSTRAINT fk_monthly_leaderboard_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES monthly_participant(id)
-    ON DELETE CASCADE,
   CONSTRAINT fk_monthly_leaderboard_map_id
     FOREIGN KEY (map_id)
     REFERENCES monthly_map(id)
-    ON DELETE CASCADE,
   CONSTRAINT unq_monthly_leaderboard
     UNIQUE (map_id, participant_id)
 );
@@ -442,11 +436,9 @@ CREATE TABLE tournament_leaderboard (
   CONSTRAINT fk_tournament_leaderboard_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES tournament_participant(id)
-    ON DELETE CASCADE,
   CONSTRAINT fk_tournament_leaderboard_map_id
     FOREIGN KEY (map_id)
     REFERENCES tournament_map(id)
-    ON DELETE CASCADE,
   CONSTRAINT chk_tournament_leaderboard_stage
     CHECK (stage > 1),
   CONSTRAINT unq_tournament_leaderboard

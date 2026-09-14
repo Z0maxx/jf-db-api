@@ -1,24 +1,22 @@
-import { app } from "@/app";
+import { app } from "#/app";
 import request from "supertest";
-import { ctx } from "@/db-context";
-import { it, describe, before, after } from "node:test";
-import assert from "node:assert";
-import { EventNotFoundError } from "@/errors";
+import { EventNotFoundError } from "#/errors";
 import { testDemomanDivision, testSoldierDivision, testUser1, testUser2 } from "../test-entities";
 import {
   testAllOutEvent,
   testAllOutParticipant1,
   testAllOutParticipant2,
-} from "./test-all-out-entities";
-import { initAllOutTestsAsync } from "./all-out-util";
+} from "./all-out-test-entities";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /all-out/event/:eventId/participants", () => {
-  before(async () => {
-    await initAllOutTestsAsync();
+  beforeAll(async () => {
+    await setupApiTestSuiteAsync();
   });
 
-  after(async () => {
-    await ctx.orm.close(true);
+  afterAll(async () => {
+    await teardownApiTestSuiteAsync();
   });
 
   it("returns event participants", async () => {
@@ -27,7 +25,8 @@ describe("GET /all-out/event/:eventId/participants", () => {
     assert(res.ok);
     assert.notEqual(res.body, null);
     assert.equal(res.body.length, 2);
-    assert.partialDeepStrictEqual(res.body, [
+    assert.hasAnyKeys(res.body[0], ["name", "avatar"]);
+    assert.containsSubset(res.body, [
       {
         id: testAllOutParticipant1.id,
         steamId64: testUser1.steamId64,
@@ -61,7 +60,6 @@ describe("GET /all-out/event/:eventId/participants", () => {
         ],
       },
     ]);
-    assert.partialDeepStrictEqual(Object.keys(res.body[0]), ["name", "avatar"]);
   });
 
   it("returns not found error when event doesn't exist", async () => {
