@@ -9,8 +9,11 @@ export abstract class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string) {
-    super(message, 400);
+  public messages: string[];
+
+  constructor(messages: string[]) {
+    super("", 400);
+    this.messages = messages;
     this.name = "ValidationError";
   }
 }
@@ -53,7 +56,7 @@ export class NotFoundByIdError extends NotFoundError {
 export class NotFoundByIdsError extends NotFoundError {
   constructor(entities: string, ids: (number | string)[]) {
     const idsStr = `'${ids.join("', '")}'`;
-    super(`${entities} with ids ${idsStr} not found`);
+    super(`${entities}(s) with id(s) ${idsStr} not found`);
     this.name = "NotFoundByIdsError";
   }
 }
@@ -83,24 +86,38 @@ export class RegistrationNotFoundError extends NotFoundError {
 
 export class SteamUsersNotFoundError extends NotFoundByIdsError {
   constructor(steamId64s: string[]) {
-    super("Steam users", steamId64s);
+    super("Steam user", steamId64s);
     this.name = "SteamUsersNotFoundError";
   }
 }
 
 export class DivisionsNotFoundError extends NotFoundByIdsError {
   constructor(divisionIds: number[]) {
-    super("Divisions", divisionIds);
+    super("Division", divisionIds);
     this.name = "DivisionsNotFoundError";
   }
 }
 
-export class CannotRegisterError extends ForbiddenError {
-  constructor(registration: Registration) {
+export class NoMapsWithUserDivisionsError extends ForbiddenError {
+  constructor(eventId: number, userId: number) {
     super(
-      `User with id '${registration.userId}' cannot register to event with id '${registration.eventId}'`,
+      `Event with id '${eventId}' has no maps that match the divisions of user with id '${userId}'`,
     );
-    this.name = "CannotRegisterError";
+    this.name = "NoMapsWithUserDivisionsError";
+  }
+}
+
+export class EventStartedInPastError extends ForbiddenError {
+  constructor(eventId: number, startedAt: Date) {
+    super(`Event with id '${eventId}' started at ${startedAt.toUTCString()}`);
+    this.name = "EventStartedInPastError";
+  }
+}
+
+export class EventEndedError extends ForbiddenError {
+  constructor(eventId: number, endedAt: Date) {
+    super(`Event with id '${eventId}' ended at ${endedAt.toUTCString()}`);
+    this.name = "EventEndedInPastError";
   }
 }
 
@@ -110,12 +127,6 @@ export class AlreadyRegisteredError extends ConflictError {
       `User with id '${registration.userId}' has already registered to event with id '${registration.eventId}'`,
     );
     this.name = "AlreadyRegisteredError";
-  }
-}
-
-export class EventAlreadyStartedError extends ForbiddenError {
-  constructor(eventId: number) {
-    super(`Event with id '${eventId}' has already started`);
   }
 }
 

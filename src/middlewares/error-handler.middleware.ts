@@ -1,4 +1,4 @@
-import { AppError } from "#/errors";
+import { AppError, ValidationError } from "#/errors";
 import { Request, Response, NextFunction } from "express";
 
 export function errorHandler(err: Error | AppError, _: Request, res: Response, __: NextFunction) {
@@ -13,5 +13,9 @@ export function errorHandler(err: Error | AppError, _: Request, res: Response, _
 }
 
 function getAppError(appErr: AppError) {
+  if (appErr instanceof ValidationError) {
+    return { errorMessages: appErr.messages, errorCode: appErr.name };
+  }
+
   return { errorMessage: appErr.message, errorCode: appErr.name };
 }

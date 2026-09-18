@@ -1,4 +1,4 @@
-import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Opt, defineEntity, p } from "@mikro-orm/core";
 import { AllOutParticipant } from "./AllOutParticipant";
 import { AllOutStage1Map } from "./AllOutStage1Map";
 import { AllOutStage2Map } from "./AllOutStage2Map";
@@ -6,6 +6,7 @@ import { AllOutStage3Map } from "./AllOutStage3Map";
 
 export class AllOutEvent extends BaseEntity {
   id!: number;
+  canceled: boolean & Opt = false;
   description!: string;
   stage1Start!: Date;
   stage2Start!: Date;
@@ -32,6 +33,7 @@ export const AllOutEventSchema = defineEntity({
   ],
   properties: {
     id: p.integer().primary(),
+    canceled: p.boolean(),
     description: p.text().length(65535),
     stage1Start: p.datetime().name("stage_1_start"),
     stage2Start: p.datetime().name("stage_2_start"),

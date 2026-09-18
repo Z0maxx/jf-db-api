@@ -2,7 +2,7 @@ import { ctx } from "#/db-context";
 import request from "supertest";
 import { app } from "#/app";
 import { testAllOutEvent } from "./all-out-test-entities";
-import { testUser1 } from "../test-entities";
+import { testUser1, testUser2 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import { EventNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
@@ -18,8 +18,8 @@ describe("GET /all-out/events/:eventId/registration", () => {
     await teardownApiTestSuiteAsync(entities);
   });
 
-  it("returns if a user is registered to an event", async () => {
-    const otherTestEvent = await ctx.allOut.events.upsert({
+  it("returns registration details", async () => {
+    const otherEvent = await ctx.allOut.events.upsert({
       description: "test description",
       stage1Start: new Date("2030-01-01 10:00"),
       stage1End: new Date("2030-01-01 16:00"),
@@ -31,21 +31,32 @@ describe("GET /all-out/events/:eventId/registration", () => {
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
     });
-    entities.push(otherTestEvent);
+    entities.push(otherEvent);
+    await ctx.allOut.participants.upsert({
+      user: testUser2,
+      event: otherEvent,
+      resigned: true,
+    });
 
     const res1 = await loginAs(
       request(app).get(`/all-out/events/${testAllOutEvent.id}/registration`),
       testUser1,
     );
     const res2 = await loginAs(
-      request(app).get(`/all-out/events/${otherTestEvent.id}/registration`),
+      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
       testUser1,
+    );
+    const res3 = await loginAs(
+      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
+      testUser2,
     );
 
     assert(res1.ok);
     assert(res2.ok);
-    assert.deepStrictEqual(res1.body, { isRegistered: true });
-    assert.deepStrictEqual(res2.body, { isRegistered: false });
+    assert(res3.ok);
+    assert.deepStrictEqual(res1.body, { registered: true, resigned: false });
+    assert.deepStrictEqual(res2.body, { registered: false, resigned: false });
+    assert.deepStrictEqual(res3.body, { registered: true, resigned: true });
   });
 
   it("returns not found error when event doesn't exist", async () => {

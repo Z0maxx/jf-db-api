@@ -1,25 +1,48 @@
-import { CreateAllOutEvent, LeaderboardQuery, Registration, UpdateAllOutEvent } from "#/types";
+import {
+  AllOutValidator,
+  CreateAllOutEvent,
+  LeaderboardQuery,
+  Registration,
+  UpdateAllOutEvent,
+} from "#/types";
 import { allOutRepository } from "./all-out.repository";
 import {
   AlreadyRegisteredError,
-  CannotRegisterError,
   DivisionsNotFoundError,
-  EventAlreadyStartedError,
+  EventEndedError,
   EventNotFoundError,
+  EventStartedInPastError,
   MapNotFoundError,
+  NoMapsWithUserDivisionsError,
   RegistrationNotFoundError,
   ValidationError,
 } from "#/errors";
 import { ctx } from "#/db-context";
+import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
+import { allOutPastDatesValidator } from "./validators/all-out-past-dates.validator";
+import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
 
 export const allOutService = {
+  async getEventByIdAsync(
+    eventId: number,
+    options: { populateMaps: boolean } = { populateMaps: false },
+  ) {
+    const event = await allOutRepository.getEventByIdAsync(eventId, options);
+    if (!event) {
+      throw new EventNotFoundError(eventId);
+    }
+
+    return event;
+  },
+
   async getEventDetailsAsync(eventId: number) {
-    await checkEventExistsAsync(eventId);
+    await this.getEventByIdAsync(eventId);
     return await allOutRepository.getEventDetailsAsync(eventId);
   },
 
   async getAllEventParticipantsAsync(eventId: number) {
-    await checkEventExistsAsync(eventId);
+    await this.getEventByIdAsync(eventId);
     return await allOutRepository.getAllEventParticipantsAsync(eventId);
   },
 
@@ -38,67 +61,64 @@ export const allOutService = {
     return await allOutRepository.getStage3LeaderboardAsync(query);
   },
 
-  async registrationExistsAsync(registration: Registration) {
-    await checkEventExistsAsync(registration.eventId);
-    return await allOutRepository.registrationExistsAsync(registration);
+  async getRegistrationDetailsAsync(registration: Registration) {
+    await this.getEventByIdAsync(registration.eventId);
+    return await allOutRepository.getRegistrationDetailsAsync(registration);
   },
 
   async createEventAsync(event: CreateAllOutEvent) {
-    checkTimes(event);
-    await checkDivisionsExistAsync(event);
+    await checkEventDivisionsExistAsync(event);
+    validate(
+      [allOutDuplicateMapValidator, allOutPastDatesValidator, allOutScheduleValidator],
+      event,
+    );
+
     return await allOutRepository.createEventAsync(event);
   },
 
   async updateEventAsync(event: UpdateAllOutEvent) {
-    checkTimes(event);
-    await checkEventExistsAsync(event.id);
-    await checkDivisionsExistAsync(event);
+    const originalEvent = await this.getEventByIdAsync(event.id);
+    validate(
+      [allOutDuplicateMapValidator, allOutPastDatesValidator, allOutScheduleValidator],
+      event,
+      originalEvent,
+    );
+
+    await checkEventDivisionsExistAsync(event);
     return await allOutRepository.updateEventAsync(event);
   },
 
   async registerAsync(registration: Registration) {
-    await checkEventExistsAsync(registration.eventId);
-    await checkUserCanRegisterAsync(registration);
+    const event = await this.getEventByIdAsync(registration.eventId);
+    checkEventNotStartedInPast(event);
+    await checkUserHasEventDivisionsAsync(event, registration.userId);
     await checkNotAlreadyRegisteredAsync(registration);
     await allOutRepository.registerAsync(registration);
   },
 
-  async deleteRegistrationAsync(registration: Registration) {
-    await checkEventExistsAsync(registration.eventId);
+  async resignOrDeleteRegistrationAsync(registration: Registration) {
+    const event = await this.getEventByIdAsync(registration.eventId);
     await checkRegistrationExistsAsync(registration);
-    await checkEventNotStartedYetAsync(registration.eventId);
-    await allOutRepository.deleteRegistrationAsync(registration);
+    checkEventNotEnded(event);
+    const now = new Date();
+    if (event.stage1Start <= now) {
+      await allOutRepository.resignAsync(registration);
+    } else {
+      await allOutRepository.deleteRegistrationAsync(registration);
+    }
   },
 
   async deleteEventAsync(eventId: number) {
-    await checkEventExistsAsync(eventId);
-    await checkEventNotStartedYetAsync(eventId);
-    await allOutRepository.deleteEventAsync(eventId);
+    const event = await this.getEventByIdAsync(eventId);
+    checkEventNotStartedInPast(event);
+    await allOutRepository.deleteEventAsync(event);
+  },
+
+  async cancelEventAsync(eventId: number) {
+    const event = await this.getEventByIdAsync(eventId);
+    await allOutRepository.cancelEventAsync(event);
   },
 };
-
-function checkTimes(event: CreateAllOutEvent | UpdateAllOutEvent) {
-  const { stage1, stage2, stage3 } = event;
-  const order = [stage1, stage2, stage3]
-    .map((stage, idx) => [
-      { name: `Stage ${idx + 1} start time`, time: stage.start },
-      { name: `Stage ${idx + 1} end time`, time: stage.end },
-    ])
-    .flat();
-
-  for (let i = 0; i < order.length - 1; i++) {
-    const before = order.slice(i + 1).find((other) => other.time < order[i].time);
-    if (before) {
-      throw new ValidationError(`${before.name} cannot be earlier than ${order[i].name}`);
-    }
-  }
-}
-
-async function checkEventExistsAsync(eventId: number) {
-  if (!(await allOutRepository.eventExistsAsync(eventId))) {
-    throw new EventNotFoundError(eventId);
-  }
-}
 
 async function checkRegistrationExistsAsync(registration: Registration) {
   if (!(await allOutRepository.registrationExistsAsync(registration))) {
@@ -106,9 +126,9 @@ async function checkRegistrationExistsAsync(registration: Registration) {
   }
 }
 
-async function checkUserCanRegisterAsync(registration: Registration) {
-  if (!(await allOutRepository.canUserRegister(registration))) {
-    throw new CannotRegisterError(registration);
+async function checkUserHasEventDivisionsAsync(event: AllOutEvent, userId: number) {
+  if (!(await allOutRepository.userHasEventDivisionsAsync(event.id, userId))) {
+    throw new NoMapsWithUserDivisionsError(event.id, userId);
   }
 }
 
@@ -136,15 +156,7 @@ async function checkStage3MapExistsAsync(mapId: number) {
   }
 }
 
-async function checkEventNotStartedYetAsync(eventId: number) {
-  const event = await allOutRepository.getEventByIdAsync(eventId);
-  const now = new Date();
-  if (event.stage1Start <= now) {
-    throw new EventAlreadyStartedError(eventId);
-  }
-}
-
-async function checkDivisionsExistAsync(event: CreateAllOutEvent | UpdateAllOutEvent) {
+async function checkEventDivisionsExistAsync(event: CreateAllOutEvent | UpdateAllOutEvent) {
   const divisionIds = Array.from(
     new Set([
       ...event.stage1.maps.map((m) => m.divisionId),
@@ -158,5 +170,32 @@ async function checkDivisionsExistAsync(event: CreateAllOutEvent | UpdateAllOutE
     throw new DivisionsNotFoundError(
       divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
     );
+  }
+}
+
+function checkEventNotStartedInPast(event: AllOutEvent) {
+  const now = new Date();
+  if (event.stage1Start <= now) {
+    throw new EventStartedInPastError(event.id, event.stage1Start);
+  }
+}
+
+function checkEventNotEnded(event: AllOutEvent) {
+  const now = new Date();
+  if (event.stage3End <= now) {
+    throw new EventEndedError(event.id, event.stage3End);
+  }
+}
+
+function validate(
+  validators: AllOutValidator<any>[],
+  event: CreateAllOutEvent | UpdateAllOutEvent,
+  originalEvent?: AllOutEvent,
+) {
+  const errors: string[] = [];
+  validators.forEach((v) => v.validate(errors, event, originalEvent));
+
+  if (errors.length > 0) {
+    throw new ValidationError(errors);
   }
 }

@@ -1,4 +1,4 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
 import { Division } from "./Division";
 import { MonthlyEvent } from "./MonthlyEvent";
 import { MonthlyLeaderboardItem } from "./MonthlyLeaderboardItem";
@@ -10,6 +10,7 @@ export class MonthlyParticipant extends BaseEntity {
   user!: Ref<User>;
   event!: Ref<MonthlyEvent>;
   division!: Ref<Division>;
+  resigned: boolean & Opt = false;
   monthlyLeaderboardItemCollection = new Collection<MonthlyLeaderboardItem>(this);
   monthlyParticipantDivisionCollection = new Collection<MonthlyParticipantDivision>(this);
 }
@@ -41,6 +42,7 @@ export const MonthlyParticipantSchema = defineEntity({
         .updateRule("restrict")
         .deleteRule("restrict")
         .index("fk_monthly_participant_division_id"),
+    resigned: p.boolean(),
     monthlyLeaderboardItemCollection: () =>
       p.oneToMany(MonthlyLeaderboardItem).mappedBy("participant"),
     monthlyParticipantDivisionCollection: () =>

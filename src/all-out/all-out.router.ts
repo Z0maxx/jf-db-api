@@ -32,7 +32,7 @@ allOutRouter.get("/events/:eventId/registration", loggedIn, id("eventId"), async
     userId: req.user!.id,
   };
 
-  res.status(200).json({ isRegistered: await allOutService.registrationExistsAsync(registration) });
+  res.status(200).json(await allOutService.getRegistrationDetailsAsync(registration));
 });
 
 allOutRouter.get("/leaderboard/stage-1", leaderboardQuery, async (req, res) => {
@@ -93,7 +93,7 @@ allOutRouter.delete("/events/:eventId/registration", loggedIn, id("eventId"), as
     userId: req.user!.id,
   };
 
-  await allOutService.deleteRegistrationAsync(registration);
+  await allOutService.resignOrDeleteRegistrationAsync(registration);
   res.status(204).send();
 });
 

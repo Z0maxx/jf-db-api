@@ -21,6 +21,7 @@ describe("GET /all-out/events", () => {
     assert.notEqual(returnedEvent, null);
     assert.deepStrictEqual(returnedEvent, {
       id: testAllOutEvent.id,
+      canceled: false,
       start: testAllOutEvent.stage1Start.toISOString(),
       end: testAllOutEvent.stage3End.toISOString(),
     });

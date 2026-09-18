@@ -15,13 +15,18 @@ import {
   LeaderboardQuery,
   Participant,
   Registration,
+  RegistrationDetails,
   UpdateAllOutEvent,
 } from "#/types";
-import { wrap } from "@mikro-orm/core";
+import { Populate, wrap } from "@mikro-orm/core";
 
 export const allOutRepository = {
-  async getEventByIdAsync(eventId: number) {
-    return ctx.allOut.events.findOneOrFail({ id: eventId });
+  async getEventByIdAsync(eventId: number, { populateMaps }: { populateMaps: boolean }) {
+    const populate: Populate<AllOutEvent, string> = populateMaps
+      ? ["allOutStage1MapCollection", "allOutStage2MapCollection", "allOutStage3MapCollection"]
+      : [];
+
+    return ctx.allOut.events.findOne({ id: eventId }, { populate });
   },
 
   async getAllEventPreviewsAsync(): Promise<AllOutEventPreview[]> {
@@ -29,6 +34,7 @@ export const allOutRepository = {
 
     return events.map((e) => ({
       id: e.id,
+      canceled: e.canceled,
       start: e.stage1Start,
       end: e.stage3End,
     }));
@@ -79,6 +85,7 @@ export const allOutRepository = {
 
     return {
       id: event.id,
+      canceled: event.canceled,
       description: event.description,
       stage1: {
         description: event.stage1Description,
@@ -115,6 +122,7 @@ export const allOutRepository = {
 
     return participants.map((p) => ({
       id: p.id,
+      resigned: p.resigned,
       ...users.get(p.user.$.steamId64)!,
       divisions: allDivisions
         .filter((d) => d.participant.$.id === p.id)
@@ -179,6 +187,20 @@ export const allOutRepository = {
     }));
   },
 
+  async getRegistrationDetailsAsync(registration: Registration): Promise<RegistrationDetails> {
+    const registered = await this.registrationExistsAsync(registration);
+    if (!registered) {
+      return { registered, resigned: false };
+    }
+
+    const participant = await ctx.allOut.participants.findOneOrFail({
+      user: registration.userId,
+      event: registration.eventId,
+    });
+
+    return { registered, resigned: participant.resigned };
+  },
+
   async eventExistsAsync(eventId: number): Promise<boolean> {
     return !!(await ctx.allOut.events.findOne({ id: eventId }));
   },
@@ -202,7 +224,10 @@ export const allOutRepository = {
     }));
   },
 
-  async canUsersRegister(eventId: number, userIds: number[]) {
+  async usersHaveEventDivisionsAsync(
+    eventId: number,
+    userIds: number[],
+  ): Promise<Map<number, boolean>> {
     const event = await ctx.allOut.events.findOneOrFail(
       { id: eventId },
       {
@@ -238,9 +263,8 @@ export const allOutRepository = {
     );
   },
 
-  async canUserRegister(registration: Registration) {
-    const userId = registration.userId;
-    const result = await this.canUsersRegister(registration.eventId, [userId]);
+  async userHasEventDivisionsAsync(eventId: number, userId: number): Promise<boolean> {
+    const result = await this.usersHaveEventDivisionsAsync(eventId, [userId]);
     return result.get(userId)!;
   },
 
@@ -291,8 +315,23 @@ export const allOutRepository = {
     await ctx.saveAsync();
   },
 
-  async deleteEventAsync(eventId: number): Promise<void> {
-    ctx.em.remove(await ctx.allOut.events.findOneOrFail({ id: eventId }));
+  async resignAsync(registration: Registration): Promise<void> {
+    const participant = await ctx.allOut.participants.findOneOrFail({
+      user: registration.userId,
+      event: registration.eventId,
+    });
+
+    participant.resigned = true;
+    await ctx.saveAsync();
+  },
+
+  async deleteEventAsync(event: AllOutEvent): Promise<void> {
+    ctx.em.remove(event);
+    await ctx.saveAsync();
+  },
+
+  async cancelEventAsync(event: AllOutEvent): Promise<void> {
+    event.canceled = true;
     await ctx.saveAsync();
   },
 };
@@ -378,12 +417,13 @@ async function setStage3MapsAsync(
 
 async function updateEventParticipantsAsync(event: AllOutEvent) {
   const participants = await ctx.allOut.participants.find({ event }, { populate: ["user.id"] });
-  const canRegisterMap = await allOutRepository.canUsersRegister(
+  const canParticipate = await allOutRepository.usersHaveEventDivisionsAsync(
     event.id,
     participants.map((p) => p.user.id),
   );
+
   participants.forEach(async (p) => {
-    if (!canRegisterMap.get(p.user.id)) {
+    if (!canParticipate.get(p.user.id)) {
       ctx.em.remove(p);
     }
   });

@@ -29,6 +29,7 @@ describe("GET /all-out/events/:eventId", () => {
     assert(res.ok);
     assert.deepStrictEqual(res.body, {
       id: testAllOutEvent.id,
+      canceled: false,
       description: testAllOutEvent.description,
       stage1: {
         description: testAllOutEvent.stage1Description,

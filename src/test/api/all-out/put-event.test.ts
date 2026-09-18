@@ -5,7 +5,11 @@ import request from "supertest";
 import { app } from "#/app";
 import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { EventNotFoundError } from "#/errors";
+import { DivisionsNotFoundError, EventNotFoundError } from "#/errors";
+import { tomorrow, yesterday } from "#/test/test-dates";
+import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
+import { allOutPastDatesValidator } from "#/all-out/validators/all-out-past-dates.validator";
+import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
 
 const entities: BaseEntity[] = [];
 describe("PUT /all-out/events", () => {
@@ -20,12 +24,12 @@ describe("PUT /all-out/events", () => {
   it("updates event", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -45,8 +49,8 @@ describe("PUT /all-out/events", () => {
       id: originalEvent.id,
       description: "test updated event description",
       stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 19:00"),
+        start: new Date(`${tomorrow} 16:00`),
+        end: new Date(`${tomorrow} 17:00`),
         description: "test updated stage 1 description",
         maps: [
           {
@@ -57,8 +61,8 @@ describe("PUT /all-out/events", () => {
         ],
       },
       stage2: {
-        start: new Date("2031-01-02 17:00"),
-        end: new Date("2031-01-02 19:00"),
+        start: new Date(`${tomorrow} 18:00`),
+        end: new Date(`${tomorrow} 19:00`),
         description: "test updated stage 2 description",
         maps: [
           {
@@ -68,8 +72,8 @@ describe("PUT /all-out/events", () => {
         ],
       },
       stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
+        start: new Date(`${tomorrow} 20:00`),
+        end: new Date(`${tomorrow} 21:00`),
         description: "test updated stage 3 description",
         maps: [],
       },
@@ -115,12 +119,12 @@ describe("PUT /all-out/events", () => {
   it("deletes participant and its divisions when there are no longer any maps with user's divisions", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -150,15 +154,15 @@ describe("PUT /all-out/events", () => {
       id: originalEvent.id,
       description: "test updated event description",
       stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 19:00"),
-        description: "test updated stage 1 description",
+        start: originalEvent.stage1Start,
+        end: originalEvent.stage1End,
+        description: "",
         maps: [],
       },
       stage2: {
-        start: new Date("2031-01-02 17:00"),
-        end: new Date("2031-01-02 19:00"),
-        description: "test updated stage 2 description",
+        start: originalEvent.stage2Start,
+        end: originalEvent.stage2End,
+        description: "",
         maps: [
           {
             name: "test updated stage 2 soldier map",
@@ -167,9 +171,9 @@ describe("PUT /all-out/events", () => {
         ],
       },
       stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
-        description: "test updated stage 3 description",
+        start: originalEvent.stage3Start,
+        end: originalEvent.stage3End,
+        description: "",
         maps: [],
       },
     };
@@ -181,7 +185,7 @@ describe("PUT /all-out/events", () => {
       user: testUser1,
       event: event.id,
     });
-    assert.equal(deletedParticipant, null);
+    assert.equal(deletedParticipant?.id, null);
     const deletedParticipantDivisions = await ctx.allOut.participantDivisions.find({ participant });
     assert.equal(deletedParticipantDivisions.length, 0);
   });
@@ -189,74 +193,171 @@ describe("PUT /all-out/events", () => {
   it("returns validation error when stage times are out of order", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
     });
     entities.push(originalEvent);
-    const event1 = {
+    const event = {
       id: originalEvent.id,
       description: "test description",
       stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 15:00"),
+        start: new Date(`${tomorrow} 16:00`),
+        end: new Date(`${tomorrow} 15:00`),
         description: "",
         maps: [],
       },
       stage2: {
-        start: new Date("2031-01-02 17:00"),
-        end: new Date("2031-01-02 19:00"),
+        start: new Date(`${tomorrow} 14:00`),
+        end: new Date(`${tomorrow} 19:00`),
         description: "",
         maps: [],
       },
       stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
-        description: "",
-        maps: [],
-      },
-    };
-    const event2 = {
-      id: originalEvent.id,
-      description: "test created event description",
-      stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 19:00"),
-        description: "",
-        maps: [],
-      },
-      stage2: {
-        start: new Date("2031-01-01 09:00"),
-        end: new Date("2031-01-02 19:00"),
-        description: "",
-        maps: [],
-      },
-      stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
+        start: new Date(`${tomorrow} 20:00`),
+        end: new Date(`${tomorrow} 21:00`),
         description: "",
         maps: [],
       },
     };
 
-    const res1 = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event1);
-    const res2 = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event2);
+    const res = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event);
 
-    assert.equal(res1.status, 400);
-    assert.equal(res2.status, 400);
-    assert.deepStrictEqual(res1.body, {
+    assert.equal(res.status, 400);
+    assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessage: "Stage 1 end time cannot be earlier than Stage 1 start time",
+      errorMessages: allOutScheduleValidator.getMessages([
+        { earlier: "Stage 1 start time", later: "Stage 1 end time" },
+        { earlier: "Stage 1 start time", later: "Stage 2 start time" },
+        { earlier: "Stage 1 end time", later: "Stage 2 start time" },
+      ]),
     });
-    assert.deepStrictEqual(res2.body, {
+  });
+
+  it("returns validation error when updated stage times are in the past", async () => {
+    const originalEvent = await ctx.allOut.events.upsert({
+      description: "test description",
+      stage1Start: new Date(`${yesterday} 10:00`),
+      stage1End: new Date(`${yesterday} 11:00`),
+      stage2Start: new Date(`${yesterday} 12:00`),
+      stage2End: new Date(`${yesterday} 13:00`),
+      stage3Start: new Date(`${yesterday} 14:00`),
+      stage3End: new Date(`${yesterday} 15:00`),
+      stage1Description: "test stage 1 description",
+      stage2Description: "test stage 2 description",
+      stage3Description: "test stage 3 description",
+    });
+    entities.push(originalEvent);
+    const event = {
+      id: originalEvent.id,
+      description: "test description",
+      stage1: {
+        start: new Date(`${yesterday} 08:00`),
+        end: new Date(`${yesterday} 09:00`),
+        maps: [],
+      },
+      stage2: {
+        start: new Date(`${yesterday} 12:00`),
+        end: new Date(`${yesterday} 13:00`),
+        maps: [],
+      },
+      stage3: {
+        start: new Date(`${yesterday} 14:00`),
+        end: new Date(`${yesterday} 15:00`),
+        maps: [],
+      },
+    };
+
+    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+
+    assert.equal(res.status, 400);
+    assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessage: "Stage 2 start time cannot be earlier than Stage 1 start time",
+      errorMessages: allOutPastDatesValidator.getMessages([
+        { stage: 1, invalidDateFields: ["start", "end"] },
+      ]),
+    });
+  });
+
+  it("returns validation error when there are duplicate maps with same division in a stage", async () => {
+    const originalEvent = await ctx.allOut.events.upsert({
+      description: "test description",
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
+      stage1Description: "test stage 1 description",
+      stage2Description: "test stage 2 description",
+      stage3Description: "test stage 3 description",
+    });
+    entities.push(originalEvent);
+    const event = {
+      id: originalEvent.id,
+      description: "test description",
+      stage1: {
+        start: new Date(`${tomorrow} 10:00`),
+        end: new Date(`${tomorrow} 11:00`),
+        maps: [
+          {
+            name: "stage 1 duplicate map",
+            timeLimit: 10,
+            divisionId: testSoldierDivision.id,
+          },
+          {
+            name: "stage 1 duplicate map",
+            timeLimit: 10,
+            divisionId: testSoldierDivision.id,
+          },
+        ],
+      },
+      stage2: {
+        start: new Date(`${tomorrow} 12:00`),
+        end: new Date(`${tomorrow} 13:00`),
+        maps: [
+          {
+            name: "stage 2 duplicate map",
+            divisionId: testSoldierDivision.id,
+          },
+          {
+            name: "stage 2 duplicate map",
+            divisionId: testSoldierDivision.id,
+          },
+        ],
+      },
+      stage3: {
+        start: new Date(`${tomorrow} 14:00`),
+        end: new Date(`${tomorrow} 15:00`),
+        maps: [
+          {
+            name: "stage 3 duplicate map",
+            divisionId: testSoldierDivision.id,
+          },
+          {
+            name: "stage 3 duplicate map",
+            divisionId: testSoldierDivision.id,
+          },
+        ],
+      },
+    };
+
+    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+
+    assert.equal(res.status, 400);
+    assert.deepStrictEqual(res.body, {
+      errorCode: "ValidationError",
+      errorMessages: allOutDuplicateMapValidator.getMessages([
+        { stage: 1, duplicates: [event.stage1.maps[0]] },
+        { stage: 2, duplicates: [event.stage2.maps[0]] },
+        { stage: 3, duplicates: [event.stage3.maps[0]] },
+      ]),
     });
   });
 
@@ -265,20 +366,20 @@ describe("PUT /all-out/events", () => {
       id: 200_000,
       description: "test description",
       stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 19:00"),
+        start: new Date(`${tomorrow} 16:00`),
+        end: new Date(`${tomorrow} 17:00`),
         description: "",
         maps: [],
       },
       stage2: {
-        start: new Date("2031-01-02 17:00"),
-        end: new Date("2031-01-02 19:00"),
+        start: new Date(`${tomorrow} 18:00`),
+        end: new Date(`${tomorrow} 19:00`),
         description: "",
         maps: [],
       },
       stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
+        start: new Date(`${tomorrow} 20:00`),
+        end: new Date(`${tomorrow} 21:00`),
         description: "",
         maps: [],
       },
@@ -286,7 +387,6 @@ describe("PUT /all-out/events", () => {
 
     const res = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event);
 
-    console.log(res.text)
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
       errorCode: "EventNotFoundError",
@@ -297,12 +397,12 @@ describe("PUT /all-out/events", () => {
   it("returns divisions not found error when divisions don't exist", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -312,8 +412,8 @@ describe("PUT /all-out/events", () => {
       id: originalEvent.id,
       description: "test description",
       stage1: {
-        start: new Date("2031-01-01 17:00"),
-        end: new Date("2031-01-01 19:00"),
+        start: originalEvent.stage1Start,
+        end: originalEvent.stage1End,
         description: "",
         maps: [
           {
@@ -329,14 +429,14 @@ describe("PUT /all-out/events", () => {
         ],
       },
       stage2: {
-        start: new Date("2031-01-02 17:00"),
-        end: new Date("2031-01-02 19:00"),
+        start: originalEvent.stage2Start,
+        end: originalEvent.stage2End,
         description: "",
         maps: [],
       },
       stage3: {
-        start: new Date("2031-01-03 17:00"),
-        end: new Date("2031-01-03 19:00"),
+        start: originalEvent.stage3Start,
+        end: originalEvent.stage3End,
         description: "",
         maps: [],
       },
@@ -347,8 +447,14 @@ describe("PUT /all-out/events", () => {
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
       errorCode: "DivisionsNotFoundError",
-      errorMessage: "Divisions with ids '200001', '200002' not found",
+      errorMessage: new DivisionsNotFoundError([200_001, 200_002]).message,
     });
+  });
+
+  it("returns bad request when body is incorrect", async () => {
+    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send({});
+
+    assert.equal(res.status, 400);
   });
 
   it("returns unauthorized when user is not logged in", async () => {

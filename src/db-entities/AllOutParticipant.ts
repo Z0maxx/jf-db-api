@@ -1,4 +1,4 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
 import { AllOutEvent } from "./AllOutEvent";
 import { AllOutParticipantDivision } from "./AllOutParticipantDivision";
 import { AllOutStage1LeaderboardItem } from "./AllOutStage1LeaderboardItem";
@@ -8,6 +8,7 @@ import { User } from "./User";
 
 export class AllOutParticipant extends BaseEntity {
   id!: number;
+  resigned: boolean & Opt = false;
   user!: Ref<User>;
   event!: Ref<AllOutEvent>;
   allOutParticipantDivisionCollection = new Collection<AllOutParticipantDivision>(this);
@@ -22,6 +23,7 @@ export const AllOutParticipantSchema = defineEntity({
   uniques: [{ name: "unq_all_out_participant", properties: ["event", "user"] }],
   properties: {
     id: p.integer().primary(),
+    resigned: p.boolean(),
     user: () =>
       p
         .manyToOne(User)
@@ -30,7 +32,12 @@ export const AllOutParticipantSchema = defineEntity({
         .deleteRule("restrict")
         .index("idx_all_out_participant_2"),
     event: () =>
-      p.manyToOne(AllOutEvent).ref().updateRule("restrict").index("idx_all_out_participant_1"),
+      p
+        .manyToOne(AllOutEvent)
+        .ref()
+        .updateRule("restrict")
+        .deleteRule("cascade")
+        .index("idx_all_out_participant_1"),
     allOutParticipantDivisionCollection: () =>
       p.oneToMany(AllOutParticipantDivision).mappedBy("participant"),
     allOutStage1LeaderboardItemCollection: () =>

@@ -4,8 +4,14 @@ import { app } from "#/app";
 import request from "supertest";
 import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
 import { BaseEntity } from "@mikro-orm/core";
-import { AlreadyRegisteredError, CannotRegisterError, EventNotFoundError } from "#/errors";
+import {
+  AlreadyRegisteredError,
+  EventNotFoundError,
+  EventStartedInPastError,
+  NoMapsWithUserDivisionsError,
+} from "#/errors";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+import { tomorrow, yesterday } from "#/test/test-dates";
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events/:eventId/registration", () => {
@@ -20,12 +26,12 @@ describe("POST /all-out/events/:eventId/registration", () => {
   it("registers user to event", async () => {
     const event = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -57,12 +63,12 @@ describe("POST /all-out/events/:eventId/registration", () => {
   it("returns already registered error when user is already registered", async () => {
     const event = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -91,6 +97,33 @@ describe("POST /all-out/events/:eventId/registration", () => {
     });
   });
 
+  it("returns event started in past error when trying to register to an event that started in the past", async () => {
+    const event = await ctx.allOut.events.upsert({
+      description: "test description",
+      stage1Start: new Date(`${yesterday} 10:00`),
+      stage1End: new Date(`${yesterday} 11:00`),
+      stage2Start: new Date(`${yesterday} 12:00`),
+      stage2End: new Date(`${yesterday} 13:00`),
+      stage3Start: new Date(`${yesterday} 14:00`),
+      stage3End: new Date(`${yesterday} 15:00`),
+      stage1Description: "test stage 1 description",
+      stage2Description: "test stage 2 description",
+      stage3Description: "test stage 3 description",
+    });
+    entities.push(event);
+
+    const res = await loginAs(
+      request(app).post(`/all-out/events/${event.id}/registration`),
+      testUser1,
+    );
+
+    assert.equal(res.status, 403);
+    assert.deepStrictEqual(res.body, {
+      errorCode: "EventStartedInPastError",
+      errorMessage: new EventStartedInPastError(event.id, event.stage1Start).message,
+    });
+  });
+
   it("returns event not found error when event doesn't exist", async () => {
     const res = await loginAs(request(app).post(`/all-out/events/200000/registration`), testUser1);
 
@@ -107,15 +140,15 @@ describe("POST /all-out/events/:eventId/registration", () => {
     assert.equal((await res).status, 401);
   });
 
-  it("returns forbidden when there are no maps with user's divisions", async () => {
+  it("returns no maps with user divisions error when event has no maps with user's divisions", async () => {
     const event = await ctx.allOut.events.upsert({
       description: "test description",
-      stage1Start: new Date("2030-01-01 10:00"),
-      stage1End: new Date("2030-01-01 16:00"),
-      stage2Start: new Date("2030-01-02 10:00"),
-      stage2End: new Date("2030-01-02 16:00"),
-      stage3Start: new Date("2030-01-03 10:00"),
-      stage3End: new Date("2030-01-03 16:00"),
+      stage1Start: new Date(`${tomorrow} 10:00`),
+      stage1End: new Date(`${tomorrow} 11:00`),
+      stage2Start: new Date(`${tomorrow} 12:00`),
+      stage2End: new Date(`${tomorrow} 13:00`),
+      stage3Start: new Date(`${tomorrow} 14:00`),
+      stage3End: new Date(`${tomorrow} 15:00`),
       stage1Description: "test stage 1 description",
       stage2Description: "test stage 2 description",
       stage3Description: "test stage 3 description",
@@ -152,8 +185,8 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
-      errorCode: "CannotRegisterError",
-      errorMessage: new CannotRegisterError({ userId: testUser1.id, eventId: event.id }).message,
+      errorCode: "NoMapsWithUserDivisionsError",
+      errorMessage: new NoMapsWithUserDivisionsError(event.id, testUser1.id).message,
     });
   });
 });

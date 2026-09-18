@@ -1,10 +1,11 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
 import { TournamentEvent } from "./TournamentEvent";
 import { TournamentLeaderboardItem } from "./TournamentLeaderboardItem";
 import { User } from "./User";
 
 export class TournamentParticipant extends BaseEntity {
   id!: number;
+  resigned: boolean & Opt = false;
   user!: Ref<User>;
   event!: Ref<TournamentEvent>;
   tournamentLeaderboardItemCollection = new Collection<TournamentLeaderboardItem>(this);
@@ -16,6 +17,7 @@ export const TournamentParticipantSchema = defineEntity({
   uniques: [{ name: "unq_tournament_participant", properties: ["event", "user"] }],
   properties: {
     id: p.integer().primary(),
+    resigned: p.boolean(),
     user: () =>
       p
         .manyToOne(User)
@@ -28,6 +30,7 @@ export const TournamentParticipantSchema = defineEntity({
         .manyToOne(TournamentEvent)
         .ref()
         .updateRule("restrict")
+        .deleteRule("cascade")
         .index("idx_tournament_participant_1"),
     tournamentLeaderboardItemCollection: () =>
       p.oneToMany(TournamentLeaderboardItem).mappedBy("participant"),

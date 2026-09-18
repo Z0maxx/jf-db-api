@@ -7,9 +7,11 @@ import {
   UpdateAllOutEventSchema,
 } from "./schemas";
 import { TDivisionType } from "./db-entities/Division";
+import { AllOutEvent } from "./db-entities/AllOutEvent";
 
 export type GeneralEvent = {
   id: number;
+  canceled: boolean;
   description: string;
   start: Date;
   end: Date;
@@ -42,6 +44,7 @@ export type Division = {
 
 export type Participant = SteamUser & {
   id: number;
+  resigned: boolean;
   divisions: Division[];
 };
 
@@ -67,6 +70,7 @@ export type TimeLimitedEventMap = EventMap & {
 
 export type AllOutEventPreview = {
   id: number;
+  canceled: boolean;
   start: Date;
   end: Date;
 };
@@ -77,10 +81,6 @@ export type UpdateAllOutEvent = z.infer<typeof UpdateAllOutEventSchema>;
 
 export type Maps<TEventMap extends EventMap> = { [K in TDivisionType]: TEventMap[] };
 
-export type CreateMaps<TCreateEventMap extends CreateEventMap> = {
-  [K in TDivisionType]: TCreateEventMap[];
-};
-
 export type AllOutStage<TEventMap extends EventMap> = {
   description: string;
   start: Date;
@@ -90,6 +90,7 @@ export type AllOutStage<TEventMap extends EventMap> = {
 
 export type AllOutEventDetails = {
   id: number;
+  canceled: boolean;
   description: string;
   stage1: AllOutStage<TimeLimitedEventMap>;
   stage2: AllOutStage<EventMap>;
@@ -131,6 +132,11 @@ export type Registration = {
   userId: number;
 };
 
+export type RegistrationDetails = {
+  registered: boolean;
+  resigned: boolean;
+};
+
 export type JwtUser = {
   id: number;
 };
@@ -138,4 +144,18 @@ export type JwtUser = {
 export type AuthResponse = {
   token: string;
   user: AppUser;
+};
+
+export type AllOutValidator<T extends object> = {
+  validate(
+    errors: string[],
+    event: CreateAllOutEvent | UpdateAllOutEvent,
+    originalEvent?: AllOutEvent,
+  ): void;
+  getMessages(items: T[]): string[];
+};
+
+export type Schedule = {
+  earlier: string;
+  later: string;
 };
