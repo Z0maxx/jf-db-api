@@ -65,6 +65,17 @@ allOutRouter.post(
   },
 );
 
+allOutRouter.post(
+  "/events/:eventId/cancel",
+  loggedIn,
+  userCan("manage events"),
+  id("eventId"),
+  async (req, res) => {
+    await allOutService.cancelEventAsync(req.ids.eventId);
+    res.status(204).send();
+  },
+);
+
 allOutRouter.post("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
@@ -72,6 +83,16 @@ allOutRouter.post("/events/:eventId/registration", loggedIn, id("eventId"), asyn
   };
 
   await allOutService.registerAsync(registration);
+  res.status(204).send();
+});
+
+allOutRouter.post("/events/:eventId/resign", loggedIn, id("eventId"), async (req, res) => {
+  const registration = {
+    eventId: req.ids.eventId,
+    userId: req.user!.id,
+  };
+
+  await allOutService.resignOrDeleteRegistrationAsync(registration);
   res.status(204).send();
 });
 
@@ -86,16 +107,6 @@ allOutRouter.put(
       .send(await allOutService.updateEventAsync(UpdateAllOutEventSchema.parse(req.body)));
   },
 );
-
-allOutRouter.delete("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
-  const registration = {
-    eventId: req.ids.eventId,
-    userId: req.user!.id,
-  };
-
-  await allOutService.resignOrDeleteRegistrationAsync(registration);
-  res.status(204).send();
-});
 
 allOutRouter.delete(
   "/events/:eventId",

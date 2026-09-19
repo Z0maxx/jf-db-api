@@ -1,37 +1,29 @@
-import { AllOutEvent } from "#/db-entities/AllOutEvent";
-import { AllOutValidator, CreateAllOutEvent, UpdateAllOutEvent } from "#/types";
+import {
+  AllOutValidator,
+  CreateAllOutEvent,
+  StageInvalidDateFields,
+  UpdateAllOutEvent,
+} from "#/types";
 
-type StageDateFields = {
+type CreatedDateFields = {
   stage: number;
   dateFields: {
-    originalDate?: Date | undefined;
     date: Date;
     name: string;
   }[];
 };
 
-type StageInvalidDateFields = {
-  stage: number;
-  invalidDateFields: string[];
-};
-
-export const allOutPastDatesValidator: AllOutValidator<StageInvalidDateFields> = {
-  validate(
-    errors: string[],
-    event: CreateAllOutEvent | UpdateAllOutEvent,
-    originalEvent?: AllOutEvent,
-  ) {
-    const dateFieldsList: StageDateFields[] = [
+export const allOutCreatedDatesValidator: AllOutValidator<StageInvalidDateFields> = {
+  validate(errors: string[], event: CreateAllOutEvent | UpdateAllOutEvent) {
+    const dateFieldsList: CreatedDateFields[] = [
       {
         stage: 1,
         dateFields: [
           {
-            originalDate: originalEvent?.stage1Start,
             date: event.stage1.start,
             name: "start",
           },
           {
-            originalDate: originalEvent?.stage1End,
             date: event.stage1.end,
             name: "end",
           },
@@ -41,12 +33,10 @@ export const allOutPastDatesValidator: AllOutValidator<StageInvalidDateFields> =
         stage: 2,
         dateFields: [
           {
-            originalDate: originalEvent?.stage2Start,
             date: event.stage2.start,
             name: "start",
           },
           {
-            originalDate: originalEvent?.stage2End,
             date: event.stage2.end,
             name: "end",
           },
@@ -56,12 +46,10 @@ export const allOutPastDatesValidator: AllOutValidator<StageInvalidDateFields> =
         stage: 3,
         dateFields: [
           {
-            originalDate: originalEvent?.stage3Start,
             date: event.stage3.start,
             name: "start",
           },
           {
-            originalDate: originalEvent?.stage3End,
             date: event.stage3.end,
             name: "end",
           },
@@ -79,20 +67,11 @@ export const allOutPastDatesValidator: AllOutValidator<StageInvalidDateFields> =
   },
 };
 
-function getInvalidDateFields(dateFieldsList: StageDateFields[]): StageInvalidDateFields[] {
+function getInvalidDateFields(dateFieldsList: CreatedDateFields[]): StageInvalidDateFields[] {
   const now = new Date();
   const invalidDateFieldsList: StageInvalidDateFields[] = [];
   dateFieldsList.forEach((df) => {
-    const invalidDateFields: string[] = [];
-    df.dateFields.forEach((f) => {
-      if (
-        (f.originalDate && f.originalDate < now && f.originalDate > f.date) ||
-        (!f.originalDate && f.date < now)
-      ) {
-        invalidDateFields.push(f.name);
-      }
-    });
-
+    const invalidDateFields = df.dateFields.filter((f) => f.date < now).map((f) => f.name);
     if (invalidDateFields.length > 0) {
       invalidDateFieldsList.push({ stage: df.stage, invalidDateFields });
     }

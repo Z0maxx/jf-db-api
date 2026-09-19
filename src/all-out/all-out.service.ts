@@ -20,8 +20,9 @@ import {
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
-import { allOutPastDatesValidator } from "./validators/all-out-past-dates.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
+import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
+import { allOutUpdatedDatesValidator } from "./validators/all-out-updated-dates.validator";
 
 export const allOutService = {
   async getEventByIdAsync(
@@ -69,7 +70,7 @@ export const allOutService = {
   async createEventAsync(event: CreateAllOutEvent) {
     await checkEventDivisionsExistAsync(event);
     validate(
-      [allOutDuplicateMapValidator, allOutPastDatesValidator, allOutScheduleValidator],
+      [allOutDuplicateMapValidator, allOutCreatedDatesValidator, allOutScheduleValidator],
       event,
     );
 
@@ -79,7 +80,7 @@ export const allOutService = {
   async updateEventAsync(event: UpdateAllOutEvent) {
     const originalEvent = await this.getEventByIdAsync(event.id);
     validate(
-      [allOutDuplicateMapValidator, allOutPastDatesValidator, allOutScheduleValidator],
+      [allOutDuplicateMapValidator, allOutUpdatedDatesValidator, allOutScheduleValidator],
       event,
       originalEvent,
     );
@@ -116,6 +117,7 @@ export const allOutService = {
 
   async cancelEventAsync(eventId: number) {
     const event = await this.getEventByIdAsync(eventId);
+    checkEventNotEnded(event)
     await allOutRepository.cancelEventAsync(event);
   },
 };

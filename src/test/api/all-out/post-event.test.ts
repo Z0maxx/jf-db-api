@@ -14,7 +14,7 @@ import { DivisionsNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
 import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
-import { allOutPastDatesValidator } from "#/all-out/validators/all-out-past-dates.validator";
+import { allOutCreatedDatesValidator } from "#/all-out/validators/all-out-created-dates.validator";
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events", () => {
@@ -274,7 +274,7 @@ describe("POST /all-out/events", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: allOutPastDatesValidator.getMessages([
+      errorMessages: allOutCreatedDatesValidator.getMessages([
         { stage: 1, invalidDateFields: ["start", "end"] },
         { stage: 2, invalidDateFields: ["start", "end"] },
         { stage: 3, invalidDateFields: ["start", "end"] },

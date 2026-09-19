@@ -8,7 +8,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { DivisionsNotFoundError, EventNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
-import { allOutPastDatesValidator } from "#/all-out/validators/all-out-past-dates.validator";
+import { allOutUpdatedDatesValidator } from "#/all-out/validators/all-out-updated-dates.validator";
 import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
 
 const entities: BaseEntity[] = [];
@@ -240,7 +240,7 @@ describe("PUT /all-out/events", () => {
     });
   });
 
-  it("returns validation error when updated stage times are in the past", async () => {
+  it("returns validation error when updated stage times are in the past and not the same as current date", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
       stage1Start: new Date(`${yesterday} 10:00`),
@@ -279,7 +279,7 @@ describe("PUT /all-out/events", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: allOutPastDatesValidator.getMessages([
+      errorMessages: allOutUpdatedDatesValidator.getMessages([
         { stage: 1, invalidDateFields: ["start", "end"] },
       ]),
     });

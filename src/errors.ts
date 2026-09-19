@@ -117,7 +117,7 @@ export class EventStartedInPastError extends ForbiddenError {
 export class EventEndedError extends ForbiddenError {
   constructor(eventId: number, endedAt: Date) {
     super(`Event with id '${eventId}' ended at ${endedAt.toUTCString()}`);
-    this.name = "EventEndedInPastError";
+    this.name = "EventEndedError";
   }
 }
 

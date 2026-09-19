@@ -159,3 +159,8 @@ export type Schedule = {
   earlier: string;
   later: string;
 };
+
+export type StageInvalidDateFields = {
+  stage: number;
+  invalidDateFields: string[];
+};
