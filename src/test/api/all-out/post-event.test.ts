@@ -82,7 +82,7 @@ describe("POST /all-out/events", () => {
 
     assert(res.ok);
     const createdEvent = await ctx.allOut.events.findOne({ id: res.body.id });
-    assert.notEqual(createdEvent, null);
+    assert.isNotNull(createdEvent);
     assert.containSubset(createdEvent!.serialize(), {
       description: event.description,
 
@@ -237,7 +237,6 @@ describe("POST /all-out/events", () => {
 
     const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
 
-    console.log(res.text);
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",

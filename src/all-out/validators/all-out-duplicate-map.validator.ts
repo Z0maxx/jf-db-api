@@ -1,17 +1,23 @@
-import { AllOutValidator, CreateAllOutEvent, CreateEventMap, UpdateAllOutEvent } from "#/types";
+import {
+  AllOutValidator,
+  CreateAllOutEventDto,
+  CreateEventMapDto,
+  UpdateAllOutEventDto,
+} from "#/types";
+import { getDuplicates } from "#/util";
 
 type StageMaps = {
   stage: number;
-  maps: CreateEventMap[];
+  maps: CreateEventMapDto[];
 };
 
 type StageDuplicateMaps = {
   stage: number;
-  duplicates: CreateEventMap[];
+  duplicates: CreateEventMapDto[];
 };
 
 export const allOutDuplicateMapValidator: AllOutValidator<StageDuplicateMaps> = {
-  validate(errors: string[], event: CreateAllOutEvent | UpdateAllOutEvent) {
+  validate(errors: string[], event: CreateAllOutEventDto | UpdateAllOutEventDto) {
     const stageMapsList: StageMaps[] = [
       {
         stage: 1,
@@ -27,7 +33,15 @@ export const allOutDuplicateMapValidator: AllOutValidator<StageDuplicateMaps> = 
       },
     ];
 
-    errors.push(...this.getMessages(getDuplicateMaps(stageMapsList)));
+    const duplicateMapsList: StageDuplicateMaps[] = [];
+    stageMapsList.forEach((sm) => {
+      const duplicates = getDuplicates(sm.maps, (m) => `${m.name}|${m.divisionId}`);
+      if (duplicates.length > 0) {
+        duplicateMapsList.push({ stage: sm.stage, duplicates });
+      }
+    });
+
+    errors.push(...this.getMessages(duplicateMapsList));
   },
 
   getMessages(duplicateMapsList: StageDuplicateMaps[]) {
@@ -41,20 +55,3 @@ export const allOutDuplicateMapValidator: AllOutValidator<StageDuplicateMaps> = 
       .flat();
   },
 };
-
-function getDuplicateMaps(stageMapsList: StageMaps[]) {
-  const duplicateMapsList: StageDuplicateMaps[] = [];
-  stageMapsList.forEach((sm) => {
-    const mapGroups = Object.groupBy(sm.maps, (m) => `${m.name}|${m.divisionId}`);
-
-    const duplicates = Object.entries(mapGroups)
-      .filter((g) => g[1]!.length > 1)
-      .map((e) => e[1]![0]);
-
-    if (duplicates.length > 0) {
-      duplicateMapsList.push({ stage: sm.stage, duplicates });
-    }
-  });
-
-  return duplicateMapsList;
-}

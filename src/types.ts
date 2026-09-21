@@ -3,13 +3,14 @@ import {
   CreateAllOutEventSchema,
   CreateEventMapSchema,
   CreateTimeLimitedEventMapSchema,
+  DivisionSchema,
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
 } from "./schemas";
 import { TDivisionType } from "./db-entities/Division";
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 
-export type GeneralEvent = {
+export type GeneralEventDto = {
   id: number;
   canceled: boolean;
   description: string;
@@ -17,7 +18,7 @@ export type GeneralEvent = {
   end: Date;
 };
 
-export type Pr = {
+export type PrDto = {
   seconds: number;
   timestamp: Date;
 };
@@ -33,68 +34,64 @@ export type AppUser = SteamUser & {
   role: string;
   tempusId: number;
   claims: string[];
-  divisions: Division[];
+  divisions: DivisionDto[];
 };
 
-export type Division = {
-  type: string;
-  name: string;
-  color: string;
-};
+export type DivisionDto = z.infer<typeof DivisionSchema>;
 
-export type Participant = SteamUser & {
+export type ParticipantDto = SteamUser & {
   id: number;
   resigned: boolean;
-  divisions: Division[];
+  divisions: DivisionDto[];
 };
 
-export type LeaderboardItem = {
+export type LeaderboardItemDto = {
   id: number;
   user: SteamUser;
-  pr: Pr;
+  pr: PrDto;
 };
 
-export type CreateEventMap = z.infer<typeof CreateEventMapSchema>;
+export type CreateEventMapDto = z.infer<typeof CreateEventMapSchema>;
 
-export type CreateTimeLimitedEventMap = z.infer<typeof CreateTimeLimitedEventMapSchema>;
+export type CreateTimeLimitedEventMapDto = z.infer<typeof CreateTimeLimitedEventMapSchema>;
 
-export type EventMap = {
+export type EventMapDto = {
   id: number;
   name: string;
-  division: Division;
+  division: DivisionDto;
 };
 
-export type TimeLimitedEventMap = EventMap & {
+export type TimeLimitedEventMapDto = EventMapDto & {
   timeLimit: number;
 };
 
-export type AllOutEventPreview = {
+export type AllOutEventPreviewDto = {
   id: number;
   canceled: boolean;
   start: Date;
   end: Date;
 };
 
-export type CreateAllOutEvent = z.infer<typeof CreateAllOutEventSchema>;
+export type CreateAllOutEventDto = z.infer<typeof CreateAllOutEventSchema>;
 
-export type UpdateAllOutEvent = z.infer<typeof UpdateAllOutEventSchema>;
+export type UpdateAllOutEventDto = z.infer<typeof UpdateAllOutEventSchema>;
 
-export type Maps<TEventMap extends EventMap> = { [K in TDivisionType]: TEventMap[] };
+export type MapsDto<TEventMap extends EventMapDto> = { [K in TDivisionType]: TEventMap[] };
 
-export type AllOutStage<TEventMap extends EventMap> = {
+export type AllOutStageDto<TEventMap extends EventMapDto> = {
   description: string;
   start: Date;
   end: Date;
-  maps: Maps<TEventMap>;
+  maps: MapsDto<TEventMap>;
 };
 
-export type AllOutEventDetails = {
+export type AllOutEventDetailsDto = {
   id: number;
   canceled: boolean;
   description: string;
-  stage1: AllOutStage<TimeLimitedEventMap>;
-  stage2: AllOutStage<EventMap>;
-  stage3: AllOutStage<EventMap>;
+  stage1: AllOutStageDto<TimeLimitedEventMapDto>;
+  stage2: AllOutStageDto<EventMapDto>;
+  stage3: AllOutStageDto<EventMapDto>;
 };
 
 export type Lap = {
@@ -102,24 +99,24 @@ export type Lap = {
   lastTimestamp: Date;
 };
 
-export type LapLeaderboardItem = LeaderboardItem & {
+export type LapLeaderboardItemDto = LeaderboardItemDto & {
   lap: Lap;
 };
 
-export type BountyGroups = {
+export type BountyGroupsDto = {
   id: number;
   division: string;
   keyPrize: number;
   eventId: number;
 };
 
-export type BountyMap = {
+export type BountyMapDto = {
   id: number;
   groupId: number;
   name: string;
 };
 
-export type BountyCompletion = {
+export type BountyCompletionDto = {
   id: number;
   steamId64: string;
   mapId: number;
@@ -146,13 +143,18 @@ export type AuthResponse = {
   user: AppUser;
 };
 
-export type AllOutValidator<T extends object> = {
+export type AllOutValidator<T> = {
   validate(
     errors: string[],
-    event: CreateAllOutEvent | UpdateAllOutEvent,
+    event: CreateAllOutEventDto | UpdateAllOutEventDto,
     originalEvent?: AllOutEvent,
   ): void;
   getMessages(items: T[]): string[];
+};
+
+export type DivisionValidator = {
+  validate(errors: string[], divisions: DivisionDto[]): void;
+  getMessages(divisions: DivisionDto[]): string[];
 };
 
 export type Schedule = {

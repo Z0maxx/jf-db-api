@@ -1,47 +1,25 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { Division } from "#/db-entities/Division";
-import { transformDbMaps, setMapsAsync } from "#/helpers/map.helper";
+import { setMapsAsync } from "#/helpers/map.helper";
 import { getLeaderboardFilter } from "#/mikro-filters";
-import { steamUsers } from "#/steam/steam-users";
 import {
-  AllOutEventDetails,
-  AllOutEventPreview,
-  CreateAllOutEvent,
-  CreateEventMap,
-  CreateTimeLimitedEventMap,
-  LapLeaderboardItem,
-  LeaderboardItem,
+  CreateAllOutEventDto,
+  UpdateAllOutEventDto,
   LeaderboardQuery,
-  Participant,
   Registration,
-  RegistrationDetails,
-  UpdateAllOutEvent,
+  CreateEventMapDto,
+  CreateTimeLimitedEventMapDto,
 } from "#/types";
-import { Populate, wrap } from "@mikro-orm/core";
+import { wrap } from "@mikro-orm/core";
 
 export const allOutRepository = {
-  async getEventByIdAsync(eventId: number, { populateMaps }: { populateMaps: boolean }) {
-    const populate: Populate<AllOutEvent, string> = populateMaps
-      ? ["allOutStage1MapCollection", "allOutStage2MapCollection", "allOutStage3MapCollection"]
-      : [];
-
-    return ctx.allOut.events.findOne({ id: eventId }, { populate });
+  async getAllEventsAsync(): Promise<AllOutEvent[]> {
+    return await ctx.allOut.events.findAll();
   },
 
-  async getAllEventPreviewsAsync(): Promise<AllOutEventPreview[]> {
-    const events = await ctx.allOut.events.findAll();
-
-    return events.map((e) => ({
-      id: e.id,
-      canceled: e.canceled,
-      start: e.stage1Start,
-      end: e.stage3End,
-    }));
-  },
-
-  async getEventDetailsAsync(eventId: number): Promise<AllOutEventDetails> {
-    const event = await ctx.allOut.events.findOneOrFail(
+  async getEventByIdAsync(eventId: number) {
+    return await ctx.allOut.events.findOne(
       { id: eventId },
       {
         populate: [
@@ -51,183 +29,61 @@ export const allOutRepository = {
         ],
       },
     );
-
-    const stage1Maps = transformDbMaps(event.allOutStage1MapCollection, (map) => ({
-      id: map.id,
-      name: map.name,
-      timeLimit: map.timeLimit,
-      division: {
-        name: map.division.$.name,
-        type: map.division.$.type,
-        color: map.division.$.color,
-      },
-    }));
-
-    const stage2Maps = transformDbMaps(event.allOutStage2MapCollection, (map) => ({
-      id: map.id,
-      name: map.name,
-      division: {
-        name: map.division.$.name,
-        type: map.division.$.type,
-        color: map.division.$.color,
-      },
-    }));
-
-    const stage3Maps = transformDbMaps(event.allOutStage3MapCollection, (map) => ({
-      id: map.id,
-      name: map.name,
-      division: {
-        name: map.division.$.name,
-        type: map.division.$.type,
-        color: map.division.$.color,
-      },
-    }));
-
-    return {
-      id: event.id,
-      canceled: event.canceled,
-      description: event.description,
-      stage1: {
-        description: event.stage1Description,
-        start: event.stage1Start,
-        end: event.stage1End,
-        maps: stage1Maps,
-      },
-      stage2: {
-        description: event.stage2Description,
-        start: event.stage2Start,
-        end: event.stage2End,
-        maps: stage2Maps,
-      },
-      stage3: {
-        description: event.stage3Description,
-        start: event.stage3Start,
-        end: event.stage3End,
-        maps: stage3Maps,
-      },
-    };
   },
 
-  async getAllEventParticipantsAsync(eventId: number): Promise<Participant[]> {
-    const participants = await ctx.allOut.participants.find(
+  async getParticipantAsync(eventId: number, userId: number) {
+    return await ctx.allOut.participants.findOne({ event: eventId, user: userId });
+  },
+
+  async getAllEventParticipantsAsync(eventId: number) {
+    return await ctx.allOut.participants.find(
       { event: eventId },
-      { populate: ["user"] },
+      { populate: ["user", "divisionCollection"] },
     );
-
-    const users = await steamUsers.getUsersAsync(participants.map((p) => p.user.$.steamId64));
-    const allDivisions = await ctx.allOut.participantDivisions.find(
-      { participant: { $in: participants.map((p) => p.id) } },
-      { populate: ["participant", "division"] },
-    );
-
-    return participants.map((p) => ({
-      id: p.id,
-      resigned: p.resigned,
-      ...users.get(p.user.$.steamId64)!,
-      divisions: allDivisions
-        .filter((d) => d.participant.$.id === p.id)
-        .map((d) => ({
-          type: d.division.$.type,
-          name: d.division.$.name,
-          color: d.division.$.color,
-        })),
-    }));
   },
 
-  async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
+  async getStage1LeaderboardAsync(query: LeaderboardQuery) {
     const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage1Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
-    );
-    return items.map((i) => ({
-      id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
-      pr: {
-        seconds: i.prSeconds,
-        timestamp: i.prTimestamp,
-      },
-    }));
+    return items;
   },
 
-  async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItem[]> {
+  async getStage2LeaderboardAsync(query: LeaderboardQuery) {
     const filter = getLeaderboardFilter(query, { lapCount: "DESC" });
     const [items] = await ctx.allOut.stage2Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
-    );
-
-    return items.map((i) => ({
-      id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
-      pr: {
-        seconds: i.prSeconds,
-        timestamp: i.prTimestamp,
-      },
-      lap: {
-        count: i.lapCount,
-        lastTimestamp: i.lastLapTimestamp,
-      },
-    }));
+    return items;
   },
 
-  async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItem[]> {
+  async getStage3LeaderboardAsync(query: LeaderboardQuery) {
     const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage3Leaderboard.findAndCount(filter.query, filter.options);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
-    );
-    return items.map((i) => ({
-      id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
-      pr: {
-        seconds: i.prSeconds,
-        timestamp: i.prTimestamp,
-      },
-    }));
+    return items;
   },
 
-  async getRegistrationDetailsAsync(registration: Registration): Promise<RegistrationDetails> {
-    const registered = await this.registrationExistsAsync(registration);
-    if (!registered) {
-      return { registered, resigned: false };
-    }
-
-    const participant = await ctx.allOut.participants.findOneOrFail({
-      user: registration.userId,
-      event: registration.eventId,
-    });
-
-    return { registered, resigned: participant.resigned };
+  async eventExistsAsync(eventId: number) {
+    return (await ctx.allOut.events.findOne({ id: eventId })) !== null;
   },
 
-  async eventExistsAsync(eventId: number): Promise<boolean> {
-    return !!(await ctx.allOut.events.findOne({ id: eventId }));
+  async stage1MapExistsAsync(mapId: number) {
+    return (await ctx.allOut.stage1Maps.findOne({ id: mapId })) !== null;
   },
 
-  async stage1MapExistsAsync(mapId: number): Promise<boolean> {
-    return !!(await ctx.allOut.stage1Maps.findOne({ id: mapId }));
+  async stage2MapExistsAsync(mapId: number) {
+    return (await ctx.allOut.stage2Maps.findOne({ id: mapId })) !== null;
   },
 
-  async stage2MapExistsAsync(mapId: number): Promise<boolean> {
-    return !!(await ctx.allOut.stage2Maps.findOne({ id: mapId }));
+  async stage3MapExistsAsync(mapId: number) {
+    return (await ctx.allOut.stage3Maps.findOne({ id: mapId })) !== null;
   },
 
-  async stage3MapExistsAsync(mapId: number): Promise<boolean> {
-    return !!(await ctx.allOut.stage3Maps.findOne({ id: mapId }));
-  },
-
-  async registrationExistsAsync(registration: Registration): Promise<boolean> {
+  async registrationExistsAsync(registration: Registration) {
     return !!(await ctx.allOut.participants.findOne({
       user: registration.userId,
       event: registration.eventId,
     }));
   },
 
-  async usersHaveEventDivisionsAsync(
-    eventId: number,
-    userIds: number[],
-  ): Promise<Map<number, boolean>> {
+  async usersHaveEventDivisionsAsync(eventId: number, userIds: number[]) {
     const event = await ctx.allOut.events.findOneOrFail(
       { id: eventId },
       {
@@ -245,67 +101,54 @@ export const allOutRepository = {
       ...event.allOutStage1MapCollection.$.map((m) => m.division.id),
     ]);
 
-    const userDivisions = await ctx.userDivisions.find({ user: { $in: userIds } });
-    const userDivisionsMap = new Map<number, number[]>();
-    userDivisions.forEach((ud) => {
-      const userId = ud.user.id;
-      let arr = userDivisionsMap.get(userId);
-      if (!arr) {
-        arr = [];
-        userDivisionsMap.set(userId, arr);
-      }
-
-      arr.push(ud.division.id);
-    });
-
-    return new Map(
-      userIds.map((uId) => [uId, userDivisionsMap.get(uId)!.some((dId) => divisionIds.has(dId))]),
+    const users = await ctx.users.find(
+      { id: { $in: userIds } },
+      { populate: ["divisionCollection"] },
+    );
+    return new Map<number, boolean>(
+      users.map((u) => [u.id, u.divisionCollection.$.exists((d) => divisionIds.has(d.id))]),
     );
   },
 
-  async userHasEventDivisionsAsync(eventId: number, userId: number): Promise<boolean> {
+  async userHasEventDivisionsAsync(eventId: number, userId: number) {
     const result = await this.usersHaveEventDivisionsAsync(eventId, [userId]);
     return result.get(userId)!;
   },
 
-  async createEventAsync(event: CreateAllOutEvent): Promise<AllOutEventDetails> {
+  async createEventAsync(event: CreateAllOutEventDto) {
     const createdEvent = ctx.allOut.events.create(mapToDbAllOutEvent(event));
     await setStageMapsAsync(createdEvent, event);
     await ctx.saveAsync();
-    return await this.getEventDetailsAsync(createdEvent.id);
+    return createdEvent.id;
   },
 
-  async updateEventAsync(event: UpdateAllOutEvent): Promise<AllOutEventDetails> {
+  async updateEventAsync(event: UpdateAllOutEventDto) {
     const existingEvent = await ctx.allOut.events.findOneOrFail({ id: event.id });
     wrap(existingEvent).assign(mapToDbAllOutEvent(event));
     await setStageMapsAsync(existingEvent, event);
     await updateEventParticipantsAsync(existingEvent);
     await ctx.saveAsync();
-    return await this.getEventDetailsAsync(existingEvent.id);
   },
 
-  async registerAsync(registration: Registration): Promise<void> {
+  async registerAsync(registration: Registration) {
     if (await this.registrationExistsAsync(registration)) {
       return;
     }
 
+    const user = await ctx.users.findOneOrFail(
+      { id: registration.userId },
+      { populate: ["divisionCollection"] },
+    );
     const participant = ctx.allOut.participants.create({
-      user: registration.userId,
       event: registration.eventId,
+      user,
     });
 
-    const userDivisions = await ctx.userDivisions.find({ user: registration.userId });
-    userDivisions.forEach((ud) => {
-      ctx.allOut.participantDivisions.create({
-        participant,
-        division: ud.division,
-      });
-    });
-
+    participant.divisionCollection.set(user.divisionCollection);
     await ctx.saveAsync();
   },
 
-  async deleteRegistrationAsync(registration: Registration): Promise<void> {
+  async deleteRegistrationAsync(registration: Registration) {
     const participant = await ctx.allOut.participants.findOneOrFail({
       user: registration.userId,
       event: registration.eventId,
@@ -315,7 +158,7 @@ export const allOutRepository = {
     await ctx.saveAsync();
   },
 
-  async resignAsync(registration: Registration): Promise<void> {
+  async resignAsync(registration: Registration) {
     const participant = await ctx.allOut.participants.findOneOrFail({
       user: registration.userId,
       event: registration.eventId,
@@ -325,18 +168,18 @@ export const allOutRepository = {
     await ctx.saveAsync();
   },
 
-  async deleteEventAsync(event: AllOutEvent): Promise<void> {
+  async deleteEventAsync(event: AllOutEvent) {
     ctx.em.remove(event);
     await ctx.saveAsync();
   },
 
-  async cancelEventAsync(event: AllOutEvent): Promise<void> {
+  async cancelEventAsync(event: AllOutEvent) {
     event.canceled = true;
     await ctx.saveAsync();
   },
 };
 
-function mapToDbAllOutEvent(event: CreateAllOutEvent | UpdateAllOutEvent) {
+function mapToDbAllOutEvent(event: CreateAllOutEventDto | UpdateAllOutEventDto) {
   const { stage1, stage2, stage3 } = event;
   return {
     description: event.description,
@@ -357,7 +200,7 @@ function mapToDbAllOutEvent(event: CreateAllOutEvent | UpdateAllOutEvent) {
 
 async function setStageMapsAsync(
   event: AllOutEvent,
-  newEvent: CreateAllOutEvent | UpdateAllOutEvent,
+  newEvent: CreateAllOutEventDto | UpdateAllOutEventDto,
 ) {
   const divisionIds = [
     ...newEvent.stage1.maps.map((m) => m.divisionId),
@@ -374,10 +217,10 @@ async function setStageMapsAsync(
 
 async function setStage1MapsAsync(
   event: AllOutEvent,
-  maps: CreateTimeLimitedEventMap[],
+  maps: CreateTimeLimitedEventMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateTimeLimitedEventMap) => ({
+  const transformFn = (m: CreateTimeLimitedEventMapDto) => ({
     name: m.name,
     timeLimit: m.timeLimit,
     division: divisionsMap.get(m.divisionId)!,
@@ -389,10 +232,10 @@ async function setStage1MapsAsync(
 
 async function setStage2MapsAsync(
   event: AllOutEvent,
-  maps: CreateEventMap[],
+  maps: CreateEventMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateEventMap) => ({
+  const transformFn = (m: CreateEventMapDto) => ({
     name: m.name,
     division: divisionsMap.get(m.divisionId)!,
     event,
@@ -403,10 +246,10 @@ async function setStage2MapsAsync(
 
 async function setStage3MapsAsync(
   event: AllOutEvent,
-  maps: CreateEventMap[],
+  maps: CreateEventMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateEventMap) => ({
+  const transformFn = (m: CreateEventMapDto) => ({
     name: m.name,
     division: divisionsMap.get(m.divisionId)!,
     event,

@@ -5,7 +5,6 @@ import {
 } from "#/schemas";
 import express from "express";
 import { allOutService } from "./all-out.service";
-import { allOutRepository } from "./all-out.repository";
 import { id } from "#/middlewares/id.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { leaderboardQuery } from "#/middlewares/leaderboard-query.middleware";
@@ -15,7 +14,7 @@ import { userCan } from "#/middlewares/user-can.middleware";
 export const allOutRouter = express.Router();
 
 allOutRouter.get("/events", async (_, res) => {
-  res.status(200).json(await allOutRepository.getAllEventPreviewsAsync());
+  res.status(200).json(await allOutService.getAllEventPreviewsAsync());
 });
 
 allOutRouter.get("/events/:eventId", id("eventId"), async (req, res) => {

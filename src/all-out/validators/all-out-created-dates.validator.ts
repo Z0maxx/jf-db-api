@@ -1,8 +1,8 @@
 import {
   AllOutValidator,
-  CreateAllOutEvent,
+  CreateAllOutEventDto,
   StageInvalidDateFields,
-  UpdateAllOutEvent,
+  UpdateAllOutEventDto,
 } from "#/types";
 
 type CreatedDateFields = {
@@ -14,7 +14,7 @@ type CreatedDateFields = {
 };
 
 export const allOutCreatedDatesValidator: AllOutValidator<StageInvalidDateFields> = {
-  validate(errors: string[], event: CreateAllOutEvent | UpdateAllOutEvent) {
+  validate(errors: string[], event: CreateAllOutEventDto | UpdateAllOutEventDto) {
     const dateFieldsList: CreatedDateFields[] = [
       {
         stage: 1,

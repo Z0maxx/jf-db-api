@@ -33,11 +33,14 @@ describe("POST /events/:eventId/cancel", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/cancel`), testHeadAdmin);
+    const res = await loginAs(
+      request(app).post(`/all-out/events/${event.id}/cancel`),
+      testHeadAdmin,
+    );
 
     assert(res.ok);
     const canceledEvent = await ctx.allOut.events.findOne({ id: event.id });
-    assert.notEqual(canceledEvent, null);
+    assert.isNotNull(canceledEvent);
     assert(canceledEvent!.canceled);
   });
 
@@ -56,7 +59,10 @@ describe("POST /events/:eventId/cancel", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/cancel`), testHeadAdmin);
+    const res = await loginAs(
+      request(app).post(`/all-out/events/${event.id}/cancel`),
+      testHeadAdmin,
+    );
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {

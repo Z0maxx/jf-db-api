@@ -83,7 +83,7 @@ describe("PUT /all-out/events", () => {
 
     assert(res.ok);
     const updatedEvent = await ctx.allOut.events.findOne({ id: event.id });
-    assert.notEqual(updatedEvent, null);
+    assert.isNotNull(updatedEvent);
     assert.containSubset(updatedEvent!.serialize(), {
       description: event.description,
 
@@ -113,7 +113,7 @@ describe("PUT /all-out/events", () => {
       division: event.stage2.maps[0].divisionId,
     });
     const deletedStage3Maps = await ctx.allOut.stage3Maps.find({ event: event.id });
-    assert.equal(deletedStage3Maps.length, 0);
+    assert.isEmpty(deletedStage3Maps);
   });
 
   it("deletes participant and its divisions when there are no longer any maps with user's divisions", async () => {
@@ -141,10 +141,8 @@ describe("PUT /all-out/events", () => {
       user: testUser1,
       event: originalEvent,
     });
-    await ctx.allOut.participantDivisions.upsert({
-      division: testSoldierDivision,
-      participant,
-    });
+    participant.divisionCollection.set([testSoldierDivision]);
+    await ctx.saveAsync();
     const otherDivision = await ctx.divisions.upsert({
       name: "other division",
       color: "000000",
@@ -185,9 +183,7 @@ describe("PUT /all-out/events", () => {
       user: testUser1,
       event: event.id,
     });
-    assert.equal(deletedParticipant?.id, null);
-    const deletedParticipantDivisions = await ctx.allOut.participantDivisions.find({ participant });
-    assert.equal(deletedParticipantDivisions.length, 0);
+    assert.isNull(deletedParticipant);
   });
 
   it("returns validation error when stage times are out of order", async () => {

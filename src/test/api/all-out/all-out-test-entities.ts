@@ -106,28 +106,9 @@ export async function createAllOutTestEntitiesAsync() {
     },
   ]);
 
-  await ctx.allOut.participantDivisions.upsertMany([
-    {
-      id: 100_001,
-      participant: testAllOutParticipant1,
-      division: testSoldierDivision,
-    },
-    {
-      id: 100_002,
-      participant: testAllOutParticipant1,
-      division: testDemomanDivision,
-    },
-    {
-      id: 100_003,
-      participant: testAllOutParticipant2,
-      division: testSoldierDivision,
-    },
-    {
-      id: 100_004,
-      participant: testAllOutParticipant2,
-      division: testDemomanDivision,
-    },
-  ]);
+  testAllOutParticipant1.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  testAllOutParticipant2.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  await ctx.saveAsync();
 
   [testAllOutStage1LeaderboardItem1, testAllOutStage1LeaderboardItem2] =
     await ctx.allOut.stage1Leaderboard.upsertMany([

@@ -121,6 +121,13 @@ export class EventEndedError extends ForbiddenError {
   }
 }
 
+export class DivisionsHaveUsersError extends ForbiddenError {
+  constructor(divisionNames: string[]) {
+    super(`Division(s) '${divisionNames.join("', '")}' have users`);
+    this.name = "DivisionsHaveUsersError";
+  }
+}
+
 export class AlreadyRegisteredError extends ConflictError {
   constructor(registration: Registration) {
     super(

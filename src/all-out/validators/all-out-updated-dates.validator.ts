@@ -1,9 +1,9 @@
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import {
   AllOutValidator,
-  CreateAllOutEvent,
+  CreateAllOutEventDto,
   StageInvalidDateFields,
-  UpdateAllOutEvent,
+  UpdateAllOutEventDto,
 } from "#/types";
 
 type UpdatedDateFields = {
@@ -18,7 +18,7 @@ type UpdatedDateFields = {
 export const allOutUpdatedDatesValidator: AllOutValidator<StageInvalidDateFields> = {
   validate(
     errors: string[],
-    event: CreateAllOutEvent | UpdateAllOutEvent,
+    event: CreateAllOutEventDto | UpdateAllOutEventDto,
     originalEvent?: AllOutEvent,
   ) {
     const dateFieldsList: UpdatedDateFields[] = [

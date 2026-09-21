@@ -69,18 +69,16 @@ CREATE TABLE user (
 ALTER TABLE user ADD INDEX idx_user (steam_id_64);
 
 CREATE TABLE user_division (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
   division_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (user_id, division_id),
   CONSTRAINT fk_user_division_user_id
     FOREIGN KEY (user_id)
     REFERENCES user(id),
   CONSTRAINT fk_user_division_division_id
     FOREIGN KEY (division_id)
     REFERENCES division(id)
-    ON DELETE CASCADE,
-  CONSTRAINT unq_user_division
-    UNIQUE (user_id, division_id)
+    ON DELETE CASCADE
 );
 
 ALTER TABLE user_division ADD INDEX idx_user_division (user_id);
@@ -178,18 +176,16 @@ ALTER TABLE all_out_participant ADD INDEX idx_all_out_participant_2 (user_id);
 ALTER TABLE all_out_participant ADD INDEX idx_all_out_participant_3 (event_id, user_id);
 
 CREATE TABLE all_out_participant_division (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   participant_id INT UNSIGNED NOT NULL,
   division_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (participant_id, division_id),
   CONSTRAINT fk_all_out_participant_division_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES all_out_participant(id)
     ON DELETE CASCADE,
   CONSTRAINT fk_all_out_participant_division_division_id
     FOREIGN KEY (division_id)
-    REFERENCES division(id),
-  CONSTRAINT unq_al_out_particpant_division
-    UNIQUE (participant_id, division_id)
+    REFERENCES division(id)
 );
 
 ALTER TABLE all_out_participant_division ADD INDEX idx_all_out_participant_division (participant_id);
@@ -344,9 +340,9 @@ ALTER TABLE monthly_participant ADD INDEX idx_monthly_participant_2 (user_id);
 ALTER TABLE monthly_participant ADD INDEX idx_monthly_participant_3 (event_id, user_id);
 
 CREATE TABLE monthly_participant_division (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   participant_id INT UNSIGNED NOT NULL,
   division_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (participant_id, division_id),
   CONSTRAINT fk_monthly_participant_division_participant_id
     FOREIGN KEY (participant_id)
     REFERENCES monthly_participant(id)

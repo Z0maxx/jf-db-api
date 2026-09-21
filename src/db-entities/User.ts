@@ -1,21 +1,21 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
 import { AllOutParticipant } from "./AllOutParticipant";
 import { BountyCompletion } from "./BountyCompletion";
+import { Division } from "./Division";
 import { MonthlyParticipant } from "./MonthlyParticipant";
 import { Role } from "./Role";
 import { TournamentParticipant } from "./TournamentParticipant";
-import { UserDivision } from "./UserDivision";
 
 export class User extends BaseEntity {
   id!: number;
   steamId64!: string;
   tempusId!: number;
   role!: Ref<Role>;
+  divisionCollection = new Collection<Division>(this);
   allOutParticipantCollection = new Collection<AllOutParticipant>(this);
   bountyCompletionCollection = new Collection<BountyCompletion>(this);
   monthlyParticipantCollection = new Collection<MonthlyParticipant>(this);
   tournamentParticipantCollection = new Collection<TournamentParticipant>(this);
-  userDivisionCollection = new Collection<UserDivision>(this);
 }
 
 export const UserSchema = defineEntity({
@@ -38,10 +38,15 @@ export const UserSchema = defineEntity({
         .updateRule("restrict")
         .deleteRule("restrict")
         .index("fk_user_role_id"),
+    divisionCollection: () =>
+      p
+        .manyToMany(Division)
+        .pivotTable("user_division")
+        .joinColumn("user_id")
+        .inverseJoinColumn("division_id"),
     allOutParticipantCollection: () => p.oneToMany(AllOutParticipant).mappedBy("user"),
     bountyCompletionCollection: () => p.oneToMany(BountyCompletion).mappedBy("user"),
     monthlyParticipantCollection: () => p.oneToMany(MonthlyParticipant).mappedBy("user"),
     tournamentParticipantCollection: () => p.oneToMany(TournamentParticipant).mappedBy("user"),
-    userDivisionCollection: () => p.oneToMany(UserDivision).mappedBy("user"),
   },
 });

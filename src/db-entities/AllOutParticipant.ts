@@ -1,9 +1,9 @@
 import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
 import { AllOutEvent } from "./AllOutEvent";
-import { AllOutParticipantDivision } from "./AllOutParticipantDivision";
 import { AllOutStage1LeaderboardItem } from "./AllOutStage1LeaderboardItem";
 import { AllOutStage2LeaderboardItem } from "./AllOutStage2LeaderboardItem";
 import { AllOutStage3LeaderboardItem } from "./AllOutStage3LeaderboardItem";
+import { Division } from "./Division";
 import { User } from "./User";
 
 export class AllOutParticipant extends BaseEntity {
@@ -11,7 +11,7 @@ export class AllOutParticipant extends BaseEntity {
   resigned: boolean & Opt = false;
   user!: Ref<User>;
   event!: Ref<AllOutEvent>;
-  allOutParticipantDivisionCollection = new Collection<AllOutParticipantDivision>(this);
+  divisionCollection = new Collection<Division>(this);
   allOutStage1LeaderboardItemCollection = new Collection<AllOutStage1LeaderboardItem>(this);
   allOutStage2LeaderboardItemCollection = new Collection<AllOutStage2LeaderboardItem>(this);
   allOutStage3LeaderboardItemCollection = new Collection<AllOutStage3LeaderboardItem>(this);
@@ -38,8 +38,12 @@ export const AllOutParticipantSchema = defineEntity({
         .updateRule("restrict")
         .deleteRule("cascade")
         .index("idx_all_out_participant_1"),
-    allOutParticipantDivisionCollection: () =>
-      p.oneToMany(AllOutParticipantDivision).mappedBy("participant"),
+    divisionCollection: () =>
+      p
+        .manyToMany(Division)
+        .pivotTable("all_out_participant_division")
+        .joinColumn("participant_id")
+        .inverseJoinColumn("division_id"),
     allOutStage1LeaderboardItemCollection: () =>
       p.oneToMany(AllOutStage1LeaderboardItem).mappedBy("participant"),
     allOutStage2LeaderboardItemCollection: () =>

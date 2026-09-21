@@ -3,8 +3,9 @@ import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
 import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
 import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
+import { DivisionType } from "#/db-entities/Division";
 import { MonthlyMap } from "#/db-entities/MonthlyMap";
-import { CreateEventMap, EventMap, Maps } from "#/types";
+import { CreateEventMapDto, EventMapDto, MapsDto } from "#/types";
 import {
   EntityData,
   FromEntityType,
@@ -17,7 +18,7 @@ import {
 import { SqlEntityRepository } from "@mikro-orm/sql";
 
 export async function setMapsAsync<
-  TCreateMap extends CreateEventMap,
+  TCreateMap extends CreateEventMapDto,
   TDbMap extends AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
 >(
   repository: SqlEntityRepository<TDbMap>,
@@ -41,11 +42,14 @@ export async function setMapsAsync<
 }
 
 export function transformDbMaps<
-  TDbMap extends AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
-  TMap extends EventMap,
+  TDbMap extends Loaded<
+    AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
+    "division"
+  >,
+  TMap extends EventMapDto,
 >(maps: Collection<TDbMap>, transformFn: (map: TDbMap) => TMap) {
   return {
-    soldier: maps.filter((m) => m.division.getEntity().type === "soldier").map(transformFn),
-    demoman: maps.filter((m) => m.division.getEntity().type === "demoman").map(transformFn),
-  } as Maps<TMap>;
+    soldier: maps.filter((m) => m.division.$.type === DivisionType.SOLDIER).map(transformFn),
+    demoman: maps.filter((m) => m.division.$.type === DivisionType.DEMOMAN).map(transformFn),
+  } as MapsDto<TMap>;
 }

@@ -18,7 +18,7 @@ describe("GET /all-out/events", () => {
 
     assert(res.ok);
     const returnedEvent = (res.body as any[]).find((e) => e.id === testAllOutEvent.id);
-    assert.notEqual(returnedEvent, null);
+    assert.isNotNull(returnedEvent);
     assert.deepStrictEqual(returnedEvent, {
       id: testAllOutEvent.id,
       canceled: false,

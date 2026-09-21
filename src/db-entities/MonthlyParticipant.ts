@@ -2,7 +2,6 @@ import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mi
 import { Division } from "./Division";
 import { MonthlyEvent } from "./MonthlyEvent";
 import { MonthlyLeaderboardItem } from "./MonthlyLeaderboardItem";
-import { MonthlyParticipantDivision } from "./MonthlyParticipantDivision";
 import { User } from "./User";
 
 export class MonthlyParticipant extends BaseEntity {
@@ -11,8 +10,8 @@ export class MonthlyParticipant extends BaseEntity {
   event!: Ref<MonthlyEvent>;
   division!: Ref<Division>;
   resigned: boolean & Opt = false;
+  divisionCollection = new Collection<Division>(this);
   monthlyLeaderboardItemCollection = new Collection<MonthlyLeaderboardItem>(this);
-  monthlyParticipantDivisionCollection = new Collection<MonthlyParticipantDivision>(this);
 }
 
 export const MonthlyParticipantSchema = defineEntity({
@@ -43,9 +42,13 @@ export const MonthlyParticipantSchema = defineEntity({
         .deleteRule("restrict")
         .index("fk_monthly_participant_division_id"),
     resigned: p.boolean(),
+    divisionCollection: () =>
+      p
+        .manyToMany(Division)
+        .pivotTable("monthly_participant_division")
+        .joinColumn("participant_id")
+        .inverseJoinColumn("division_id"),
     monthlyLeaderboardItemCollection: () =>
       p.oneToMany(MonthlyLeaderboardItem).mappedBy("participant"),
-    monthlyParticipantDivisionCollection: () =>
-      p.oneToMany(MonthlyParticipantDivision).mappedBy("participant"),
   },
 });

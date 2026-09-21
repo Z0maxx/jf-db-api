@@ -1,9 +1,14 @@
 import {
+  AllOutEventPreviewDto,
   AllOutValidator,
-  CreateAllOutEvent,
+  CreateAllOutEventDto,
+  LapLeaderboardItemDto,
+  LeaderboardItemDto,
   LeaderboardQuery,
+  ParticipantDto,
   Registration,
-  UpdateAllOutEvent,
+  RegistrationDetails,
+  UpdateAllOutEventDto,
 } from "#/types";
 import { allOutRepository } from "./all-out.repository";
 import {
@@ -23,13 +28,12 @@ import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
 import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
 import { allOutUpdatedDatesValidator } from "./validators/all-out-updated-dates.validator";
+import { transformDbMaps } from "#/helpers/map.helper";
+import { steamUsers } from "#/steam/steam-users";
 
 export const allOutService = {
-  async getEventByIdAsync(
-    eventId: number,
-    options: { populateMaps: boolean } = { populateMaps: false },
-  ) {
-    const event = await allOutRepository.getEventByIdAsync(eventId, options);
+  async getEventByIdAsync(eventId: number) {
+    const event = await allOutRepository.getEventByIdAsync(eventId);
     if (!event) {
       throw new EventNotFoundError(eventId);
     }
@@ -38,46 +42,175 @@ export const allOutService = {
   },
 
   async getEventDetailsAsync(eventId: number) {
-    await this.getEventByIdAsync(eventId);
-    return await allOutRepository.getEventDetailsAsync(eventId);
+    const event = await this.getEventByIdAsync(eventId);
+    const stage1Maps = transformDbMaps(
+      event.allOutStage1MapCollection,
+      ({ id, name, timeLimit, division }) => ({
+        id,
+        name,
+        timeLimit,
+        division: {
+          name: division.$.name,
+          type: division.$.type,
+          color: division.$.color,
+        },
+      }),
+    );
+
+    const stage2Maps = transformDbMaps(
+      event.allOutStage2MapCollection,
+      ({ id, name, division }) => ({
+        id,
+        name,
+        division: {
+          name: division.$.name,
+          type: division.$.type,
+          color: division.$.color,
+        },
+      }),
+    );
+
+    const stage3Maps = transformDbMaps(
+      event.allOutStage3MapCollection,
+      ({ id, name, division }) => ({
+        id,
+        name,
+        division: {
+          name: division.$.name,
+          type: division.$.type,
+          color: division.$.color,
+        },
+      }),
+    );
+
+    return {
+      id: event.id,
+      canceled: event.canceled,
+      description: event.description,
+      stage1: {
+        description: event.stage1Description,
+        start: event.stage1Start,
+        end: event.stage1End,
+        maps: stage1Maps,
+      },
+      stage2: {
+        description: event.stage2Description,
+        start: event.stage2Start,
+        end: event.stage2End,
+        maps: stage2Maps,
+      },
+      stage3: {
+        description: event.stage3Description,
+        start: event.stage3Start,
+        end: event.stage3End,
+        maps: stage3Maps,
+      },
+    };
   },
 
-  async getAllEventParticipantsAsync(eventId: number) {
-    await this.getEventByIdAsync(eventId);
-    return await allOutRepository.getAllEventParticipantsAsync(eventId);
+  async getAllEventPreviewsAsync(): Promise<AllOutEventPreviewDto[]> {
+    const events = await allOutRepository.getAllEventsAsync();
+    return events.map(({ id, canceled, stage1Start, stage3End }) => ({
+      id,
+      canceled,
+      start: stage1Start,
+      end: stage3End,
+    }));
   },
 
-  async getStage1LeaderboardAsync(query: LeaderboardQuery) {
+  async getAllEventParticipantsAsync(eventId: number): Promise<ParticipantDto[]> {
+    await this.getEventByIdAsync(eventId);
+    const participants = await allOutRepository.getAllEventParticipantsAsync(eventId);
+    const users = await steamUsers.getUsersAsync(participants.map((p) => p.user.$.steamId64));
+    return participants.map((p) => ({
+      id: p.id,
+      resigned: p.resigned,
+      ...users.get(p.user.$.steamId64)!,
+      divisions: p.divisionCollection.$.map(({ type, name, color }) => ({
+        type,
+        name,
+        color,
+      })),
+    }));
+  },
+
+  async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage1MapExistsAsync(query.mapId);
-    return await allOutRepository.getStage1LeaderboardAsync(query);
+    const items = await allOutRepository.getStage1LeaderboardAsync(query);
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
+    return items.map((i) => ({
+      id: i.id,
+      user: users.get(i.participant.$.user.$.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
+    }));
   },
 
-  async getStage2LeaderboardAsync(query: LeaderboardQuery) {
+  async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItemDto[]> {
     await checkStage2MapExistsAsync(query.mapId);
-    return await allOutRepository.getStage2LeaderboardAsync(query);
+    const items = await allOutRepository.getStage2LeaderboardAsync(query);
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
+
+    return items.map((i) => ({
+      id: i.id,
+      user: users.get(i.participant.$.user.$.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
+      lap: {
+        count: i.lapCount,
+        lastTimestamp: i.lastLapTimestamp,
+      },
+    }));
   },
 
-  async getStage3LeaderboardAsync(query: LeaderboardQuery) {
+  async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage3MapExistsAsync(query.mapId);
-    return await allOutRepository.getStage3LeaderboardAsync(query);
+    const items = await allOutRepository.getStage3LeaderboardAsync(query);
+    const users = await steamUsers.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steamId64),
+    );
+    return items.map((i) => ({
+      id: i.id,
+      user: users.get(i.participant.$.user.$.steamId64)!,
+      pr: {
+        seconds: i.prSeconds,
+        timestamp: i.prTimestamp,
+      },
+    }));
   },
 
-  async getRegistrationDetailsAsync(registration: Registration) {
+  async getRegistrationDetailsAsync(registration: Registration): Promise<RegistrationDetails> {
     await this.getEventByIdAsync(registration.eventId);
-    return await allOutRepository.getRegistrationDetailsAsync(registration);
+    const participant = await allOutRepository.getParticipantAsync(
+      registration.eventId,
+      registration.userId,
+    );
+    return {
+      registered: !!participant,
+      resigned: participant ? participant.resigned : false,
+    };
   },
 
-  async createEventAsync(event: CreateAllOutEvent) {
-    await checkEventDivisionsExistAsync(event);
+  async createEventAsync(event: CreateAllOutEventDto) {
     validate(
       [allOutDuplicateMapValidator, allOutCreatedDatesValidator, allOutScheduleValidator],
       event,
     );
 
-    return await allOutRepository.createEventAsync(event);
+    await checkEventDivisionsExistAsync(event);
+    const id = await allOutRepository.createEventAsync(event);
+    return await this.getEventDetailsAsync(id);
   },
 
-  async updateEventAsync(event: UpdateAllOutEvent) {
+  async updateEventAsync(event: UpdateAllOutEventDto) {
     const originalEvent = await this.getEventByIdAsync(event.id);
     validate(
       [allOutDuplicateMapValidator, allOutUpdatedDatesValidator, allOutScheduleValidator],
@@ -86,7 +219,8 @@ export const allOutService = {
     );
 
     await checkEventDivisionsExistAsync(event);
-    return await allOutRepository.updateEventAsync(event);
+    await allOutRepository.updateEventAsync(event);
+    return await this.getEventDetailsAsync(event.id);
   },
 
   async registerAsync(registration: Registration) {
@@ -117,7 +251,7 @@ export const allOutService = {
 
   async cancelEventAsync(eventId: number) {
     const event = await this.getEventByIdAsync(eventId);
-    checkEventNotEnded(event)
+    checkEventNotEnded(event);
     await allOutRepository.cancelEventAsync(event);
   },
 };
@@ -158,7 +292,7 @@ async function checkStage3MapExistsAsync(mapId: number) {
   }
 }
 
-async function checkEventDivisionsExistAsync(event: CreateAllOutEvent | UpdateAllOutEvent) {
+async function checkEventDivisionsExistAsync(event: CreateAllOutEventDto | UpdateAllOutEventDto) {
   const divisionIds = Array.from(
     new Set([
       ...event.stage1.maps.map((m) => m.divisionId),
@@ -191,12 +325,11 @@ function checkEventNotEnded(event: AllOutEvent) {
 
 function validate(
   validators: AllOutValidator<any>[],
-  event: CreateAllOutEvent | UpdateAllOutEvent,
+  event: CreateAllOutEventDto | UpdateAllOutEventDto,
   originalEvent?: AllOutEvent,
 ) {
   const errors: string[] = [];
   validators.forEach((v) => v.validate(errors, event, originalEvent));
-
   if (errors.length > 0) {
     throw new ValidationError(errors);
   }

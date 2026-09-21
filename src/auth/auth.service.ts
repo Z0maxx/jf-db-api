@@ -83,27 +83,26 @@ function getConfig() {
 }
 
 async function getUserAsync(steamUser: SteamUser): Promise<AppUser | null> {
-  const user = await ctx.users.findOne({ steamId64: steamUser.steamId64 }, { populate: ["role"] });
+  const user = await ctx.users.findOne(
+    { steamId64: steamUser.steamId64 },
+    { populate: ["role", "divisionCollection"] },
+  );
   if (!user) {
     return null;
   }
 
   const roleClaims = await ctx.roleClaims.find({ role: user.role.id }, { populate: ["claim"] });
-  const userDivisions = await ctx.userDivisions.find({ user }, { populate: ["division"] });
   return {
     ...steamUser,
     id: user.id,
     tempusId: user.tempusId,
     role: user.role.$.name,
     claims: roleClaims.map((rc) => rc.claim.$.name),
-    divisions: userDivisions.map((ud) => {
-      const division = ud.division.$;
-      return {
-        type: division.type,
-        name: division.name,
-        color: division.color,
-      };
-    }),
+    divisions: user.divisionCollection.$.map(({ type, name, color }) => ({
+      type,
+      name,
+      color,
+    })),
   };
 }
 
@@ -119,12 +118,14 @@ async function createUserAsync(steamUser: SteamUser): Promise<AppUser> {
     role,
   });
 
-  const divisions = await ctx.divisions.find({ name: "unassigned" });
+  const divisions = await ctx.divisions.find({
+    name: { $in: ["Unassigned Soldier", "Unassigned Demoman"] },
+  });
   if (divisions.length < 2) {
     throw new Error("Unassigned divisions must exist");
   }
 
-  divisions.forEach((division) => ctx.userDivisions.create({ user, division }));
+  user.divisionCollection.set(divisions);
   await ctx.saveAsync();
   return {
     ...steamUser,
@@ -132,10 +133,10 @@ async function createUserAsync(steamUser: SteamUser): Promise<AppUser> {
     tempusId: 0,
     role: role.name,
     claims: [],
-    divisions: divisions.map((d) => ({
-      type: d.type,
-      name: d.name,
-      color: d.color,
+    divisions: divisions.map(({ type, name, color }) => ({
+      type,
+      name,
+      color,
     })),
   };
 }

@@ -1,4 +1,4 @@
-import { defineConfig, UnderscoreNamingStrategy } from "@mikro-orm/mysql";
+import { defineConfig, ReferenceKind, UnderscoreNamingStrategy } from "@mikro-orm/mysql";
 import { EntityGenerator } from "@mikro-orm/entity-generator";
 
 export class JfNamingStrategy extends UnderscoreNamingStrategy {
@@ -9,6 +9,19 @@ export class JfNamingStrategy extends UnderscoreNamingStrategy {
     }
 
     return original;
+  }
+
+  override manyToManyPropertyName(_: string, targetEntityName: string): string {
+    return targetEntityName.charAt(0).toLowerCase() + targetEntityName.slice(1) + "Collection";
+  }
+
+  override inverseSideName(entityName: string, propertyName: string, kind: ReferenceKind): string {
+    if (kind === ReferenceKind.MANY_TO_MANY || kind === ReferenceKind.ONE_TO_MANY) {
+      const baseName = entityName.charAt(0).toLowerCase() + entityName.slice(1);
+      return baseName + "Collection";
+    }
+
+    return super.inverseSideName(entityName, propertyName, kind);
   }
 }
 
@@ -32,7 +45,7 @@ export default defineConfig({
     undefinedDefaults: false,
     esmImport: false,
     readOnlyPivotTables: true,
-    outputPurePivotTables: true,
+    outputPurePivotTables: false,
     bidirectionalRelations: true,
     useCoreBaseEntity: true,
   },

@@ -42,20 +42,14 @@ describe("POST /all-out/events/:eventId/resign", () => {
       user: testUser1,
       event,
     });
-    await ctx.allOut.participantDivisions.upsert({
-      participant,
-      division: testSoldierDivision,
-    });
+    participant.divisionCollection.set([testSoldierDivision]);
+    await ctx.saveAsync();
 
     const res = await loginAs(request(app).post(`/all-out/events/${event.id}/resign`), testUser1);
 
     assert(res.ok);
     const deletedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
-    assert.equal(deletedParticipant, null);
-    const deletedParticipantDivision = await ctx.allOut.participantDivisions.findOne({
-      participant,
-    });
-    assert.equal(deletedParticipantDivision, null);
+    assert.isNull(deletedParticipant);
   });
 
   it("resigns participant when event has started", async () => {

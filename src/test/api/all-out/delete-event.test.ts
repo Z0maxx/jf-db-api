@@ -57,15 +57,15 @@ describe("DELETE /all-out/entities/:eventId", () => {
 
     assert(res.ok);
     const deletedEvent = await ctx.allOut.events.findOne({ id: event.id });
-    assert.equal(deletedEvent, null);
+    assert.isNull(deletedEvent);
     const deletedStage1Maps = await ctx.allOut.stage1Maps.find({ event });
-    assert.equal(deletedStage1Maps.length, 0);
+    assert.isEmpty(deletedStage1Maps);
     const deletedStage2Maps = await ctx.allOut.stage2Maps.find({ event });
-    assert.equal(deletedStage2Maps.length, 0);
+    assert.isEmpty(deletedStage2Maps);
     const deletedStage3Maps = await ctx.allOut.stage3Maps.find({ event });
-    assert.equal(deletedStage3Maps.length, 0);
+    assert.isEmpty(deletedStage3Maps);
     const deletedParticipants = await ctx.allOut.participants.find({ event });
-    assert.equal(deletedParticipants.length, 0);
+    assert.isEmpty(deletedParticipants);
   });
 
   it("returns event started in past error when trying to delete an event that started in the past", async () => {

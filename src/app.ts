@@ -4,6 +4,7 @@ import "dotenv/config";
 import { ctx } from "./db-context";
 import { allOutRouter } from "./all-out/all-out.router";
 import { authRouter } from "./auth/auth.router";
+import { divisionsRouter } from "./divisions/divisions.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 
 export const app = express();
@@ -24,4 +25,5 @@ app.use((_, __, next) => {
 
 app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
+app.use("/divisions", divisionsRouter);
 app.use(errorHandler);

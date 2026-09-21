@@ -54,26 +54,7 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  await ctx.userDivisions.upsertMany([
-    {
-      id: 100_001,
-      user: testUser1,
-      division: testSoldierDivision,
-    },
-    {
-      id: 100_002,
-      user: testUser1,
-      division: testDemomanDivision,
-    },
-    {
-      id: 100_003,
-      user: testUser2,
-      division: testSoldierDivision,
-    },
-    {
-      id: 100_004,
-      user: testUser2,
-      division: testDemomanDivision,
-    },
-  ]);
+  testUser1.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  testUser2.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  await ctx.saveAsync();
 }

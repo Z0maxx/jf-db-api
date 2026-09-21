@@ -1,4 +1,11 @@
 import z from "zod";
+import { DivisionType } from "./db-entities/Division";
+
+export const DivisionSchema = z.object({
+  type: z.enum(Object.values(DivisionType)),
+  name: z.string().nonempty(),
+  color: z.string().length(6),
+});
 
 export const GeneralEventSchema = z.object({
   id: z.number().positive(),

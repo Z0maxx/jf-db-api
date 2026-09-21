@@ -13,6 +13,7 @@ import {
 import { testDemomanDivision, testSoldierDivision } from "../test-entities";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import { DivisionType } from "#/db-entities/Division";
 
 describe("GET /all-out/events/:eventId", () => {
   beforeAll(async () => {
@@ -44,7 +45,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: "soldier",
+                type: DivisionType.SOLDIER,
               },
             },
           ],
@@ -56,7 +57,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: "demoman",
+                type: DivisionType.DEMOMAN,
               },
             },
           ],
@@ -74,7 +75,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: "soldier",
+                type: DivisionType.SOLDIER,
               },
             },
           ],
@@ -85,7 +86,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: "demoman",
+                type: DivisionType.DEMOMAN,
               },
             },
           ],
@@ -103,7 +104,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testSoldierDivision.name,
                 color: testSoldierDivision.color,
-                type: "soldier",
+                type: DivisionType.SOLDIER,
               },
             },
           ],
@@ -114,7 +115,7 @@ describe("GET /all-out/events/:eventId", () => {
               division: {
                 name: testDemomanDivision.name,
                 color: testDemomanDivision.color,
-                type: "demoman",
+                type: DivisionType.DEMOMAN,
               },
             },
           ],

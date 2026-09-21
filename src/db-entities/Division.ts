@@ -1,28 +1,27 @@
 import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
-import { AllOutParticipantDivision } from "./AllOutParticipantDivision";
+import { AllOutParticipant } from "./AllOutParticipant";
 import { AllOutStage1Map } from "./AllOutStage1Map";
 import { AllOutStage2Map } from "./AllOutStage2Map";
 import { AllOutStage3Map } from "./AllOutStage3Map";
 import { BountyPrize } from "./BountyPrize";
 import { MonthlyMap } from "./MonthlyMap";
 import { MonthlyParticipant } from "./MonthlyParticipant";
-import { MonthlyParticipantDivision } from "./MonthlyParticipantDivision";
-import { UserDivision } from "./UserDivision";
+import { User } from "./User";
 
 export class Division extends BaseEntity {
   id!: number;
   name!: string;
   color!: string;
   type!: TDivisionType;
-  allOutParticipantDivisionCollection = new Collection<AllOutParticipantDivision>(this);
+  allOutParticipantCollection = new Collection<AllOutParticipant>(this);
   allOutStage1MapCollection = new Collection<AllOutStage1Map>(this);
   allOutStage2MapCollection = new Collection<AllOutStage2Map>(this);
   allOutStage3MapCollection = new Collection<AllOutStage3Map>(this);
   bountyPrizeCollection = new Collection<BountyPrize>(this);
   monthlyMapCollection = new Collection<MonthlyMap>(this);
   monthlyParticipantCollection = new Collection<MonthlyParticipant>(this);
-  monthlyParticipantDivisionCollection = new Collection<MonthlyParticipantDivision>(this);
-  userDivisionCollection = new Collection<UserDivision>(this);
+  monthlyParticipantCollection1 = new Collection<MonthlyParticipant>(this);
+  userCollection = new Collection<User>(this);
 }
 
 export const DivisionType = {
@@ -44,16 +43,16 @@ export const DivisionSchema = defineEntity({
     name: p.string().length(30),
     color: p.string().length(6),
     type: p.enum(() => DivisionType),
-    allOutParticipantDivisionCollection: () =>
-      p.oneToMany(AllOutParticipantDivision).mappedBy("division"),
+    allOutParticipantCollection: () =>
+      p.manyToMany(AllOutParticipant).mappedBy("divisionCollection"),
     allOutStage1MapCollection: () => p.oneToMany(AllOutStage1Map).mappedBy("division"),
     allOutStage2MapCollection: () => p.oneToMany(AllOutStage2Map).mappedBy("division"),
     allOutStage3MapCollection: () => p.oneToMany(AllOutStage3Map).mappedBy("division"),
     bountyPrizeCollection: () => p.oneToMany(BountyPrize).mappedBy("division"),
     monthlyMapCollection: () => p.oneToMany(MonthlyMap).mappedBy("division"),
     monthlyParticipantCollection: () => p.oneToMany(MonthlyParticipant).mappedBy("division"),
-    monthlyParticipantDivisionCollection: () =>
-      p.oneToMany(MonthlyParticipantDivision).mappedBy("division"),
-    userDivisionCollection: () => p.oneToMany(UserDivision).mappedBy("division"),
+    monthlyParticipantCollection1: () =>
+      p.manyToMany(MonthlyParticipant).mappedBy("divisionCollection"),
+    userCollection: () => p.manyToMany(User).mappedBy("divisionCollection"),
   },
 });

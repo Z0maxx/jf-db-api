@@ -50,12 +50,14 @@ describe("POST /all-out/events/:eventId/registration", () => {
     );
 
     assert(res.ok);
-    const participant = await ctx.allOut.participants.findOne({ user: testUser1.id, event });
+    const participant = await ctx.allOut.participants.findOne(
+      { user: testUser1.id, event },
+      { populate: ["divisionCollection"] },
+    );
     entities.push(participant!);
-    assert.notEqual(participant, null);
-    const participantDivisions = await ctx.allOut.participantDivisions.find({ participant });
+    assert.isNotNull(participant);
     assert.deepStrictEqual(
-      participantDivisions.map((pd) => pd.division.id),
+      participant!.divisionCollection.$.map((d) => d.id),
       [testSoldierDivision.id, testDemomanDivision.id],
     );
   });

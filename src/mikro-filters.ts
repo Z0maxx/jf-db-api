@@ -6,7 +6,7 @@ export function getLeaderboardFilter(
 ) {
   query.pageSize = Math.min(query.pageSize, 100);
   return {
-    query: { map: query.mapId },
+    query: { map: query.mapId, participant: { resigned: false } },
     options: {
       populate: ["participant.user.steamId64"],
       limit: query.pageSize,
