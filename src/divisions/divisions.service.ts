@@ -1,4 +1,9 @@
-import { DivisionsHaveUsersError, ValidationError } from "#/errors";
+import { DivisionType } from "#/db-entities/Division";
+import {
+  UnassignedDivisionsDeletedError,
+  DivisionsHaveUsersError,
+  ValidationError,
+} from "#/errors";
 import { DivisionDto, DivisionValidator } from "#/types";
 import { divisionsRepository } from "./divisions.repository";
 import { divisionDuplicateValidator } from "./validators/division-duplicate.validator";
@@ -15,6 +20,7 @@ export const divisionsService = {
 
   async setDivisionsAsync(divisions: DivisionDto[]) {
     validate([divisionDuplicateValidator], divisions);
+    checkUnassignedDivisions(divisions);
     await checkDeletedDivisionsHaveNoUsersAsync(divisions);
     await divisionsRepository.setDivisionsAsync(divisions);
   },
@@ -22,15 +28,29 @@ export const divisionsService = {
 
 async function checkDeletedDivisionsHaveNoUsersAsync(divisions: DivisionDto[]) {
   const divisionsMap = new Map<string, DivisionDto>(divisions.map((d) => [d.name, d]));
-  const existingDivisions = await divisionsRepository.getAllDivisionsAsync();
-  const deletedNames = existingDivisions
-    .filter((e) => !divisionsMap.get(e.name))
+  const existing = await divisionsRepository.getAllDivisionsAsync();
+  const deletedNames = existing.filter((e) => !divisionsMap.get(e.name)).map((d) => d.name);
+  const deletedDivisions = await divisionsRepository.getDivisionsByNameAsync(deletedNames);
+  const deletedWithUsers = deletedDivisions
+    .filter((d) => d.userCollection.$.length > 0)
     .map((d) => d.name);
-    
-  const deletedDivisions = await divisionsRepository.getDivisionsWithUsers(deletedNames);
-  const deletedWithUsers = deletedDivisions.filter((d) => d.userCollection.$.length > 0);
   if (deletedWithUsers.length > 0) {
-    throw new DivisionsHaveUsersError(deletedWithUsers.map((d) => d.name));
+    throw new DivisionsHaveUsersError(deletedWithUsers);
+  }
+}
+
+function checkUnassignedDivisions(divisions: DivisionDto[]) {
+  const deleted: string[] = [];
+  if (!divisions.find((d) => d.name === "Unassigned Soldier" && d.type === DivisionType.SOLDIER)) {
+    deleted.push("Unassigned Soldier");
+  }
+
+  if (!divisions.find((d) => d.name === "Unassigned Demoman" && d.type === DivisionType.DEMOMAN)) {
+    deleted.push("Unassigned Demoman");
+  }
+
+  if (deleted.length > 0) {
+    throw new UnassignedDivisionsDeletedError(deleted);
   }
 }
 

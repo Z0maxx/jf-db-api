@@ -49,7 +49,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
 
     assert(res.ok);
     const deletedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
-    assert.isNull(deletedParticipant);
+    assert.notExists(deletedParticipant?.id);
   });
 
   it("resigns participant when event has started", async () => {

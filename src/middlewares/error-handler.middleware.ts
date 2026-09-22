@@ -1,9 +1,8 @@
-import { AppError, ValidationError } from "#/errors";
+import { AppError } from "#/errors";
 import { Request, Response, NextFunction } from "express";
 
 export function errorHandler(err: Error | AppError, _: Request, res: Response, __: NextFunction) {
   console.log(err);
-
   if (err instanceof AppError) {
     res.status(err.httpCode).json(getAppError(err));
     return;
@@ -13,7 +12,7 @@ export function errorHandler(err: Error | AppError, _: Request, res: Response, _
 }
 
 function getAppError(appErr: AppError) {
-  if (appErr instanceof ValidationError) {
+  if (appErr.messages.length > 0) {
     return { errorMessages: appErr.messages, errorCode: appErr.name };
   }
 

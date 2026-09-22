@@ -10,7 +10,6 @@ import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
 import mikroOrmConfig from "./mikro-orm.config";
 import { User } from "./db-entities/User";
 import { Role } from "./db-entities/Role";
-import { RoleClaim } from "./db-entities/RoleClaim";
 import { Claim } from "./db-entities/Claim";
 import { Division, DivisionType } from "./db-entities/Division";
 import { claimNames } from "./claim-names";
@@ -32,9 +31,6 @@ export const ctx = {
   },
   get claims() {
     return this.em.getRepository(Claim);
-  },
-  get roleClaims() {
-    return this.em.getRepository(RoleClaim);
   },
   get allOut() {
     return {
@@ -70,12 +66,12 @@ async function seedAsync() {
   }
 
   if (!(await ctx.roles.findOne({ name: "user" }))) {
-    ctx.roles.create({ level: 9999, name: "user" });
+    ctx.roles.create({ name: "user" });
   }
 
   if (!(await ctx.roles.findOne({ name: "head admin" }))) {
-    const headAdminRole = ctx.roles.create({ level: 0, name: "head admin" });
-    claims.forEach((claim) => ctx.roleClaims.create({ role: headAdminRole, claim }));
+    const headAdminRole = ctx.roles.create({ name: "head admin" });
+    headAdminRole.claimCollection.set(claims);
   }
 
   if (!(await ctx.divisions.findOne({ name: "Unassigned Soldier" }))) {

@@ -2,6 +2,7 @@ import z from "zod";
 import {
   CreateAllOutEventSchema,
   CreateEventMapSchema,
+  CreateRoleSchema,
   CreateTimeLimitedEventMapSchema,
   DivisionSchema,
   LeaderboardQuerySchema,
@@ -9,6 +10,18 @@ import {
 } from "./schemas";
 import { TDivisionType } from "./db-entities/Division";
 import { AllOutEvent } from "./db-entities/AllOutEvent";
+
+export type ClaimDto = {
+  id: number;
+  name: string;
+};
+
+export type CreateRoleDto = z.infer<typeof CreateRoleSchema>;
+
+export type RoleDto = {
+  name: string;
+  claims: ClaimDto[];
+};
 
 export type GeneralEventDto = {
   id: number;
@@ -155,6 +168,11 @@ export type AllOutValidator<T> = {
 export type DivisionValidator = {
   validate(errors: string[], divisions: DivisionDto[]): void;
   getMessages(divisions: DivisionDto[]): string[];
+};
+
+export type RoleValidator<T> = {
+  validate(errors: string[], roles: CreateRoleDto[]): void;
+  getMessages(items: T[]): string[];
 };
 
 export type Schedule = {

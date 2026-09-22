@@ -28,10 +28,10 @@ export async function setMapsAsync<
   createTranformFn: (map: TCreateMap) => RequiredEntityData<TDbMap>,
 ) {
   const mapsMap = new Map<string, TCreateMap>(maps.map((m) => [`${m.name}|${m.divisionId}`, m]));
-  const existingMaps = await repository.find({ event } as FilterQuery<TDbMap>);
-  const deleted = existingMaps.filter((e) => !mapsMap.get(`${e.name}|${e.division.id}`));
+  const existing = await repository.find({ event } as FilterQuery<TDbMap>);
+  const deleted = existing.filter((e) => !mapsMap.get(`${e.name}|${e.division.id}`));
   deleted.forEach((r) => ctx.em.remove(r));
-  const updated = existingMaps.filter((e) => !deleted.includes(e));
+  const updated = existing.filter((e) => !deleted.includes(e));
   updated.forEach((u) => {
     const key = `${u.name}|${u.division.id}`;
     wrap(u).assign(assignTransformFn(mapsMap.get(key)!));

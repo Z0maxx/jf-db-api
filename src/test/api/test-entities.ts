@@ -5,7 +5,6 @@ import { User } from "#/db-entities/User";
 
 export let testSoldierDivision: Division;
 export let testDemomanDivision: Division;
-export let testRole: Role;
 export let testUser1: User;
 export let testUser2: User;
 export let testHeadAdmin: User;
@@ -26,25 +25,20 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  testRole = await ctx.roles.upsert({
-    id: 100_000,
-    name: "test role",
-    level: 9999,
-  });
-
   const headAdminRole = await ctx.roles.findOne({ name: "head admin" });
+  const userRole = await ctx.roles.findOne({ name: "user" });
   [testUser1, testUser2, testHeadAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
       steamId64: "76561198167723343",
       tempusId: 107696,
-      role: testRole,
+      role: userRole,
     },
     {
       id: 100_002,
       steamId64: "76561198046214898",
       tempusId: 94512,
-      role: testRole,
+      role: userRole,
     },
     {
       id: 100_003,

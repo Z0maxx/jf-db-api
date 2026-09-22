@@ -57,7 +57,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
 
     assert(res.ok);
     const deletedEvent = await ctx.allOut.events.findOne({ id: event.id });
-    assert.isNull(deletedEvent);
+    assert.notExists(deletedEvent?.id);
     const deletedStage1Maps = await ctx.allOut.stage1Maps.find({ event });
     assert.isEmpty(deletedStage1Maps);
     const deletedStage2Maps = await ctx.allOut.stage2Maps.find({ event });

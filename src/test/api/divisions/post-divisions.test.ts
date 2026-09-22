@@ -1,12 +1,13 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
-import { BaseEntity, colors } from "@mikro-orm/core";
+import { BaseEntity } from "@mikro-orm/core";
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import request from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { DivisionType } from "#/db-entities/Division";
 import { divisionDuplicateValidator } from "#/divisions/validators/division-duplicate.validator";
+import { UnassignedDivisionsDeletedError } from "#/errors";
 
 const entities: BaseEntity[] = [];
 describe("POST /divisions", () => {
@@ -19,7 +20,6 @@ describe("POST /divisions", () => {
   });
 
   it("sets divisions", async () => {
-    const otherDivisions = await ctx.divisions.findAll();
     const [divisionToDelete, divisionToUpdate] = await ctx.divisions.upsertMany([
       {
         type: "soldier",
@@ -38,7 +38,11 @@ describe("POST /divisions", () => {
       name: "division to create",
       color: "222222",
     };
-    const updatedColor = "222222";
+    const otherDivisions = (await ctx.divisions.findAll()).filter(
+      (d) =>
+        ![divisionToCreate.name, divisionToUpdate.name, divisionToDelete.name].includes(d.name),
+    );
+    const updatedColor = "333333";
     const divisions = [
       ...otherDivisions.map(({ type, name, color }) => ({ type, name, color })),
       divisionToCreate,
@@ -49,16 +53,16 @@ describe("POST /divisions", () => {
       },
     ];
 
-    const res = await loginAs(request(app).post("/divisions").send(divisions), testHeadAdmin);
+    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send(divisions);
 
     assert.equal(res.statusCode, 204);
     const deletedDivision = await ctx.divisions.findOne({ id: divisionToDelete.id });
-    assert.isNull(deletedDivision);
+    assert.notExists(deletedDivision?.id);
     const createdDivision = await ctx.divisions.findOne({ name: divisionToCreate.name });
     assert.isNotNull(createdDivision);
-    entities.push(createdDivision)
-    assert.containSubset(createdDivision.serialize(), divisionToCreate);
-    assert.containSubset(divisionToUpdate!.serialize(), {
+    entities.push(createdDivision);
+    assert.containsSubset(createdDivision.serialize(), divisionToCreate);
+    assert.containsSubset(divisionToUpdate!.serialize(), {
       color: updatedColor,
     });
   });
@@ -71,7 +75,7 @@ describe("POST /divisions", () => {
     };
     const divisions = [duplicateDivision, duplicateDivision];
 
-    const res = await loginAs(request(app).post("/divisions").send(divisions), testHeadAdmin);
+    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send(divisions);
 
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
@@ -80,8 +84,21 @@ describe("POST /divisions", () => {
     });
   });
 
+  it("returns unassigned divisions deleted error when trying to delete unassigned divisions", async () => {
+    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send([]);
+
+    assert.equal(res.status, 403);
+    assert.deepStrictEqual(res.body, {
+      errorCode: "UnassignedDivisionsDeletedError",
+      errorMessages: new UnassignedDivisionsDeletedError([
+        "Unassigned Soldier",
+        "Unassigned Demoman",
+      ]).messages,
+    });
+  });
+
   it("returns forbidden when the user cannot manage divisions", async () => {
-    const res = await loginAs(request(app).post("/divisions").send([]), testUser1);
+    const res = await loginAs(request(app).post("/divisions"), testUser1).send([]);
 
     assert.equal(res.statusCode, 403);
   });

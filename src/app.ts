@@ -6,6 +6,8 @@ import { allOutRouter } from "./all-out/all-out.router";
 import { authRouter } from "./auth/auth.router";
 import { divisionsRouter } from "./divisions/divisions.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
+import { claimsRouter } from "./claims/claims.router";
+import { rolesRouter } from "./roles/roles.router";
 
 export const app = express();
 app.use(express.json());
@@ -26,4 +28,7 @@ app.use((_, __, next) => {
 app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
 app.use("/divisions", divisionsRouter);
+app.use("/claims", claimsRouter);
+app.use("/roles", rolesRouter)
+
 app.use(errorHandler);

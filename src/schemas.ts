@@ -1,6 +1,11 @@
 import z from "zod";
 import { DivisionType } from "./db-entities/Division";
 
+export const CreateRoleSchema = z.object({
+  name: z.string().nonempty(),
+  claimIds: z.array(z.number().positive()),
+});
+
 export const DivisionSchema = z.object({
   type: z.enum(Object.values(DivisionType)),
   name: z.string().nonempty(),

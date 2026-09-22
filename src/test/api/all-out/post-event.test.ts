@@ -83,7 +83,7 @@ describe("POST /all-out/events", () => {
     assert(res.ok);
     const createdEvent = await ctx.allOut.events.findOne({ id: res.body.id });
     assert.isNotNull(createdEvent);
-    assert.containSubset(createdEvent!.serialize(), {
+    assert.containsSubset(createdEvent!.serialize(), {
       description: event.description,
 
       stage1Start: event.stage1.start,
@@ -101,7 +101,7 @@ describe("POST /all-out/events", () => {
     entities.push(createdEvent!);
     const createdStage1Maps = await ctx.allOut.stage1Maps.find({ event: createdEvent });
     assert.equal(createdStage1Maps.length, 2);
-    assert.containSubset(
+    assert.containsSubset(
       createdStage1Maps.map((m) => m.serialize()),
       [
         {
@@ -118,7 +118,7 @@ describe("POST /all-out/events", () => {
     );
     const createdStage2Maps = await ctx.allOut.stage2Maps.find({ event: createdEvent });
     assert.equal(createdStage2Maps.length, 2);
-    assert.containSubset(
+    assert.containsSubset(
       createdStage2Maps.map((m) => m.serialize()),
       [
         {
@@ -133,7 +133,7 @@ describe("POST /all-out/events", () => {
     );
     const createdStage3Maps = await ctx.allOut.stage3Maps.find({ event: createdEvent });
     assert.equal(createdStage3Maps.length, 2);
-    assert.containSubset(
+    assert.containsSubset(
       createdStage3Maps.map((m) => m.serialize()),
       [
         {
@@ -320,7 +320,7 @@ describe("POST /all-out/events", () => {
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
       errorCode: "DivisionsNotFoundError",
-      errorMessage: new DivisionsNotFoundError([200_001, 200_002]).message,
+      errorMessages: new DivisionsNotFoundError([200_001, 200_002]).messages,
     });
   });
 

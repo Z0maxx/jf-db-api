@@ -4,7 +4,6 @@ USE jumpfortress;
 
 CREATE TABLE role (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  level INT UNSIGNED NOT NULL,
   name VARCHAR(20) NOT NULL,
   CONSTRAINT chk_role_name
     CHECK (CHAR_LENGTH(name) > 0),
@@ -22,9 +21,9 @@ CREATE TABLE claim (
 );
 
 CREATE TABLE role_claim (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   role_id INT UNSIGNED NOT NULL,
   claim_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (role_id, claim_id),
   CONSTRAINT fk_claim_role_role_id
     FOREIGN KEY (role_id)
     REFERENCES role(id)
@@ -49,7 +48,7 @@ CREATE TABLE division (
   CONSTRAINT chk_division_color
     CHECK (CHAR_LENGTH(color) = 6),
   CONSTRAINT unq_division
-    UNIQUE (name, type)
+    UNIQUE (name)
 );
 
 CREATE TABLE user (

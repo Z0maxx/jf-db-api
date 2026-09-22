@@ -31,7 +31,7 @@ describe("GET /all-out/leaderboard/stage-3", () => {
 
     assert(res.ok);
     assert.hasAnyKeys(res.body[0].user, ["name", "avatar"]);
-    assert.containSubset(res.body, [
+    assert.containsSubset(res.body, [
       {
         id: testAllOutStage3LeaderboardItem2.id,
         user: {

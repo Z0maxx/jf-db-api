@@ -84,7 +84,7 @@ describe("PUT /all-out/events", () => {
     assert(res.ok);
     const updatedEvent = await ctx.allOut.events.findOne({ id: event.id });
     assert.isNotNull(updatedEvent);
-    assert.containSubset(updatedEvent!.serialize(), {
+    assert.containsSubset(updatedEvent!.serialize(), {
       description: event.description,
 
       stage1Start: event.stage1.start,
@@ -101,14 +101,14 @@ describe("PUT /all-out/events", () => {
     });
     const createdStage1Maps = await ctx.allOut.stage1Maps.find({ event: event.id });
     assert.equal(createdStage1Maps.length, 1);
-    assert.containSubset(createdStage1Maps[0].serialize(), {
+    assert.containsSubset(createdStage1Maps[0].serialize(), {
       name: event.stage1.maps[0].name,
       timeLimit: event.stage1.maps[0].timeLimit,
       division: event.stage1.maps[0].divisionId,
     });
     const updatedStage2Maps = await ctx.allOut.stage2Maps.find({ event: event.id });
     assert.equal(updatedStage2Maps.length, 1);
-    assert.containSubset(updatedStage2Maps[0].serialize(), {
+    assert.containsSubset(updatedStage2Maps[0].serialize(), {
       name: event.stage2.maps[0].name,
       division: event.stage2.maps[0].divisionId,
     });
@@ -183,7 +183,7 @@ describe("PUT /all-out/events", () => {
       user: testUser1,
       event: event.id,
     });
-    assert.isNull(deletedParticipant);
+    assert.notExists(deletedParticipant?.id);
   });
 
   it("returns validation error when stage times are out of order", async () => {
@@ -443,7 +443,7 @@ describe("PUT /all-out/events", () => {
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
       errorCode: "DivisionsNotFoundError",
-      errorMessage: new DivisionsNotFoundError([200_001, 200_002]).message,
+      errorMessages: new DivisionsNotFoundError([200_001, 200_002]).messages,
     });
   });
 

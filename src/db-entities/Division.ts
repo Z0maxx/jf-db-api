@@ -33,14 +33,13 @@ export type TDivisionType = (typeof DivisionType)[keyof typeof DivisionType];
 
 export const DivisionSchema = defineEntity({
   class: Division,
-  uniques: [{ name: "unq_division", properties: ["name", "type"] }],
   checks: [
     { name: "chk_division_color", expression: "char_length(`color`) = 6" },
     { name: "chk_division_name", expression: "char_length(`name`) > 0" },
   ],
   properties: {
     id: p.integer().primary(),
-    name: p.string().length(30),
+    name: p.string().length(30).unique("unq_division"),
     color: p.string().length(6),
     type: p.enum(() => DivisionType),
     allOutParticipantCollection: () =>

@@ -85,19 +85,18 @@ function getConfig() {
 async function getUserAsync(steamUser: SteamUser): Promise<AppUser | null> {
   const user = await ctx.users.findOne(
     { steamId64: steamUser.steamId64 },
-    { populate: ["role", "divisionCollection"] },
+    { populate: ["role", "divisionCollection", "role.claimCollection"] },
   );
   if (!user) {
     return null;
   }
 
-  const roleClaims = await ctx.roleClaims.find({ role: user.role.id }, { populate: ["claim"] });
   return {
     ...steamUser,
     id: user.id,
     tempusId: user.tempusId,
     role: user.role.$.name,
-    claims: roleClaims.map((rc) => rc.claim.$.name),
+    claims: user.role.$.claimCollection.$.map((c) => c.name),
     divisions: user.divisionCollection.$.map(({ type, name, color }) => ({
       type,
       name,

@@ -17,13 +17,13 @@ describe("GET /all-out/events", () => {
     const res = await request(app).get("/all-out/events");
 
     assert(res.ok);
-    const returnedEvent = (res.body as any[]).find((e) => e.id === testAllOutEvent.id);
-    assert.isNotNull(returnedEvent);
-    assert.deepStrictEqual(returnedEvent, {
-      id: testAllOutEvent.id,
-      canceled: false,
-      start: testAllOutEvent.stage1Start.toISOString(),
-      end: testAllOutEvent.stage3End.toISOString(),
-    });
+    assert.deepStrictEqual(res.body, [
+      {
+        id: testAllOutEvent.id,
+        canceled: false,
+        start: testAllOutEvent.stage1Start.toISOString(),
+        end: testAllOutEvent.stage3End.toISOString(),
+      },
+    ]);
   });
 });
