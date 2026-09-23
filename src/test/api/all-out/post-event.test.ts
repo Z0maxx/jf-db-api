@@ -186,7 +186,7 @@ describe("POST /all-out/events", () => {
     });
   });
 
-  it("returns validation error when there are duplicate maps with same division in a stage", async () => {
+  it("returns validation error when there are multiple maps with same name and division in a stage", async () => {
     const event = {
       description: "test description",
       stage1: {
@@ -290,12 +290,12 @@ describe("POST /all-out/events", () => {
         description: "",
         maps: [
           {
-            name: "jump_map_1",
+            name: "stage 1 map",
             divisionId: 200_001,
             timeLimit: 21,
           },
           {
-            name: "jump_map_2",
+            name: "stage 1 map",
             divisionId: 200_002,
             timeLimit: 22,
           },

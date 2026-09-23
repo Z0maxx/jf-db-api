@@ -14,18 +14,18 @@ describe("GET /roles", () => {
   });
 
   it("returns all roles", async () => {
-    const res = await request(app).get("/roles")
+    const res = await request(app).get("/roles");
 
-    assert(res.ok)
+    assert(res.ok);
     assert.containsSubset(res.body, [
       {
         name: "head admin",
-        claims: claimNames.map(name => ({name}))
+        claims: claimNames.map((name) => ({ name })),
       },
       {
         name: "user",
-        claims: []
-      }
-    ])
-  })
-})
+        claims: [],
+      },
+    ]);
+  });
+});

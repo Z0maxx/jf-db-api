@@ -38,15 +38,17 @@ export const rolesRepository = {
       rolesMap.delete(u.name);
     });
 
-    rolesMap.values().forEach((r) => {
+    const created = rolesMap.values().map((r) => {
       const createdRole = ctx.roles.create({
         name: r.name,
       });
 
       const roleClaims = r.claimIds.map((cId) => claimsMap.get(cId)!);
       createdRole.claimCollection.set(roleClaims);
+      return createdRole;
     });
 
     await ctx.saveAsync();
+    return [...created, ...updated];
   },
 };

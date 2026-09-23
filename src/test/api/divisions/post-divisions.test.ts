@@ -62,25 +62,23 @@ describe("POST /divisions", () => {
     assert.isNotNull(createdDivision);
     entities.push(createdDivision);
     assert.containsSubset(createdDivision.serialize(), divisionToCreate);
-    assert.containsSubset(divisionToUpdate!.serialize(), {
-      color: updatedColor,
-    });
+    assert.equal(divisionToUpdate!.serialize().color, updatedColor);
   });
 
   it("returns a validation error when there are multiple divisions with same name", async () => {
-    const duplicateDivision = {
+    const division = {
       type: DivisionType.SOLDIER,
       name: "duplicate division",
       color: "000000",
     };
-    const divisions = [duplicateDivision, duplicateDivision];
+    const divisions = [division, division];
 
     const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send(divisions);
 
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: divisionDuplicateValidator.getMessages([duplicateDivision]),
+      errorMessages: divisionDuplicateValidator.getMessages([division]),
     });
   });
 
@@ -96,6 +94,12 @@ describe("POST /divisions", () => {
       ]).messages,
     });
   });
+
+  it("returns bad request when body is incorrect", async () => {
+    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send([{}]);
+
+    assert.equal(res.status, 400)
+  })
 
   it("returns forbidden when the user cannot manage divisions", async () => {
     const res = await loginAs(request(app).post("/divisions"), testUser1).send([]);

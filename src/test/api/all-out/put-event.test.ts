@@ -154,13 +154,11 @@ describe("PUT /all-out/events", () => {
       stage1: {
         start: originalEvent.stage1Start,
         end: originalEvent.stage1End,
-        description: "",
         maps: [],
       },
       stage2: {
         start: originalEvent.stage2Start,
         end: originalEvent.stage2End,
-        description: "",
         maps: [
           {
             name: "test updated stage 2 soldier map",
@@ -171,7 +169,6 @@ describe("PUT /all-out/events", () => {
       stage3: {
         start: originalEvent.stage3Start,
         end: originalEvent.stage3End,
-        description: "",
         maps: [],
       },
     };
@@ -236,7 +233,7 @@ describe("PUT /all-out/events", () => {
     });
   });
 
-  it("returns validation error when updated stage times are in the past and not the same as current date", async () => {
+  it("returns validation error when updated stage times are in the past and not the same as current time", async () => {
     const originalEvent = await ctx.allOut.events.upsert({
       description: "test description",
       stage1Start: new Date(`${yesterday} 10:00`),
@@ -364,19 +361,16 @@ describe("PUT /all-out/events", () => {
       stage1: {
         start: new Date(`${tomorrow} 16:00`),
         end: new Date(`${tomorrow} 17:00`),
-        description: "",
         maps: [],
       },
       stage2: {
         start: new Date(`${tomorrow} 18:00`),
         end: new Date(`${tomorrow} 19:00`),
-        description: "",
         maps: [],
       },
       stage3: {
         start: new Date(`${tomorrow} 20:00`),
         end: new Date(`${tomorrow} 21:00`),
-        description: "",
         maps: [],
       },
     };
@@ -413,12 +407,12 @@ describe("PUT /all-out/events", () => {
         description: "",
         maps: [
           {
-            name: "jump_map_1",
+            name: "stage 1 map",
             divisionId: 200_001,
             timeLimit: 21,
           },
           {
-            name: "jump_map_2",
+            name: "stage 2 map",
             divisionId: 200_002,
             timeLimit: 22,
           },

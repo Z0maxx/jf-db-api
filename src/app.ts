@@ -29,6 +29,6 @@ app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
 app.use("/divisions", divisionsRouter);
 app.use("/claims", claimsRouter);
-app.use("/roles", rolesRouter)
+app.use("/roles", rolesRouter);
 
 app.use(errorHandler);

@@ -3,6 +3,8 @@ import {
   ClaimsNotFoundError,
   DefaultEntitiesDeletedError,
   DefaultEntitiesModifiedError,
+  DefaultRolesDeletedError,
+  DefaultRolesModifiedError,
   RolesHaveUsersError,
   ValidationError,
 } from "#/errors";
@@ -28,6 +30,8 @@ export const rolesService = {
     await checkClaimsExistAsync(roles);
     await checkDefaultRolesAsync(roles);
     await checkDeletedRolesHaveNoUsersAsync(roles);
+    await rolesRepository.setRolesAsync(roles);
+    return this.getAllRolesAsync();
   },
 };
 
@@ -43,10 +47,12 @@ async function checkClaimsExistAsync(roles: CreateRoleDto[]) {
 
 async function checkDefaultRolesAsync(roles: CreateRoleDto[]) {
   const defaultRoles = await rolesRepository.getDefaultRolesAsync();
-  const roleNames = roles.map((r) => r.name);
-  const deleted: string[] = defaultRoles.map((d) => d.name).filter((r) => !roleNames.includes(r));
+  const roleNames = new Set(roles.map((r) => r.name));
+  console.log(roleNames);
+  const deleted: string[] = defaultRoles.map((d) => d.name).filter((r) => !roleNames.has(r));
+  console.log("deleted ", deleted);
   if (deleted.length > 0) {
-    throw new DefaultEntitiesDeletedError("Role", deleted);
+    throw new DefaultRolesDeletedError(deleted);
   }
 
   const modified = defaultRoles
@@ -58,7 +64,7 @@ async function checkDefaultRolesAsync(roles: CreateRoleDto[]) {
     .map((m) => m.name);
 
   if (modified.length > 0) {
-    throw new DefaultEntitiesModifiedError("Role", modified);
+    throw new DefaultRolesModifiedError(modified);
   }
 }
 
@@ -67,6 +73,7 @@ async function checkDeletedRolesHaveNoUsersAsync(roles: CreateRoleDto[]) {
   const existing = await rolesRepository.getAllRolesAsync();
   const deletedNames = existing.filter((e) => !rolesMap.get(e.name)).map((d) => d.name);
   const deletedRoles = await rolesRepository.getRolesByNameAsync(deletedNames);
+  console.log(deletedRoles.map((r) => r.serialize()));
   const deletedWithUsers = deletedRoles
     .filter((d) => d.userCollection.$.length > 0)
     .map((d) => d.name);
