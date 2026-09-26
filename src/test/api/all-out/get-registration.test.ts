@@ -1,12 +1,13 @@
-import { ctx } from "#/db-context";
-import request from "supertest";
 import { app } from "#/app";
-import { testAllOutEvent } from "./all-out-test-entities";
-import { testUser1, testUser2 } from "../test-entities";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import { ctx } from "#/db-context";
 import { EventNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testUser1, testUser2 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import { testAllOutEvent } from "./all-out-test-entities";
 
 const entities: BaseEntity[] = [];
 describe("GET /all-out/events/:eventId/registration", () => {

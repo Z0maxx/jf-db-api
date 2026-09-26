@@ -1,8 +1,9 @@
 import { app } from "#/app";
 import request from "supertest";
-import { testAllOutEvent } from "./all-out-test-entities";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import { testAllOutEvent } from "./all-out-test-entities";
 
 describe("GET /all-out/events", () => {
   beforeAll(async () => {

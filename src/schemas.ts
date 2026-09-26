@@ -1,4 +1,5 @@
 import z from "zod";
+
 import { DivisionType } from "./db-entities/Division";
 
 export const CreateRoleSchema = z.object({

@@ -1,10 +1,11 @@
-import express from "express";
-import { divisionsService } from "./divisions.service";
+import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { bodySchema } from "#/middlewares/body-schema.middleware";
-import z from "zod";
 import { DivisionSchema } from "#/schemas";
+import express from "express";
+import z from "zod";
+
+import { divisionsService } from "./divisions.service";
 
 const DivisionListSchema = z.array(DivisionSchema);
 

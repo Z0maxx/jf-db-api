@@ -1,4 +1,7 @@
 import z from "zod";
+
+import { AllOutEvent } from "./db-entities/AllOutEvent";
+import { TDivisionType } from "./db-entities/Division";
 import {
   CreateAllOutEventSchema,
   CreateEventMapSchema,
@@ -8,8 +11,7 @@ import {
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
 } from "./schemas";
-import { TDivisionType } from "./db-entities/Division";
-import { AllOutEvent } from "./db-entities/AllOutEvent";
+import { TUserTempusIdStatus } from "./db-entities/User";
 
 export type ClaimDto = {
   id: number;
@@ -37,7 +39,7 @@ export type PrDto = {
 };
 
 export type SteamUser = {
-  steamId64: string;
+  steam64Id: string;
   name: string;
   avatar: string;
 };
@@ -45,7 +47,8 @@ export type SteamUser = {
 export type AppUser = SteamUser & {
   id: number;
   role: string;
-  tempusId: number;
+  tempusId?: number | undefined;
+  tempusIdStatus: TUserTempusIdStatus,
   claims: string[];
   divisions: DivisionDto[];
 };
@@ -131,7 +134,7 @@ export type BountyMapDto = {
 
 export type BountyCompletionDto = {
   id: number;
-  steamId64: string;
+  steam64Id: string;
   mapId: number;
 };
 

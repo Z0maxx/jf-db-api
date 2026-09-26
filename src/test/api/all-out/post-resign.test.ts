@@ -1,12 +1,13 @@
 import { app } from "#/app";
-import request from "supertest";
 import { ctx } from "#/db-context";
+import { EventEndedError, EventNotFoundError, RegistrationNotFoundError } from "#/errors";
+import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { EventEndedError, EventNotFoundError, RegistrationNotFoundError } from "#/errors";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { tomorrow, yesterday } from "#/test/test-dates";
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events/:eventId/resign", () => {

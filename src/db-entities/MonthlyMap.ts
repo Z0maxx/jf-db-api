@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { Division } from "./Division";
 import { MonthlyEvent } from "./MonthlyEvent";
 import { MonthlyLeaderboardItem } from "./MonthlyLeaderboardItem";

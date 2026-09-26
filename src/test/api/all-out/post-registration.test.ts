@@ -1,17 +1,18 @@
-import { ctx } from "#/db-context";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import { app } from "#/app";
-import request from "supertest";
-import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
-import { BaseEntity } from "@mikro-orm/core";
+import { ctx } from "#/db-context";
 import {
   AlreadyRegisteredError,
   EventNotFoundError,
   EventStartedInPastError,
   NoMapsWithUserDivisionsError,
 } from "#/errors";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { tomorrow, yesterday } from "#/test/test-dates";
+import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events/:eventId/registration", () => {

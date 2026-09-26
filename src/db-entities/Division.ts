@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
+
 import { AllOutParticipant } from "./AllOutParticipant";
 import { AllOutStage1Map } from "./AllOutStage1Map";
 import { AllOutStage2Map } from "./AllOutStage2Map";

@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
+
 import { Role } from "./Role";
 
 export class Claim extends BaseEntity {

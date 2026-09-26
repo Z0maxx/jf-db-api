@@ -8,7 +8,7 @@ export function getLeaderboardFilter(
   return {
     query: { map: query.mapId, participant: { resigned: false } },
     options: {
-      populate: ["participant.user.steamId64"],
+      populate: ["participant.user.steam64Id"],
       limit: query.pageSize,
       offset: (query.page - 1) * query.pageSize,
       orderBy,

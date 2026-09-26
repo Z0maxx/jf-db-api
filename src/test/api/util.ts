@@ -1,9 +1,10 @@
 import "dotenv/config";
-import { ctx, initCtx } from "#/db-context";
-import request from "supertest";
-import { User } from "#/db-entities/User";
 import { authService } from "#/auth/auth.service";
+import { ctx, initCtx } from "#/db-context";
+import { User } from "#/db-entities/User";
 import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+
 import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
 

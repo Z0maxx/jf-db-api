@@ -84,8 +84,8 @@ export class RegistrationNotFoundError extends NotFoundError {
 }
 
 export class SteamUsersNotFoundError extends NotFoundByIdsError {
-  constructor(steamId64s: string[]) {
-    super("Steam user", steamId64s);
+  constructor(steam64Ids: string[]) {
+    super("Steam user", steam64Ids);
     this.name = "SteamUsersNotFoundError";
   }
 }

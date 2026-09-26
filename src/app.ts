@@ -1,12 +1,12 @@
 import { RequestContext } from "@mikro-orm/core";
 import express from "express";
 import "dotenv/config";
-import { ctx } from "./db-context";
 import { allOutRouter } from "./all-out/all-out.router";
 import { authRouter } from "./auth/auth.router";
+import { claimsRouter } from "./claims/claims.router";
+import { ctx } from "./db-context";
 import { divisionsRouter } from "./divisions/divisions.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
-import { claimsRouter } from "./claims/claims.router";
 import { rolesRouter } from "./roles/roles.router";
 
 export const app = express();

@@ -5,6 +5,7 @@ import {
   ValidationError,
 } from "#/errors";
 import { DivisionDto, DivisionValidator } from "#/types";
+
 import { divisionsRepository } from "./divisions.repository";
 import { divisionDuplicateValidator } from "./validators/division-duplicate.validator";
 

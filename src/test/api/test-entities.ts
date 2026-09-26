@@ -30,19 +30,19 @@ export async function createTestEntitiesAsync() {
   [testUser1, testUser2, testHeadAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
-      steamId64: "76561198167723343",
+      steam64Id: "76561198167723343",
       tempusId: 107696,
       role: userRole,
     },
     {
       id: 100_002,
-      steamId64: "76561198046214898",
+      steam64Id: "76561198046214898",
       tempusId: 94512,
       role: userRole,
     },
     {
       id: 100_003,
-      steamId64: "00000000000000000",
+      steam64Id: "00000000000000000",
       tempusId: 0,
       role: headAdminRole,
     },

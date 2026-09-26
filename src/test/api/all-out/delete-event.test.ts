@@ -1,12 +1,13 @@
-import { BaseEntity } from "@mikro-orm/core";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { ctx } from "#/db-context";
-import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
 import { app } from "#/app";
-import request from "supertest";
+import { ctx } from "#/db-context";
 import { EventNotFoundError, EventStartedInPastError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
+import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 const entities: BaseEntity[] = [];
 describe("DELETE /all-out/entities/:eventId", () => {

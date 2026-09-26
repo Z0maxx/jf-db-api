@@ -1,12 +1,5 @@
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import request from "supertest";
 import { app } from "#/app";
-import { testHeadAdmin, testUser1 } from "../test-entities";
 import { ctx } from "#/db-context";
-import { BaseEntity } from "@mikro-orm/core";
-import { roleDuplicateValidator } from "#/roles/validators/role-duplicate.validator";
-import { roleDuplicateClaimValidator } from "#/roles/validators/role-duplicate-claim.validator";
 import {
   ClaimsNotFoundError,
   DefaultEntitiesModifiedError,
@@ -14,6 +7,14 @@ import {
   DefaultRolesModifiedError,
   RolesHaveUsersError,
 } from "#/errors";
+import { roleDuplicateClaimValidator } from "#/roles/validators/role-duplicate-claim.validator";
+import { roleDuplicateValidator } from "#/roles/validators/role-duplicate.validator";
+import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testHeadAdmin, testUser1 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 const entities: BaseEntity[] = [];
 describe("POST /roles", () => {
@@ -138,7 +139,7 @@ describe("POST /roles", () => {
 
   it("returns roles have users error when trying to delete a role with users", async () => {
     const role = await ctx.roles.upsert({ name: "role with users" });
-    const user = await ctx.users.upsert({ steamId64: "1".repeat(17), tempusId: 0, role });
+    const user = await ctx.users.upsert({ steam64Id: "1".repeat(17), tempusId: 0, role });
     entities.push(user);
     entities.push(role);
     const otherRoles = (await ctx.roles.findAll())
@@ -169,18 +170,18 @@ describe("POST /roles", () => {
   it("returns bad request when body in incorrect", async () => {
     const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([{}]);
 
-    assert.equal(res.status, 400)
-  })
+    assert.equal(res.status, 400);
+  });
 
   it("returns forbidden when the user cannot manage roles", async () => {
-      const res = await loginAs(request(app).post("/roles"), testUser1).send([]);
-  
-      assert.equal(res.statusCode, 403);
-    });
-  
-    it("returns unauthorized when user is not logged in", async () => {
-      const res = await request(app).post("/roles").send([]);
-  
-      assert.equal(res.statusCode, 401);
-    });
+    const res = await loginAs(request(app).post("/roles"), testUser1).send([]);
+
+    assert.equal(res.statusCode, 403);
+  });
+
+  it("returns unauthorized when user is not logged in", async () => {
+    const res = await request(app).post("/roles").send([]);
+
+    assert.equal(res.statusCode, 401);
+  });
 });

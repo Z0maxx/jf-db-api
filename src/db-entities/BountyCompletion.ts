@@ -1,4 +1,5 @@
 import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { BountyMap } from "./BountyMap";
 import { User } from "./User";
 

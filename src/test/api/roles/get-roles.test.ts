@@ -1,8 +1,9 @@
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import request from "supertest";
 import { app } from "#/app";
 import { claimNames } from "#/claim-names";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /roles", () => {
   beforeAll(async () => {

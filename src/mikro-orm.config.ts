@@ -1,5 +1,5 @@
-import { defineConfig, ReferenceKind, UnderscoreNamingStrategy } from "@mikro-orm/mysql";
 import { EntityGenerator } from "@mikro-orm/entity-generator";
+import { defineConfig, ReferenceKind, UnderscoreNamingStrategy } from "@mikro-orm/mysql";
 
 export class JfNamingStrategy extends UnderscoreNamingStrategy {
   override getEntityName(tableName: string, schemaName?: string): string {

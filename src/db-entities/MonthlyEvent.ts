@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Opt, defineEntity, p } from "@mikro-orm/core";
+
 import { MonthlyMap } from "./MonthlyMap";
 import { MonthlyParticipant } from "./MonthlyParticipant";
 

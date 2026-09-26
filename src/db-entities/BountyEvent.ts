@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Opt, defineEntity, p } from "@mikro-orm/core";
+
 import { BountyPrize } from "./BountyPrize";
 
 export class BountyEvent extends BaseEntity {

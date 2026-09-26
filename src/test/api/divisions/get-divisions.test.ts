@@ -1,8 +1,9 @@
 import { app } from "#/app";
 import request from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
 import { testDemomanDivision, testSoldierDivision } from "../test-entities";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /divisions", () => {
   beforeAll(async () => {

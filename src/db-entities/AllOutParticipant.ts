@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { AllOutEvent } from "./AllOutEvent";
 import { AllOutStage1LeaderboardItem } from "./AllOutStage1LeaderboardItem";
 import { AllOutStage2LeaderboardItem } from "./AllOutStage2LeaderboardItem";

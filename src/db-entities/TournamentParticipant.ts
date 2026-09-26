@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { TournamentEvent } from "./TournamentEvent";
 import { TournamentLeaderboardItem } from "./TournamentLeaderboardItem";
 import { User } from "./User";

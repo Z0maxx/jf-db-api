@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, defineEntity, p } from "@mikro-orm/core";
+
 import { Claim } from "./Claim";
 import { User } from "./User";
 

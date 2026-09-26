@@ -1,6 +1,7 @@
-import { createTestEntitiesAsync } from "./test-entities";
-import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { initCtx, ctx } from "#/db-context";
+
+import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
+import { createTestEntitiesAsync } from "./test-entities";
 
 export async function setup(_: any) {
   await initCtx();

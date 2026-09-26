@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { AllOutEvent } from "./AllOutEvent";
 import { AllOutStage1LeaderboardItem } from "./AllOutStage1LeaderboardItem";
 import { Division } from "./Division";

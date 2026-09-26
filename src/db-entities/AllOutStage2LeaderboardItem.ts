@@ -1,4 +1,5 @@
 import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { AllOutParticipant } from "./AllOutParticipant";
 import { AllOutStage2Map } from "./AllOutStage2Map";
 

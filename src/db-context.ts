@@ -1,18 +1,19 @@
 import { MikroORM } from "@mikro-orm/sql";
+
+import { claimNames } from "./claim-names";
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { AllOutParticipant } from "./db-entities/AllOutParticipant";
-import { AllOutStage1Map } from "./db-entities/AllOutStage1Map";
 import { AllOutStage1LeaderboardItem } from "./db-entities/AllOutStage1LeaderboardItem";
-import { AllOutStage2Map } from "./db-entities/AllOutStage2Map";
+import { AllOutStage1Map } from "./db-entities/AllOutStage1Map";
 import { AllOutStage2LeaderboardItem } from "./db-entities/AllOutStage2LeaderboardItem";
+import { AllOutStage2Map } from "./db-entities/AllOutStage2Map";
 import { AllOutStage3LeaderboardItem } from "./db-entities/AllOutStage3LeaderboardItem";
 import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
-import mikroOrmConfig from "./mikro-orm.config";
-import { User } from "./db-entities/User";
-import { Role } from "./db-entities/Role";
 import { Claim } from "./db-entities/Claim";
 import { Division, DivisionType } from "./db-entities/Division";
-import { claimNames } from "./claim-names";
+import { Role } from "./db-entities/Role";
+import { User } from "./db-entities/User";
+import mikroOrmConfig from "./mikro-orm.config";
 
 const orm: MikroORM = null!;
 export const ctx = {

@@ -1,20 +1,21 @@
-import { ctx } from "#/db-context";
-import { BaseEntity } from "@mikro-orm/core";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import request from "supertest";
+import { allOutCreatedDatesValidator } from "#/all-out/validators/all-out-created-dates.validator";
+import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
+import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
 import { app } from "#/app";
+import { ctx } from "#/db-context";
+import { DivisionsNotFoundError } from "#/errors";
+import { tomorrow, yesterday } from "#/test/test-dates";
+import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import {
   testDemomanDivision,
   testHeadAdmin,
   testSoldierDivision,
   testUser1,
 } from "../test-entities";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { DivisionsNotFoundError } from "#/errors";
-import { tomorrow, yesterday } from "#/test/test-dates";
-import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
-import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
-import { allOutCreatedDatesValidator } from "#/all-out/validators/all-out-created-dates.validator";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events", () => {

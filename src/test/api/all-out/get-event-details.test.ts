@@ -1,6 +1,11 @@
 import { app } from "#/app";
-import request from "supertest";
+import { DivisionType } from "#/db-entities/Division";
 import { EventNotFoundError } from "#/errors";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testDemomanDivision, testSoldierDivision } from "../test-entities";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import {
   testAllOutEvent,
   testAllOutStage1DemomanMap,
@@ -10,10 +15,6 @@ import {
   testAllOutStage3DemomanMap,
   testAllOutStage3SoldierMap,
 } from "./all-out-test-entities";
-import { testDemomanDivision, testSoldierDivision } from "../test-entities";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { DivisionType } from "#/db-entities/Division";
 
 describe("GET /all-out/events/:eventId", () => {
   beforeAll(async () => {

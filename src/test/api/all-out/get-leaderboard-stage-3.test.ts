@@ -1,15 +1,16 @@
 import { app } from "#/app";
+import { ctx } from "#/db-context";
 import { MapNotFoundError } from "#/errors";
+import { BaseEntity } from "@mikro-orm/core";
 import request from "supertest";
+import { beforeAll, afterAll, assert, it, describe } from "vitest";
+
+import { testSoldierDivision, testUser1, testUser2 } from "../test-entities";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import {
   testAllOutStage3LeaderboardItem2,
   testAllOutStage3SoldierMap,
 } from "./all-out-test-entities";
-import { testSoldierDivision, testUser1, testUser2 } from "../test-entities";
-import { beforeAll, afterAll, assert, it, describe } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { BaseEntity } from "@mikro-orm/core";
-import { ctx } from "#/db-context";
 
 const entities: BaseEntity[] = [];
 describe("GET /all-out/leaderboard/stage-3", () => {
@@ -35,7 +36,7 @@ describe("GET /all-out/leaderboard/stage-3", () => {
       {
         id: testAllOutStage3LeaderboardItem2.id,
         user: {
-          steamId64: testUser2.steamId64,
+          steam64Id: testUser2.steam64Id,
         },
         pr: {
           seconds: testAllOutStage3LeaderboardItem2.prSeconds,

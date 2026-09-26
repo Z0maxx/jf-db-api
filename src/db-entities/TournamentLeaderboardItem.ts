@@ -1,4 +1,5 @@
 import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { TournamentMap } from "./TournamentMap";
 import { TournamentParticipant } from "./TournamentParticipant";
 

@@ -53,19 +53,20 @@ CREATE TABLE division (
 
 CREATE TABLE user (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  steam_id_64 VARCHAR(17) NOT NULL,
-  tempus_id INT UNSIGNED NOT NULL,
+  steam_64_id VARCHAR(17) NOT NULL,
+  tempus_id INT UNSIGNED DEFAULT NULL,
+  tempus_id_status ENUM('unset', 'verifying', 'verified', 'failed') NOT NULL,
   role_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_user_role_id
     FOREIGN KEY (role_id)
     REFERENCES role(id),
-  CONSTRAINT chk_user_steam_id_64
-    CHECK (CHAR_LENGTH(steam_id_64) = 17),
+  CONSTRAINT chk_user_steam_64_id
+    CHECK (CHAR_LENGTH(steam_64_id) = 17),
   CONSTRAINT unq_user
-    UNIQUE (steam_id_64, tempus_id)
+    UNIQUE (steam_64_id, tempus_id)
 );
 
-ALTER TABLE user ADD INDEX idx_user (steam_id_64);
+ALTER TABLE user ADD INDEX idx_user (steam_64_id);
 
 CREATE TABLE user_division (
   user_id INT UNSIGNED NOT NULL,

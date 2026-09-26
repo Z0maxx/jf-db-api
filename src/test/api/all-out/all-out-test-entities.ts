@@ -1,13 +1,14 @@
 import { ctx } from "#/db-context";
-import { testSoldierDivision, testDemomanDivision, testUser1, testUser2 } from "../test-entities";
-import { AllOutStage3LeaderboardItem } from "#/db-entities/AllOutStage3LeaderboardItem";
-import { AllOutStage2LeaderboardItem } from "#/db-entities/AllOutStage2LeaderboardItem";
-import { AllOutStage1LeaderboardItem } from "#/db-entities/AllOutStage1LeaderboardItem";
-import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
-import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
-import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
+import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
+import { AllOutStage1LeaderboardItem } from "#/db-entities/AllOutStage1LeaderboardItem";
 import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
+import { AllOutStage2LeaderboardItem } from "#/db-entities/AllOutStage2LeaderboardItem";
+import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
+import { AllOutStage3LeaderboardItem } from "#/db-entities/AllOutStage3LeaderboardItem";
+import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
+
+import { testSoldierDivision, testDemomanDivision, testUser1, testUser2 } from "../test-entities";
 
 export let testAllOutEvent: AllOutEvent;
 export let testAllOutStage1SoldierMap: AllOutStage1Map;

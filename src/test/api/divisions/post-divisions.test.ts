@@ -1,13 +1,14 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
-import { BaseEntity } from "@mikro-orm/core";
-import { testHeadAdmin, testUser1 } from "../test-entities";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import request from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { DivisionType } from "#/db-entities/Division";
 import { divisionDuplicateValidator } from "#/divisions/validators/division-duplicate.validator";
 import { UnassignedDivisionsDeletedError } from "#/errors";
+import { BaseEntity } from "@mikro-orm/core";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testHeadAdmin, testUser1 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 const entities: BaseEntity[] = [];
 describe("POST /divisions", () => {
@@ -98,8 +99,8 @@ describe("POST /divisions", () => {
   it("returns bad request when body is incorrect", async () => {
     const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send([{}]);
 
-    assert.equal(res.status, 400)
-  })
+    assert.equal(res.status, 400);
+  });
 
   it("returns forbidden when the user cannot manage divisions", async () => {
     const res = await loginAs(request(app).post("/divisions"), testUser1).send([]);

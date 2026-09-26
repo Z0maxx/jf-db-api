@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { BountyEvent } from "./BountyEvent";
 import { BountyMap } from "./BountyMap";
 import { Division } from "./Division";

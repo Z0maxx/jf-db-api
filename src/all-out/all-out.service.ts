@@ -1,3 +1,18 @@
+import { ctx } from "#/db-context";
+import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import {
+  AlreadyRegisteredError,
+  DivisionsNotFoundError,
+  EventEndedError,
+  EventNotFoundError,
+  EventStartedInPastError,
+  MapNotFoundError,
+  NoMapsWithUserDivisionsError,
+  RegistrationNotFoundError,
+  ValidationError,
+} from "#/errors";
+import { transformDbMaps } from "#/helpers/map.helper";
+import { steamUsersService } from "#/steam/steam-users.service";
 import {
   AllOutEventPreviewDto,
   AllOutValidator,
@@ -10,26 +25,12 @@ import {
   RegistrationDetails,
   UpdateAllOutEventDto,
 } from "#/types";
+
 import { allOutRepository } from "./all-out.repository";
-import {
-  AlreadyRegisteredError,
-  DivisionsNotFoundError,
-  EventEndedError,
-  EventNotFoundError,
-  EventStartedInPastError,
-  MapNotFoundError,
-  NoMapsWithUserDivisionsError,
-  RegistrationNotFoundError,
-  ValidationError,
-} from "#/errors";
-import { ctx } from "#/db-context";
-import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
 import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
-import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
 import { allOutUpdatedDatesValidator } from "./validators/all-out-updated-dates.validator";
-import { transformDbMaps } from "#/helpers/map.helper";
-import { steamUsers } from "#/steam/steam-users";
 
 export const allOutService = {
   async getEventByIdAsync(eventId: number) {
@@ -121,11 +122,13 @@ export const allOutService = {
   async getAllEventParticipantsAsync(eventId: number): Promise<ParticipantDto[]> {
     await this.getEventByIdAsync(eventId);
     const participants = await allOutRepository.getAllEventParticipantsAsync(eventId);
-    const users = await steamUsers.getUsersAsync(participants.map((p) => p.user.$.steamId64));
+    const users = await steamUsersService.getUsersAsync(
+      participants.map((p) => p.user.$.steam64Id),
+    );
     return participants.map((p) => ({
       id: p.id,
       resigned: p.resigned,
-      ...users.get(p.user.$.steamId64)!,
+      ...users.get(p.user.$.steam64Id)!,
       divisions: p.divisionCollection.$.map(({ type, name, color }) => ({
         type,
         name,
@@ -137,12 +140,12 @@ export const allOutService = {
   async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage1MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage1LeaderboardAsync(query);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
+    const users = await steamUsersService.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steam64Id),
     );
     return items.map((i) => ({
       id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
+      user: users.get(i.participant.$.user.$.steam64Id)!,
       pr: {
         seconds: i.prSeconds,
         timestamp: i.prTimestamp,
@@ -153,13 +156,13 @@ export const allOutService = {
   async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItemDto[]> {
     await checkStage2MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage2LeaderboardAsync(query);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
+    const users = await steamUsersService.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steam64Id),
     );
 
     return items.map((i) => ({
       id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
+      user: users.get(i.participant.$.user.$.steam64Id)!,
       pr: {
         seconds: i.prSeconds,
         timestamp: i.prTimestamp,
@@ -174,12 +177,12 @@ export const allOutService = {
   async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage3MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage3LeaderboardAsync(query);
-    const users = await steamUsers.getUsersAsync(
-      items.map((i) => i.participant.$.user.$.steamId64),
+    const users = await steamUsersService.getUsersAsync(
+      items.map((i) => i.participant.$.user.$.steam64Id),
     );
     return items.map((i) => ({
       id: i.id,
-      user: users.get(i.participant.$.user.$.steamId64)!,
+      user: users.get(i.participant.$.user.$.steam64Id)!,
       pr: {
         seconds: i.prSeconds,
         timestamp: i.prTimestamp,

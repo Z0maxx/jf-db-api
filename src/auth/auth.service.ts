@@ -1,7 +1,8 @@
-import { ctx } from "#/db-context";
 import { envConfig } from "#/env-config";
-import { steamUsers } from "#/steam/steam-users";
+import { steamUsersService } from "#/steam/steam-users.service";
 import { AppUser, AuthResponse, JwtUser, SteamUser } from "#/types";
+import { usersRepository } from "#/users/users.repository";
+import { getAppUser } from "#/util";
 import jwt from "jsonwebtoken";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";
@@ -34,7 +35,7 @@ export const authService = {
     const claimedId = query.get("openid.claimed_id") ?? "";
     const steamIdMatch = /^https:\/\/steamcommunity\.com\/openid\/id\/(\d{17})\/?$/.exec(claimedId);
     if (!steamIdMatch) {
-      throw new Error("Steam did not return a valid SteamID64");
+      throw new Error("Steam did not return a valid steam64Id");
     }
 
     const verificationParams = new URLSearchParams(query);
@@ -52,13 +53,9 @@ export const authService = {
     return steamIdMatch[1];
   },
 
-  async getAuthResponseAsync(steamId64: string): Promise<AuthResponse> {
-    const steamUser = await steamUsers.getUserAsync(steamId64);
-    let user = await getUserAsync(steamUser);
-    if (!user) {
-      user = await createUserAsync(steamUser);
-    }
-
+  async getAuthResponseAsync(steam64Id: string): Promise<AuthResponse> {
+    const steamUser = await steamUsersService.getUserAsync(steam64Id);
+    const user = await getOrCreateAppUserAsync(steamUser);
     const token = this.getToken({ id: user.id });
     return {
       token,
@@ -82,60 +79,11 @@ function getConfig() {
   };
 }
 
-async function getUserAsync(steamUser: SteamUser): Promise<AppUser | null> {
-  const user = await ctx.users.findOne(
-    { steamId64: steamUser.steamId64 },
-    { populate: ["role", "divisionCollection", "role.claimCollection"] },
-  );
+async function getOrCreateAppUserAsync(steamUser: SteamUser): Promise<AppUser> {
+  let user = await usersRepository.getUserBySteamIdAsync(steamUser.steam64Id);
   if (!user) {
-    return null;
+    user = await usersRepository.createUserAsync(steamUser.steam64Id);
   }
 
-  return {
-    ...steamUser,
-    id: user.id,
-    tempusId: user.tempusId,
-    role: user.role.$.name,
-    claims: user.role.$.claimCollection.$.map((c) => c.name),
-    divisions: user.divisionCollection.$.map(({ type, name, color }) => ({
-      type,
-      name,
-      color,
-    })),
-  };
-}
-
-async function createUserAsync(steamUser: SteamUser): Promise<AppUser> {
-  const role = await ctx.roles.findOne({ name: "user" });
-  if (!role) {
-    throw new Error("User role must exist");
-  }
-
-  const user = ctx.users.create({
-    steamId64: steamUser.steamId64,
-    tempusId: 0,
-    role,
-  });
-
-  const divisions = await ctx.divisions.find({
-    name: { $in: ["Unassigned Soldier", "Unassigned Demoman"] },
-  });
-  if (divisions.length < 2) {
-    throw new Error("Unassigned divisions must exist");
-  }
-
-  user.divisionCollection.set(divisions);
-  await ctx.saveAsync();
-  return {
-    ...steamUser,
-    id: user.id,
-    tempusId: 0,
-    role: role.name,
-    claims: [],
-    divisions: divisions.map(({ type, name, color }) => ({
-      type,
-      name,
-      color,
-    })),
-  };
+  return getAppUser(user, steamUser);
 }

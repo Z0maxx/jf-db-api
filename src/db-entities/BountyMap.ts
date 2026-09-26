@@ -1,4 +1,5 @@
 import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+
 import { BountyCompletion } from "./BountyCompletion";
 import { BountyPrize } from "./BountyPrize";
 

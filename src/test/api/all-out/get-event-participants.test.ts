@@ -1,14 +1,15 @@
 import { app } from "#/app";
-import request from "supertest";
 import { EventNotFoundError } from "#/errors";
+import request from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { testDemomanDivision, testSoldierDivision, testUser1, testUser2 } from "../test-entities";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import {
   testAllOutEvent,
   testAllOutParticipant1,
   testAllOutParticipant2,
 } from "./all-out-test-entities";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 describe("GET /all-out/event/:eventId/participants", () => {
   beforeAll(async () => {
@@ -28,7 +29,7 @@ describe("GET /all-out/event/:eventId/participants", () => {
     assert.containsSubset(res.body, [
       {
         id: testAllOutParticipant1.id,
-        steamId64: testUser1.steamId64,
+        steam64Id: testUser1.steam64Id,
         divisions: [
           {
             type: testSoldierDivision.type,
@@ -44,7 +45,7 @@ describe("GET /all-out/event/:eventId/participants", () => {
       },
       {
         id: testAllOutParticipant2.id,
-        steamId64: testUser2.steamId64,
+        steam64Id: testUser2.steam64Id,
         divisions: [
           {
             type: testSoldierDivision.type,

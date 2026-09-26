@@ -9,6 +9,7 @@ import {
   ValidationError,
 } from "#/errors";
 import { CreateRoleDto, RoleDto, RoleValidator } from "#/types";
+
 import { rolesRepository } from "./roles.repository";
 import { roleDuplicateClaimValidator } from "./validators/role-duplicate-claim.validator";
 import { roleDuplicateValidator } from "./validators/role-duplicate.validator";
@@ -48,9 +49,7 @@ async function checkClaimsExistAsync(roles: CreateRoleDto[]) {
 async function checkDefaultRolesAsync(roles: CreateRoleDto[]) {
   const defaultRoles = await rolesRepository.getDefaultRolesAsync();
   const roleNames = new Set(roles.map((r) => r.name));
-  console.log(roleNames);
   const deleted: string[] = defaultRoles.map((d) => d.name).filter((r) => !roleNames.has(r));
-  console.log("deleted ", deleted);
   if (deleted.length > 0) {
     throw new DefaultRolesDeletedError(deleted);
   }
@@ -73,7 +72,6 @@ async function checkDeletedRolesHaveNoUsersAsync(roles: CreateRoleDto[]) {
   const existing = await rolesRepository.getAllRolesAsync();
   const deletedNames = existing.filter((e) => !rolesMap.get(e.name)).map((d) => d.name);
   const deletedRoles = await rolesRepository.getRolesByNameAsync(deletedNames);
-  console.log(deletedRoles.map((r) => r.serialize()));
   const deletedWithUsers = deletedRoles
     .filter((d) => d.userCollection.$.length > 0)
     .map((d) => d.name);
