@@ -1,7 +1,7 @@
 import { ctx } from "#/db-context";
 import { Division, DivisionType } from "#/db-entities/Division";
 import { Role } from "#/db-entities/Role";
-import { User } from "#/db-entities/User";
+import { User, UserTempusIdStatus } from "#/db-entities/User";
 
 export let testSoldierDivision: Division;
 export let testDemomanDivision: Division;
@@ -26,24 +26,27 @@ export async function createTestEntitiesAsync() {
   ]);
 
   const headAdminRole = await ctx.roles.findOne({ name: "head admin" });
-  const userRole = await ctx.roles.findOne({ name: "user" });
+  const userRole = await ctx.roles.findOneOrFail({ name: "user" });
   [testUser1, testUser2, testHeadAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
       steam64Id: "76561198167723343",
       tempusId: 107696,
+      tempusIdStatus: UserTempusIdStatus.VERIFIED,
       role: userRole,
     },
     {
       id: 100_002,
       steam64Id: "76561198046214898",
       tempusId: 94512,
+      tempusIdStatus: UserTempusIdStatus.VERIFIED,
       role: userRole,
     },
     {
       id: 100_003,
-      steam64Id: "00000000000000000",
+      steam64Id: "76561198049588377",
       tempusId: 0,
+      tempusIdStatus: UserTempusIdStatus.UNSET,
       role: headAdminRole,
     },
   ]);

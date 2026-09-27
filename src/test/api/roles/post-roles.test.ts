@@ -2,7 +2,6 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import {
   ClaimsNotFoundError,
-  DefaultEntitiesModifiedError,
   DefaultRolesDeletedError,
   DefaultRolesModifiedError,
   RolesHaveUsersError,

@@ -61,7 +61,6 @@ function checkAllUsersFound(steam64Ids: string[], foundUsers: SteamUser[]) {
 }
 
 function getUsersFromCache(steam64Ids: string[]): Map<string, SteamUser> {
-  console.log("cahce------------------------", cache);
   const now = new Date();
   const users = new Map<string, SteamUser>();
   steam64Ids.forEach((id) => {

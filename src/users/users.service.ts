@@ -1,4 +1,5 @@
 import { User, UserTempusIdStatus } from "#/db-entities/User";
+import { AlreadySetTempusIdError } from "#/errors";
 import { steamUsersService } from "#/steam/steam-users.service";
 import { verifyTempusIdAsync } from "#/tempus/tempus-id-verifier.service";
 import { AppUser } from "#/types";
@@ -11,30 +12,36 @@ export const usersService = {
     if (steamId) {
       const steam64Id = convertToSteam64Id(steamId);
       if (!steam64Id) {
-        return []
+        return [];
       }
 
       const user = await usersRepository.getUserBySteamIdAsync(steam64Id);
       if (!user) {
-        return []
+        return [];
       }
 
       const steamUser = await steamUsersService.getUserAsync(steam64Id);
-      return [getAppUser(user, steamUser)]
+      return [getAppUser(user, steamUser)];
     }
 
     const users = await usersRepository.getAllUsersAsync();
     const steamUsers = await steamUsersService.getUsersAsync(users.map((u) => u.steam64Id));
-    return users.map((u) => getAppUser(u, steamUsers.get(u.steam64Id)!))
+    return users.map((u) => getAppUser(u, steamUsers.get(u.steam64Id)!));
   },
 
   async verifyAndSetTempusIdAsync(user: User, tempusId: number) {
-    const status = await verifyTempusIdAsync({ steam64Id: user.steam64Id, tempusId })
+    if (user.tempusId) {
+      throw new AlreadySetTempusIdError(user);
+    }
+
+    await usersRepository.setTempusIdStatus(user, UserTempusIdStatus.VERIFYING);
+    const status = await verifyTempusIdAsync({ steam64Id: user.steam64Id, tempusId });
     if (status === UserTempusIdStatus.FAILED) {
-      usersRepository.setTempusIdStatus(user, status)
+      await usersRepository.setTempusIdStatus(user, status);
+    } else {
+      await usersRepository.setTempusIdAsync(user, tempusId);
     }
-    else {
-      usersRepository.setTempusIdAsync(user, tempusId)
-    }
-  }
+
+    return status;
+  },
 };

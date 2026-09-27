@@ -1,5 +1,6 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { User } from "#/db-entities/User";
 import {
   AlreadyRegisteredError,
   DivisionsNotFoundError,
@@ -25,6 +26,7 @@ import {
   RegistrationDetails,
   UpdateAllOutEventDto,
 } from "#/types";
+import { Loaded } from "@mikro-orm/core";
 
 import { allOutRepository } from "./all-out.repository";
 import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
@@ -194,7 +196,7 @@ export const allOutService = {
     await this.getEventByIdAsync(registration.eventId);
     const participant = await allOutRepository.getParticipantAsync(
       registration.eventId,
-      registration.userId,
+      registration.user,
     );
     return {
       registered: !!participant,
@@ -229,7 +231,7 @@ export const allOutService = {
   async registerAsync(registration: Registration) {
     const event = await this.getEventByIdAsync(registration.eventId);
     checkEventNotStartedInPast(event);
-    await checkUserHasEventDivisionsAsync(event, registration.userId);
+    await checkUserHasEventDivisionsAsync(event, registration.user);
     await checkNotAlreadyRegisteredAsync(registration);
     await allOutRepository.registerAsync(registration);
   },
@@ -265,9 +267,12 @@ async function checkRegistrationExistsAsync(registration: Registration) {
   }
 }
 
-async function checkUserHasEventDivisionsAsync(event: AllOutEvent, userId: number) {
-  if (!(await allOutRepository.userHasEventDivisionsAsync(event.id, userId))) {
-    throw new NoMapsWithUserDivisionsError(event.id, userId);
+async function checkUserHasEventDivisionsAsync(
+  event: AllOutEvent,
+  user: Loaded<User, "divisionCollection">,
+) {
+  if (!(await allOutRepository.userHasEventDivisionsAsync(event.id, user))) {
+    throw new NoMapsWithUserDivisionsError(event.id, user.id);
   }
 }
 

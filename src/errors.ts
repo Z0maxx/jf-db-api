@@ -1,3 +1,4 @@
+import { User } from "./db-entities/User";
 import { Registration } from "./types";
 
 export abstract class AppError extends Error {
@@ -78,7 +79,7 @@ export class MapNotFoundError extends NotFoundByIdError {
 export class RegistrationNotFoundError extends NotFoundError {
   constructor(registration: Registration) {
     super();
-    this.message = `Registration for user with id '${registration.userId}' not found to event with id '${registration.eventId}'`;
+    this.message = `Registration for user with id '${registration.user.id}' not found to event with id '${registration.eventId}'`;
     this.name = "RegistrationNotFoundError";
   }
 }
@@ -184,8 +185,16 @@ export class DefaultRolesModifiedError extends DefaultEntitiesModifiedError {
 export class AlreadyRegisteredError extends ConflictError {
   constructor(registration: Registration) {
     super();
-    this.message = `User with id '${registration.userId}' has already registered to event with id '${registration.eventId}'`;
+    this.message = `User with id '${registration.user.id}' has already registered to event with id '${registration.eventId}'`;
     this.name = "AlreadyRegisteredError";
+  }
+}
+
+export class AlreadySetTempusIdError extends ConflictError {
+  constructor(user: User) {
+    super();
+    this.message = `User with id '${user.id}' has already set their tempus id`;
+    this.name = "AlreadySetTempusIdError"
   }
 }
 

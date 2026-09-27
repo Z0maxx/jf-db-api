@@ -11,7 +11,7 @@ export function errorHandler(err: Error | AppError, _: Request, res: Response, _
   res.status(500).send("Something went wrong");
 }
 
-function getAppError(appErr: AppError) {
+export function getAppError(appErr: AppError) {
   if (appErr.messages.length > 0) {
     return { errorMessages: appErr.messages, errorCode: appErr.name };
   }

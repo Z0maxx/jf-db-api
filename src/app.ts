@@ -8,6 +8,7 @@ import { ctx } from "./db-context";
 import { divisionsRouter } from "./divisions/divisions.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 import { rolesRouter } from "./roles/roles.router";
+import { usersRouter } from "./users/users.router";
 
 export const app = express();
 app.use(express.json());
@@ -30,5 +31,6 @@ app.use("/auth", authRouter);
 app.use("/divisions", divisionsRouter);
 app.use("/claims", claimsRouter);
 app.use("/roles", rolesRouter);
+app.use("/users", usersRouter);
 
 app.use(errorHandler);

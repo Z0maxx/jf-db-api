@@ -9,6 +9,8 @@ export default defineConfig({
     extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
   },
   test: {
+    globals: true,
+    environment: "jsdom",
     include: ["src/test/**/*.test.ts"],
     globalSetup: ["./src/test/api/setup.ts"],
     server: {

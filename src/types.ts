@@ -1,7 +1,9 @@
+import { Loaded } from "@mikro-orm/core";
 import z from "zod";
 
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { TDivisionType } from "./db-entities/Division";
+import { TUserTempusIdStatus, User } from "./db-entities/User";
 import {
   CreateAllOutEventSchema,
   CreateEventMapSchema,
@@ -11,7 +13,6 @@ import {
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
 } from "./schemas";
-import { TUserTempusIdStatus } from "./db-entities/User";
 
 export type ClaimDto = {
   id: number;
@@ -48,7 +49,7 @@ export type AppUser = SteamUser & {
   id: number;
   role: string;
   tempusId?: number | undefined;
-  tempusIdStatus: TUserTempusIdStatus,
+  tempusIdStatus: TUserTempusIdStatus;
   claims: string[];
   divisions: DivisionDto[];
 };
@@ -142,7 +143,7 @@ export type LeaderboardQuery = z.infer<typeof LeaderboardQuerySchema>;
 
 export type Registration = {
   eventId: number;
-  userId: number;
+  user: Loaded<User, "divisionCollection" | "role.claimCollection">;
 };
 
 export type RegistrationDetails = {
@@ -186,4 +187,9 @@ export type Schedule = {
 export type StageInvalidDateFields = {
   stage: number;
   invalidDateFields: string[];
+};
+
+export type TempusIdVerificationResult = {
+  status: TUserTempusIdStatus;
+  tempusId: number;
 };

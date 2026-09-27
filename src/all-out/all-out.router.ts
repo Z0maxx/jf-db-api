@@ -29,7 +29,7 @@ allOutRouter.get("/events/:eventId/participants", id("eventId"), async (req, res
 allOutRouter.get("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
-    userId: req.user!.id,
+    user: req.user!,
   };
 
   res.status(200).json(await allOutService.getRegistrationDetailsAsync(registration));
@@ -79,7 +79,7 @@ allOutRouter.post(
 allOutRouter.post("/events/:eventId/registration", loggedIn, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
-    userId: req.user!.id,
+    user: req.user!,
   };
 
   await allOutService.registerAsync(registration);
@@ -89,7 +89,7 @@ allOutRouter.post("/events/:eventId/registration", loggedIn, id("eventId"), asyn
 allOutRouter.post("/events/:eventId/resign", loggedIn, id("eventId"), async (req, res) => {
   const registration = {
     eventId: req.ids.eventId,
-    userId: req.user!.id,
+    user: req.user!,
   };
 
   await allOutService.resignOrDeleteRegistrationAsync(registration);

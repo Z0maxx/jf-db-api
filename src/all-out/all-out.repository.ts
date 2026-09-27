@@ -1,6 +1,7 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { Division } from "#/db-entities/Division";
+import { User } from "#/db-entities/User";
 import { setMapsAsync } from "#/helpers/map.helper";
 import { getLeaderboardFilter } from "#/mikro-filters";
 import {
@@ -11,7 +12,7 @@ import {
   CreateEventMapDto,
   CreateTimeLimitedEventMapDto,
 } from "#/types";
-import { wrap } from "@mikro-orm/core";
+import { Loaded, wrap } from "@mikro-orm/core";
 
 export const allOutRepository = {
   async getAllEventsAsync(): Promise<AllOutEvent[]> {
@@ -31,8 +32,8 @@ export const allOutRepository = {
     );
   },
 
-  async getParticipantAsync(eventId: number, userId: number) {
-    return await ctx.allOut.participants.findOne({ event: eventId, user: userId });
+  async getParticipantAsync(eventId: number, user: User) {
+    return await ctx.allOut.participants.findOne({ event: eventId, user });
   },
 
   async getAllEventParticipantsAsync(eventId: number) {
@@ -78,12 +79,12 @@ export const allOutRepository = {
 
   async registrationExistsAsync(registration: Registration) {
     return !!(await ctx.allOut.participants.findOne({
-      user: registration.userId,
+      user: registration.user,
       event: registration.eventId,
     }));
   },
 
-  async usersHaveEventDivisionsAsync(eventId: number, userIds: number[]) {
+  async usersHaveEventDivisionsAsync(eventId: number, users: Loaded<User, "divisionCollection">[]) {
     const event = await ctx.allOut.events.findOneOrFail(
       { id: eventId },
       {
@@ -101,18 +102,16 @@ export const allOutRepository = {
       ...event.allOutStage1MapCollection.$.map((m) => m.division.id),
     ]);
 
-    const users = await ctx.users.find(
-      { id: { $in: userIds } },
-      { populate: ["divisionCollection"] },
-    );
     return new Map<number, boolean>(
-      users.map((u) => [u.id, u.divisionCollection.$.exists((d) => divisionIds.has(d.id))]),
+      users.map(
+        (u) => [u.id, u.divisionCollection.$.exists((d) => divisionIds.has(d.id))] as const,
+      ),
     );
   },
 
-  async userHasEventDivisionsAsync(eventId: number, userId: number) {
-    const result = await this.usersHaveEventDivisionsAsync(eventId, [userId]);
-    return result.get(userId)!;
+  async userHasEventDivisionsAsync(eventId: number, user: Loaded<User, "divisionCollection">) {
+    const result = await this.usersHaveEventDivisionsAsync(eventId, [user]);
+    return result.get(user.id)!;
   },
 
   async createEventAsync(event: CreateAllOutEventDto) {
@@ -135,10 +134,7 @@ export const allOutRepository = {
       return;
     }
 
-    const user = await ctx.users.findOneOrFail(
-      { id: registration.userId },
-      { populate: ["divisionCollection"] },
-    );
+    const user = registration.user;
     const participant = ctx.allOut.participants.create({
       event: registration.eventId,
       user,
@@ -150,7 +146,7 @@ export const allOutRepository = {
 
   async deleteRegistrationAsync(registration: Registration) {
     const participant = await ctx.allOut.participants.findOneOrFail({
-      user: registration.userId,
+      user: registration.user,
       event: registration.eventId,
     });
 
@@ -160,7 +156,7 @@ export const allOutRepository = {
 
   async resignAsync(registration: Registration) {
     const participant = await ctx.allOut.participants.findOneOrFail({
-      user: registration.userId,
+      user: registration.user,
       event: registration.eventId,
     });
 
@@ -259,10 +255,13 @@ async function setStage3MapsAsync(
 }
 
 async function updateEventParticipantsAsync(event: AllOutEvent) {
-  const participants = await ctx.allOut.participants.find({ event }, { populate: ["user.id"] });
+  const participants = await ctx.allOut.participants.find(
+    { event },
+    { populate: ["user.divisionCollection"] },
+  );
   const canParticipate = await allOutRepository.usersHaveEventDivisionsAsync(
     event.id,
-    participants.map((p) => p.user.id),
+    participants.map((p) => p.user.$),
   );
 
   participants.forEach(async (p) => {

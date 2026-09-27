@@ -13,7 +13,7 @@ export const usersRepository = {
     );
   },
 
-   async getUserByIdAsync(userId: number) {
+  async getUserByIdAsync(userId: number) {
     return await ctx.users.findOne(
       { id: userId },
       { populate: ["divisionCollection", "role.claimCollection"] },
@@ -50,8 +50,8 @@ export const usersRepository = {
     await ctx.saveAsync();
   },
 
-  async setTempusIdStatus(user: User, status: Exclude<TUserTempusIdStatus, 'verified'>) {
-    user.tempusIdStatus = status
-    await ctx.saveAsync()
+  async setTempusIdStatus(user: User, status: Exclude<TUserTempusIdStatus, "verified">) {
+    user.tempusIdStatus = status;
+    await ctx.saveAsync();
   },
 };

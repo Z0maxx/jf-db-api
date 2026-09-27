@@ -1,7 +1,8 @@
 import "express-serve-static-core";
-import { JwtUser } from "./types";
-import { User } from "./db-entities/User";
 import { Loaded } from "@mikro-orm/core";
+
+import { User } from "./db-entities/User";
+import { JwtUser } from "./types";
 
 declare module "express-serve-static-core" {
   interface Request<P = ParamsDictionary> {
