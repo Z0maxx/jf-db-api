@@ -18,32 +18,33 @@ export async function setupApiTestSuiteAsync() {
 
 export async function teardownApiTestSuiteAsync(entitiesToDelete: BaseEntity[] = []) {
   await Promise.all(
-    entitiesToDelete.map((e) => {
+    entitiesToDelete.map(async (e) => {
       ctx.em.remove(e);
-      return ctx.saveAsync();
+      await ctx.saveAsync();
     }),
   );
 
   ctx.orm.close(true);
 }
 
-export function loginAs(req: request.Test, user: User): request.Test {
+export function loginAs(user: User, req: request.Test): request.Test {
   return req.set("Authorization", "Bearer " + authService.getToken({ id: user.id }));
 }
 
-export function getSingleSseResponseAsync<T>({
-  url,
-  body,
-  method,
-  headers,
-}: {
-  url: string
-  body?: object;
-  method: RequestInit["method"];
-  headers: FetchEventSourceInit["headers"];
-}) {
+export function getSingleSseResponseAsync(
+  url: string,
+  {
+    body,
+    method,
+    headers,
+  }: {
+    body?: object;
+    method: RequestInit["method"];
+    headers: FetchEventSourceInit["headers"];
+  },
+) {
   const ac = new AbortController();
-  return new Promise<T>(async (res) => {
+  return new Promise<any>(async (res) => {
     await fetchEventSource(url, {
       signal: ac.signal,
       method: method ?? "GET",

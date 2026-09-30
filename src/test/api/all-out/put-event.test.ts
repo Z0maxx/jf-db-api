@@ -80,7 +80,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send(event);
 
     assert(res.ok);
     const updatedEvent = await ctx.allOut.events.findOne({ id: event.id });
@@ -174,7 +174,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send(event);
 
     assert.ok(res.status);
     const deletedParticipant = await ctx.allOut.participants.findOne({
@@ -221,7 +221,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put(`/all-out/events`)).send(event);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -268,7 +268,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send(event);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -342,7 +342,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send(event);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -376,7 +376,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put(`/all-out/events`), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put(`/all-out/events`)).send(event);
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -433,7 +433,7 @@ describe("PUT /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send(event);
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -443,7 +443,7 @@ describe("PUT /all-out/events", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(request(app).put("/all-out/events"), testHeadAdmin).send({});
+    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events")).send({});
 
     assert.equal(res.status, 400);
   });
@@ -455,7 +455,7 @@ describe("PUT /all-out/events", () => {
   });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(request(app).put("/all-out/events"), testUser1);
+    const res = await loginAs(testUser1, request(app).put("/all-out/events"));
 
     assert.equal(res.status, 403);
   });

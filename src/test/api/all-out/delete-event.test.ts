@@ -54,7 +54,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
       event,
     });
 
-    const res = await loginAs(request(app).delete("/all-out/events/" + event.id), testHeadAdmin);
+    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/" + event.id));
 
     assert(res.ok);
     const deletedEvent = await ctx.allOut.events.findOne({ id: event.id });
@@ -84,7 +84,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(request(app).delete("/all-out/events/" + event.id), testHeadAdmin);
+    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/" + event.id));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -94,7 +94,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(request(app).delete("/all-out/events/200000"), testHeadAdmin);
+    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/200000"));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

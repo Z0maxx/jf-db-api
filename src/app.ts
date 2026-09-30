@@ -6,6 +6,7 @@ import { authRouter } from "./auth/auth.router";
 import { claimsRouter } from "./claims/claims.router";
 import { ctx } from "./db-context";
 import { divisionsRouter } from "./divisions/divisions.router";
+import { envConfig } from "./env-config";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 import { rolesRouter } from "./roles/roles.router";
 import { usersRouter } from "./users/users.router";
@@ -13,7 +14,7 @@ import { usersRouter } from "./users/users.router";
 export const app = express();
 app.use(express.json());
 app.use((_, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", envConfig.CORS_ALLOW_ORIGIN);
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization",

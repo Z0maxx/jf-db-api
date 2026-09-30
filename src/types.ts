@@ -2,7 +2,7 @@ import { Loaded } from "@mikro-orm/core";
 import z from "zod";
 
 import { AllOutEvent } from "./db-entities/AllOutEvent";
-import { TDivisionType } from "./db-entities/Division";
+import { Division, TDivisionType } from "./db-entities/Division";
 import { TUserTempusIdStatus, User } from "./db-entities/User";
 import {
   CreateAllOutEventSchema,
@@ -12,6 +12,8 @@ import {
   DivisionSchema,
   LeaderboardQuerySchema,
   UpdateAllOutEventSchema,
+  SetUserDivisionsSchema,
+  DivisionsListSchema,
 } from "./schemas";
 
 export type ClaimDto = {
@@ -51,15 +53,19 @@ export type AppUser = SteamUser & {
   tempusId?: number | undefined;
   tempusIdStatus: TUserTempusIdStatus;
   claims: string[];
-  divisions: DivisionDto[];
+  soldierDivision: DivisionDto;
+  demomanDivision: DivisionDto;
 };
 
 export type DivisionDto = z.infer<typeof DivisionSchema>;
 
+export type DivisionsListDto = z.infer<typeof DivisionsListSchema>;
+
 export type ParticipantDto = SteamUser & {
   id: number;
   resigned: boolean;
-  divisions: DivisionDto[];
+  soldierDivision: DivisionDto;
+  demomanDivision: DivisionDto;
 };
 
 export type LeaderboardItemDto = {
@@ -143,7 +149,7 @@ export type LeaderboardQuery = z.infer<typeof LeaderboardQuerySchema>;
 
 export type Registration = {
   eventId: number;
-  user: Loaded<User, "divisionCollection" | "role.claimCollection">;
+  user: LoadedUser;
 };
 
 export type RegistrationDetails = {
@@ -170,8 +176,8 @@ export type AllOutValidator<T> = {
 };
 
 export type DivisionValidator = {
-  validate(errors: string[], divisions: DivisionDto[]): void;
-  getMessages(divisions: DivisionDto[]): string[];
+  validate(errors: string[], divisions: DivisionsListDto): void;
+  getMessages(divisions: DivisionsListDto): string[];
 };
 
 export type RoleValidator<T> = {
@@ -189,7 +195,16 @@ export type StageInvalidDateFields = {
   invalidDateFields: string[];
 };
 
+export type UserDivisions = {
+  soldierDivision: Division;
+  demomanDivision: Division;
+};
+
+export type SetUserDivisions = z.infer<typeof SetUserDivisionsSchema>;
+
 export type TempusIdVerificationResult = {
   status: TUserTempusIdStatus;
   tempusId: number;
 };
+
+export type LoadedUser = Loaded<User, "role.claimCollection" | "divisionCollection">;

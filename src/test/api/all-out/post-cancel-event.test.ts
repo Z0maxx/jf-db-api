@@ -73,7 +73,7 @@ describe("POST /events/:eventId/cancel", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(request(app).post("/all-out/events/200000/cancel"), testHeadAdmin);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events/200000/cancel"));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -89,7 +89,7 @@ describe("POST /events/:eventId/cancel", () => {
   });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(request(app).post("/all-out/events/200000/cancel"), testUser1);
+    const res = await loginAs(testUser1, request(app).post("/all-out/events/200000/cancel"));
 
     assert.equal(res.status, 403);
   });

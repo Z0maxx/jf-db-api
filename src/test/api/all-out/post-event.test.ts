@@ -79,7 +79,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
 
     assert(res.ok);
     const createdEvent = await ctx.allOut.events.findOne({ id: res.body.id });
@@ -150,7 +150,7 @@ describe("POST /all-out/events", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send({});
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send({});
 
     assert.equal(res.status, 400);
   });
@@ -175,7 +175,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
@@ -236,7 +236,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -269,7 +269,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -316,7 +316,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(request(app).post("/all-out/events"), testHeadAdmin).send(event);
+    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -332,7 +332,7 @@ describe("POST /all-out/events", () => {
   });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(request(app).post("/all-out/events"), testUser1);
+    const res = await loginAs(testUser1, request(app).post("/all-out/events"));
 
     assert.equal(res.status, 403);
   });

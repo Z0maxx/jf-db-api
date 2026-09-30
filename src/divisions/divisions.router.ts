@@ -1,13 +1,10 @@
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { DivisionSchema } from "#/schemas";
+import { DivisionsListSchema } from "#/schemas";
 import express from "express";
-import z from "zod";
 
 import { divisionsService } from "./divisions.service";
-
-const DivisionListSchema = z.array(DivisionSchema);
 
 export const divisionsRouter = express.Router();
 
@@ -19,9 +16,9 @@ divisionsRouter.post(
   "/",
   loggedIn,
   userCan("manage divisions"),
-  bodySchema(DivisionListSchema),
+  bodySchema(DivisionsListSchema),
   async (req, res) => {
-    await divisionsService.setDivisionsAsync(DivisionListSchema.parse(req.body));
+    await divisionsService.setDivisionsAsync(DivisionsListSchema.parse(req.body));
     res.status(204).send();
   },
 );

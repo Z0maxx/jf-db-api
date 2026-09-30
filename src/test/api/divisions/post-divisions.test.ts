@@ -35,7 +35,6 @@ describe("POST /divisions", () => {
     ]);
     entities.push(divisionToUpdate);
     const divisionToCreate = {
-      type: DivisionType.SOLDIER,
       name: "division to create",
       color: "222222",
     };
@@ -43,18 +42,24 @@ describe("POST /divisions", () => {
       (d) =>
         ![divisionToCreate.name, divisionToUpdate.name, divisionToDelete.name].includes(d.name),
     );
-    const updatedColor = "333333";
-    const divisions = [
-      ...otherDivisions.map(({ type, name, color }) => ({ type, name, color })),
-      divisionToCreate,
-      {
-        type: divisionToUpdate.type,
-        name: divisionToUpdate.name,
-        color: updatedColor,
-      },
-    ];
 
-    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send(divisions);
+    const otherDivisionGroups = Object.groupBy(otherDivisions, (d) => d.type);
+    const updatedColor = "333333";
+    const divisions = {
+      soldier: [
+        ...otherDivisionGroups.soldier!.map(({ name, color }) => ({ name, color })),
+        divisionToCreate,
+      ],
+      demoman: [
+        ...otherDivisionGroups.demoman!.map(({ name, color }) => ({ name, color })),
+        {
+          name: divisionToUpdate.name,
+          color: updatedColor,
+        },
+      ],
+    };
+
+    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send(divisions);
 
     assert.equal(res.statusCode, 204);
     const deletedDivision = await ctx.divisions.findOne({ id: divisionToDelete.id });
@@ -72,19 +77,25 @@ describe("POST /divisions", () => {
       name: "duplicate division",
       color: "000000",
     };
-    const divisions = [division, division];
+    const divisions = {
+      soldier: [division, division],
+      demoman: [],
+    };
 
-    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send(divisions);
+    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send(divisions);
 
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: divisionDuplicateValidator.getMessages([division]),
+      errorMessages: divisionDuplicateValidator.getMessages({ soldier: [division], demoman: [] }),
     });
   });
 
   it("returns unassigned divisions deleted error when trying to delete unassigned divisions", async () => {
-    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send([]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send({
+      soldier: [],
+      demoman: [],
+    });
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -97,13 +108,13 @@ describe("POST /divisions", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(request(app).post("/divisions"), testHeadAdmin).send([{}]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send([{}]);
 
     assert.equal(res.status, 400);
   });
 
   it("returns forbidden when the user cannot manage divisions", async () => {
-    const res = await loginAs(request(app).post("/divisions"), testUser1).send([]);
+    const res = await loginAs(testUser1, request(app).post("/divisions")).send([]);
 
     assert.equal(res.statusCode, 403);
   });

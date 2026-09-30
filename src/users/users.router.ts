@@ -2,43 +2,43 @@ import { AppError } from "#/errors";
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { getAppError } from "#/middlewares/error-handler.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
+import { querySchema } from "#/middlewares/query-schema.middleware";
+import { SetUserDivisionsSchema, TempusIdSchema, UserQuerySchema } from "#/schemas";
+import { initSse } from "#/sse";
 import { TempusIdVerificationResult } from "#/types";
 import express from "express";
-import { Response } from "express";
-import z from "zod";
 
 import { usersService } from "./users.service";
-
-const TempusIdSchema = z.object({
-  tempusId: z.number().positive(),
-});
+import { userCan } from "#/middlewares/user-can.middleware";
 
 export const usersRouter = express.Router();
 
-usersRouter.post("/tempus-id", loggedIn, bodySchema(TempusIdSchema), async (req, res) => {
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-  res.addListener("close", () => res.end());
+usersRouter.get("/", querySchema(UserQuerySchema), async (req, res) => {
+  const { query } = UserQuerySchema.parse(req.query);
+  res.status(200).json(await usersService.queryUsersAsync(query));
+});
 
+usersRouter.post("/set-divisions", loggedIn, userCan("manage user divisions"), bodySchema(SetUserDivisionsSchema), async (req, res) => {
+  await usersService.setUserDivisionsAsync(SetUserDivisionsSchema.parse(req.body))
+  res.status(204).send()
+})
+
+usersRouter.post("/set-tempus-id", loggedIn, bodySchema(TempusIdSchema), async (req, res) => {
+  const sse = initSse(res);
   const user = req.user!;
   const { tempusId } = TempusIdSchema.parse(req.body);
   try {
     const status = await usersService.verifyAndSetTempusIdAsync(user, tempusId);
     const result: TempusIdVerificationResult = { status, tempusId };
-    res.write("event: Result\n");
-    res.write(`data: ${JSON.stringify(result)}\n\n`);
+    sse.send("Result", result);
   } catch (err) {
     console.log(err);
-    res.write("event: Error\n");
     if (err instanceof AppError) {
-      res.write(`data: ${JSON.stringify(getAppError(err as AppError))}\n\n`);
+      sse.send("Error", getAppError(err as AppError));
     } else {
-      res.write(`data: Something went wrong\n\n`);
+      sse.send("Error", "Something went wrong");
     }
   }
 
-  res.end();
+  sse.close();
 });

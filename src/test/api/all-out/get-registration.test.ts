@@ -61,7 +61,7 @@ describe("GET /all-out/events/:eventId/registration", () => {
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await loginAs(request(app).get("/all-out/events/200000/registration"), testUser1);
+    const res = await loginAs(testUser1, request(app).get("/all-out/events/200000/registration"));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

@@ -1,5 +1,5 @@
 import { envConfig } from "#/env-config";
-import { steamUsersService } from "#/steam/steam-users.service";
+import { steamService } from "#/steam/steam.service";
 import { AppUser, AuthResponse, JwtUser, SteamUser } from "#/types";
 import { usersRepository } from "#/users/users.repository";
 import { getAppUser } from "#/util";
@@ -54,7 +54,7 @@ export const authService = {
   },
 
   async getAuthResponseAsync(steam64Id: string): Promise<AuthResponse> {
-    const steamUser = await steamUsersService.getUserAsync(steam64Id);
+    const steamUser = await steamService.getUserAsync(steam64Id);
     const user = await getOrCreateAppUserAsync(steamUser);
     const token = this.getToken({ id: user.id });
     return {

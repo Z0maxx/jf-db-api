@@ -23,34 +23,32 @@ const secondsInDay = 60 * 60 * 24;
 const steamIdsPerRequest = 100;
 const playerSummariesEndpoint = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002";
 
-export const steamUsersService = {
-  async getUsersAsync(steam64Ids: string[]): Promise<Map<string, SteamUser>> {
-    const users = getUsersFromCache(steam64Ids);
-    const notInCache = steam64Ids.filter((id) => !users.has(id));
-    const playerSummaries = await getPlayerSummariesAsync(notInCache);
-    const newUsers = playerSummaries.map((p) => ({
-      steam64Id: p.steamid,
-      name: p.personaname,
-      avatar: p.avatar,
-    }));
+export async function getUsersAsync(steam64Ids: string[]): Promise<Map<string, SteamUser>> {
+  const users = getUsersFromCache(steam64Ids);
+  const notInCache = steam64Ids.filter((id) => !users.has(id));
+  const playerSummaries = await getPlayerSummariesAsync(notInCache);
+  const newUsers = playerSummaries.map((p) => ({
+    steam64Id: p.steamid,
+    name: p.personaname,
+    avatar: p.avatar,
+  }));
 
-    const now = new Date();
-    newUsers.forEach((u) => {
-      users.set(u.steam64Id, u);
-      cache.set(u.steam64Id, {
-        ...u,
-        lastUpdated: now,
-      });
+  const now = new Date();
+  newUsers.forEach((u) => {
+    users.set(u.steam64Id, u);
+    cache.set(u.steam64Id, {
+      ...u,
+      lastUpdated: now,
     });
+  });
 
-    checkAllUsersFound(notInCache, newUsers);
-    return users;
-  },
+  checkAllUsersFound(notInCache, newUsers);
+  return users;
+}
 
-  async getUserAsync(steam64Id: string): Promise<SteamUser> {
-    return (await this.getUsersAsync([steam64Id])).values().next().value!;
-  },
-};
+export async function getUserAsync(steam64Id: string): Promise<SteamUser> {
+  return (await getUsersAsync([steam64Id])).values().next().value!;
+}
 
 function checkAllUsersFound(steam64Ids: string[], foundUsers: SteamUser[]) {
   const foundIds = foundUsers.map((u) => u.steam64Id);

@@ -1,5 +1,6 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { DivisionType } from "#/db-entities/Division";
 import { User } from "#/db-entities/User";
 import {
   AlreadyRegisteredError,
@@ -13,7 +14,7 @@ import {
   ValidationError,
 } from "#/errors";
 import { transformDbMaps } from "#/helpers/map.helper";
-import { steamUsersService } from "#/steam/steam-users.service";
+import { steamService } from "#/steam/steam.service";
 import {
   AllOutEventPreviewDto,
   AllOutValidator,
@@ -21,6 +22,7 @@ import {
   LapLeaderboardItemDto,
   LeaderboardItemDto,
   LeaderboardQuery,
+  LoadedUser,
   ParticipantDto,
   Registration,
   RegistrationDetails,
@@ -124,25 +126,28 @@ export const allOutService = {
   async getAllEventParticipantsAsync(eventId: number): Promise<ParticipantDto[]> {
     await this.getEventByIdAsync(eventId);
     const participants = await allOutRepository.getAllEventParticipantsAsync(eventId);
-    const users = await steamUsersService.getUsersAsync(
-      participants.map((p) => p.user.$.steam64Id),
-    );
-    return participants.map((p) => ({
-      id: p.id,
-      resigned: p.resigned,
-      ...users.get(p.user.$.steam64Id)!,
-      divisions: p.divisionCollection.$.map(({ type, name, color }) => ({
-        type,
-        name,
-        color,
-      })),
-    }));
+    const users = await steamService.getUsersAsync(participants.map((p) => p.user.$.steam64Id));
+    return participants.map((p) => {
+      const divisions = p.divisionCollection.$;
+      const [soldierDivision, demomanDivision] = [
+        divisions.find((d) => d.type === DivisionType.SOLDIER)!,
+        divisions.find((d) => d.type === DivisionType.DEMOMAN)!,
+      ].map(({ name, color }) => ({ name, color }));
+
+      return {
+        id: p.id,
+        resigned: p.resigned,
+        ...users.get(p.user.$.steam64Id)!,
+        soldierDivision,
+        demomanDivision,
+      };
+    });
   },
 
   async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage1MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage1LeaderboardAsync(query);
-    const users = await steamUsersService.getUsersAsync(
+    const users = await steamService.getUsersAsync(
       items.map((i) => i.participant.$.user.$.steam64Id),
     );
     return items.map((i) => ({
@@ -158,7 +163,7 @@ export const allOutService = {
   async getStage2LeaderboardAsync(query: LeaderboardQuery): Promise<LapLeaderboardItemDto[]> {
     await checkStage2MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage2LeaderboardAsync(query);
-    const users = await steamUsersService.getUsersAsync(
+    const users = await steamService.getUsersAsync(
       items.map((i) => i.participant.$.user.$.steam64Id),
     );
 
@@ -179,7 +184,7 @@ export const allOutService = {
   async getStage3LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
     await checkStage3MapExistsAsync(query.mapId);
     const items = await allOutRepository.getStage3LeaderboardAsync(query);
-    const users = await steamUsersService.getUsersAsync(
+    const users = await steamService.getUsersAsync(
       items.map((i) => i.participant.$.user.$.steam64Id),
     );
     return items.map((i) => ({
@@ -267,10 +272,7 @@ async function checkRegistrationExistsAsync(registration: Registration) {
   }
 }
 
-async function checkUserHasEventDivisionsAsync(
-  event: AllOutEvent,
-  user: Loaded<User, "divisionCollection">,
-) {
+async function checkUserHasEventDivisionsAsync(event: AllOutEvent, user: LoadedUser) {
   if (!(await allOutRepository.userHasEventDivisionsAsync(event.id, user))) {
     throw new NoMapsWithUserDivisionsError(event.id, user.id);
   }

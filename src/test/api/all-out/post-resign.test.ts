@@ -46,7 +46,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
     participant.divisionCollection.set([testSoldierDivision]);
     await ctx.saveAsync();
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/resign`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
 
     assert(res.ok);
     const deletedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
@@ -78,7 +78,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
       event,
     });
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/resign`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
 
     assert(res.ok);
     const resignedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
@@ -104,7 +104,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
       event,
     });
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/resign`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -114,7 +114,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(request(app).post(`/all-out/events/200000/resign`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/200000/resign`));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -138,12 +138,16 @@ describe("POST /all-out/events/:eventId/resign", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(request(app).post(`/all-out/events/${event.id}/resign`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
 
     assert.equal(res.statusCode, 404);
+    const loadedTestUser = await ctx.users.findOneOrFail(
+      { id: testUser1.id },
+      { populate: ["role.claimCollection", "divisionCollection"] },
+    );
     assert.deepStrictEqual(res.body, {
       errorCode: "RegistrationNotFoundError",
-      errorMessage: new RegistrationNotFoundError({ userId: testUser1.id, eventId: event.id })
+      errorMessage: new RegistrationNotFoundError({ user: loadedTestUser, eventId: event.id })
         .message,
     });
   });

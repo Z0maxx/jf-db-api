@@ -13,7 +13,7 @@ CREATE TABLE role (
 
 CREATE TABLE claim (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(20) NOT NULL,
+  name VARCHAR(30) NOT NULL,
   CONSTRAINT chk_claim_name
     CHECK (CHAR_LENGTH(name) > 0),
   CONSTRAINT unq_claim
@@ -62,8 +62,10 @@ CREATE TABLE user (
     REFERENCES role(id),
   CONSTRAINT chk_user_steam_64_id
     CHECK (CHAR_LENGTH(steam_64_id) = 17),
-  CONSTRAINT unq_user
-    UNIQUE (steam_64_id, tempus_id)
+  CONSTRAINT unq_user_1
+    UNIQUE (steam_64_id, tempus_id),
+  CONSTRAINT unq_user_2
+    UNIQUE (steam_64_id)
 );
 
 ALTER TABLE user ADD INDEX idx_user (steam_64_id);
@@ -74,11 +76,11 @@ CREATE TABLE user_division (
   PRIMARY KEY (user_id, division_id),
   CONSTRAINT fk_user_division_user_id
     FOREIGN KEY (user_id)
-    REFERENCES user(id),
+    REFERENCES user(id)
+    ON DELETE CASCADE,
   CONSTRAINT fk_user_division_division_id
     FOREIGN KEY (division_id)
     REFERENCES division(id)
-    ON DELETE CASCADE
 );
 
 ALTER TABLE user_division ADD INDEX idx_user_division (user_id);

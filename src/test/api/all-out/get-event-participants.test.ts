@@ -30,34 +30,26 @@ describe("GET /all-out/event/:eventId/participants", () => {
       {
         id: testAllOutParticipant1.id,
         steam64Id: testUser1.steam64Id,
-        divisions: [
-          {
-            type: testSoldierDivision.type,
-            color: testSoldierDivision.color,
-            name: testSoldierDivision.name,
-          },
-          {
-            type: testDemomanDivision.type,
-            color: testDemomanDivision.color,
-            name: testDemomanDivision.name,
-          },
-        ],
+        soldierDivision: {
+          name: testSoldierDivision.name,
+          color: testSoldierDivision.color,
+        },
+        demomanDivision: {
+          name: testDemomanDivision.name,
+          color: testDemomanDivision.color,
+        },
       },
       {
         id: testAllOutParticipant2.id,
         steam64Id: testUser2.steam64Id,
-        divisions: [
-          {
-            type: testSoldierDivision.type,
-            color: testSoldierDivision.color,
-            name: testSoldierDivision.name,
-          },
-          {
-            type: testDemomanDivision.type,
-            color: testDemomanDivision.color,
-            name: testDemomanDivision.name,
-          },
-        ],
+        soldierDivision: {
+          name: testSoldierDivision.name,
+          color: testSoldierDivision.color,
+        },
+        demomanDivision: {
+          name: testDemomanDivision.name,
+          color: testDemomanDivision.color,
+        },
       },
     ]);
   });

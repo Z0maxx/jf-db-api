@@ -57,7 +57,7 @@ describe("POST /roles", () => {
       },
     ];
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send(roles);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(roles);
 
     assert.equal(res.status, 204);
     const deletedRole = await ctx.roles.findOne({ id: roleToDelete.id });
@@ -78,7 +78,7 @@ describe("POST /roles", () => {
       claimIds: [],
     };
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([role, role]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role, role]);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -93,7 +93,7 @@ describe("POST /roles", () => {
       claimIds: [1, 1],
     };
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([role]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role]);
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -105,7 +105,7 @@ describe("POST /roles", () => {
   });
 
   it("returns default roles deleted error when trying to delete default roles", async () => {
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([]);
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -127,7 +127,7 @@ describe("POST /roles", () => {
       },
     ];
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send(roles);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(roles);
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -145,7 +145,7 @@ describe("POST /roles", () => {
       .filter((r) => r.name !== role.name)
       .map(({ name, claimCollection }) => ({ name, claimIds: claimCollection.map((c) => c.id) }));
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send(otherRoles);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(otherRoles);
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -157,7 +157,7 @@ describe("POST /roles", () => {
   it("returns claims not found error when a role has not existing claim ids", async () => {
     const role = { name: "role with missing claim", claimIds: [200_000] };
 
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([role]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role]);
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -167,13 +167,13 @@ describe("POST /roles", () => {
   });
 
   it("returns bad request when body in incorrect", async () => {
-    const res = await loginAs(request(app).post("/roles"), testHeadAdmin).send([{}]);
+    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([{}]);
 
     assert.equal(res.status, 400);
   });
 
   it("returns forbidden when the user cannot manage roles", async () => {
-    const res = await loginAs(request(app).post("/roles"), testUser1).send([]);
+    const res = await loginAs(testUser1, request(app).post("/roles")).send([]);
 
     assert.equal(res.statusCode, 403);
   });

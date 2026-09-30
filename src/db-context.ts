@@ -61,19 +61,22 @@ export async function initCtx() {
 
 async function seedAsync() {
   ctx.orm.em = ctx.orm.em.fork();
-  let claims: Claim[] = await ctx.claims.findAll();
-  if (claims.length === 0) {
-    claims = claimNames.map((name) => ctx.claims.create({ name }));
+  const claims: Claim[] = await ctx.claims.findAll();
+  const missingClaims = claimNames.filter(cn => !claims.some(c => c.name !== cn))
+  if (missingClaims.length > 0) {
+    claims.push(...missingClaims.map((name) => ctx.claims.create({ name })));
   }
 
   if (!(await ctx.roles.findOne({ name: "user" }))) {
     ctx.roles.create({ name: "user" });
   }
 
-  if (!(await ctx.roles.findOne({ name: "head admin" }))) {
-    const headAdminRole = ctx.roles.create({ name: "head admin" });
-    headAdminRole.claimCollection.set(claims);
+  let headAdminRole = await ctx.roles.findOne({ name: "head admin" })
+  if (!headAdminRole) {
+    headAdminRole = ctx.roles.create({ name: "head admin" });
   }
+
+  headAdminRole.claimCollection.set(claims);
 
   if (!(await ctx.divisions.findOne({ name: "Unassigned Soldier" }))) {
     ctx.divisions.create({

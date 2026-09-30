@@ -1,5 +1,6 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
 import { Division } from "#/db-entities/Division";
 import { User } from "#/db-entities/User";
 import { setMapsAsync } from "#/helpers/map.helper";
@@ -140,7 +141,12 @@ export const allOutRepository = {
       user,
     });
 
-    participant.divisionCollection.set(user.divisionCollection);
+    this.setParticipantDivisionsAsync(participant, user.divisionCollection.$.getItems());
+    await ctx.saveAsync();
+  },
+
+  async setParticipantDivisionsAsync(participant: AllOutParticipant, divisions: Division[]) {
+    participant.divisionCollection.set(divisions);
     await ctx.saveAsync();
   },
 

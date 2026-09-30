@@ -1,25 +1,24 @@
-import { DivisionType } from "#/db-entities/Division";
 import {
   UnassignedDivisionsDeletedError,
   DivisionsHaveUsersError,
   ValidationError,
 } from "#/errors";
-import { DivisionDto, DivisionValidator } from "#/types";
+import { DivisionDto, DivisionsListDto, DivisionValidator } from "#/types";
 
 import { divisionsRepository } from "./divisions.repository";
 import { divisionDuplicateValidator } from "./validators/division-duplicate.validator";
 
 export const divisionsService = {
-  async getAllDivisionsAsync(): Promise<DivisionDto[]> {
+  async getAllDivisionsAsync(): Promise<DivisionsListDto> {
     const divisions = await divisionsRepository.getAllDivisionsAsync();
-    return divisions.map(({ type, name, color }) => ({
-      type,
-      name,
-      color,
-    }));
+    const groups = Object.groupBy(divisions, (d) => d.type);
+    return {
+      soldier: groups.soldier!.map(({ name, color }) => ({ name, color })),
+      demoman: groups.demoman!.map(({ name, color }) => ({ name, color })),
+    };
   },
 
-  async setDivisionsAsync(divisions: DivisionDto[]) {
+  async setDivisionsAsync(divisions: DivisionsListDto) {
     validate([divisionDuplicateValidator], divisions);
     checkUnassignedDivisions(divisions);
     await checkDeletedDivisionsHaveNoUsersAsync(divisions);
@@ -27,8 +26,12 @@ export const divisionsService = {
   },
 };
 
-async function checkDeletedDivisionsHaveNoUsersAsync(divisions: DivisionDto[]) {
-  const divisionsMap = new Map<string, DivisionDto>(divisions.map((d) => [d.name, d]));
+async function checkDeletedDivisionsHaveNoUsersAsync(divisions: DivisionsListDto) {
+  const divisionsMap = new Map<string, DivisionDto>([
+    ...divisions.soldier.map((d) => [d.name, d] as const),
+    ...divisions.demoman.map((d) => [d.name, d] as const),
+  ]);
+
   const existing = await divisionsRepository.getAllDivisionsAsync();
   const deletedNames = existing.filter((e) => !divisionsMap.get(e.name)).map((d) => d.name);
   const deletedDivisions = await divisionsRepository.getDivisionsByNameAsync(deletedNames);
@@ -40,13 +43,13 @@ async function checkDeletedDivisionsHaveNoUsersAsync(divisions: DivisionDto[]) {
   }
 }
 
-function checkUnassignedDivisions(divisions: DivisionDto[]) {
+function checkUnassignedDivisions(divisions: DivisionsListDto) {
   const deleted: string[] = [];
-  if (!divisions.find((d) => d.name === "Unassigned Soldier" && d.type === DivisionType.SOLDIER)) {
+  if (!divisions.soldier.find((d) => d.name === "Unassigned Soldier")) {
     deleted.push("Unassigned Soldier");
   }
 
-  if (!divisions.find((d) => d.name === "Unassigned Demoman" && d.type === DivisionType.DEMOMAN)) {
+  if (!divisions.demoman.find((d) => d.name === "Unassigned Demoman")) {
     deleted.push("Unassigned Demoman");
   }
 
@@ -55,7 +58,7 @@ function checkUnassignedDivisions(divisions: DivisionDto[]) {
   }
 }
 
-function validate(validators: DivisionValidator[], divisions: DivisionDto[]) {
+function validate(validators: DivisionValidator[], divisions: DivisionsListDto) {
   const errors: string[] = [];
   validators.forEach((v) => v.validate(errors, divisions));
   if (errors.length > 0) {

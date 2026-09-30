@@ -18,17 +18,19 @@ describe("GET /divisions", () => {
     const res = await request(app).get("/divisions");
 
     assert.equal(res.statusCode, 200);
-    assert.containsSubset(res.body, [
-      {
-        type: testSoldierDivision.type,
-        name: testSoldierDivision.name,
-        color: testSoldierDivision.color,
-      },
-      {
-        type: testDemomanDivision.type,
-        name: testDemomanDivision.name,
-        color: testDemomanDivision.color,
-      },
-    ]);
+    assert.containsSubset(res.body, {
+      soldier: [
+        {
+          name: testSoldierDivision.name,
+          color: testSoldierDivision.color,
+        },
+      ],
+      demoman: [
+        {
+          name: testDemomanDivision.name,
+          color: testDemomanDivision.color,
+        },
+      ],
+    });
   });
 });

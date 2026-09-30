@@ -94,9 +94,13 @@ describe("POST /all-out/events/:eventId/registration", () => {
     );
 
     assert.equal(res.status, 409);
+    const loadedTestUser = await ctx.users.findOneOrFail(
+      { id: testUser1.id },
+      { populate: ["role.claimCollection", "divisionCollection"] },
+    );
     assert.deepStrictEqual(res.body, {
       errorCode: "AlreadyRegisteredError",
-      errorMessage: new AlreadyRegisteredError({ userId: testUser1.id, eventId: event.id }).message,
+      errorMessage: new AlreadyRegisteredError({ user: loadedTestUser, eventId: event.id }).message,
     });
   });
 
@@ -128,7 +132,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(request(app).post(`/all-out/events/200000/registration`), testUser1);
+    const res = await loginAs(testUser1, request(app).post(`/all-out/events/200000/registration`));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

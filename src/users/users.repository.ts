@@ -1,5 +1,7 @@
 import { ctx } from "#/db-context";
+import { Division } from "#/db-entities/Division";
 import { TUserTempusIdStatus, User, UserTempusIdStatus } from "#/db-entities/User";
+import { UserDivisions } from "#/types";
 
 export const usersRepository = {
   async getAllUsersAsync() {
@@ -52,6 +54,11 @@ export const usersRepository = {
 
   async setTempusIdStatus(user: User, status: Exclude<TUserTempusIdStatus, "verified">) {
     user.tempusIdStatus = status;
+    await ctx.saveAsync();
+  },
+
+  async setUserDivisionsAsync(user: User, divisions: UserDivisions) {
+    user.divisionCollection.set(Object.values(divisions));
     await ctx.saveAsync();
   },
 };

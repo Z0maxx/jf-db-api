@@ -1,13 +1,17 @@
-import { DivisionDto, DivisionValidator } from "#/types";
+import { DivisionsListDto, DivisionValidator } from "#/types";
 import { getDuplicates } from "#/util";
 
 export const divisionDuplicateValidator: DivisionValidator = {
-  validate(errors: string[], divisions: DivisionDto[]) {
-    const duplicates = getDuplicates(divisions, (d) => d.name);
-    errors.push(...this.getMessages(duplicates));
+  validate(errors: string[], divisions: DivisionsListDto) {
+    const soldierDuplicates = getDuplicates(divisions.soldier, (d) => d.name);
+    const demomanDuplicates = getDuplicates(divisions.demoman, (d) => d.name);
+    errors.push(...this.getMessages({ soldier: soldierDuplicates, demoman: demomanDuplicates }));
   },
 
-  getMessages(duplicateDivisions: DivisionDto[]) {
-    return duplicateDivisions.map((d) => `Division '${d.name}' is duplicate`);
+  getMessages(duplicateDivisions: DivisionsListDto) {
+    return [
+      ...duplicateDivisions.soldier.map((d) => `Soldier division '${d.name}' is duplicate`),
+      ...duplicateDivisions.demoman.map((d) => `Demoman division '${d.name}' is duplicate`),
+    ];
   },
 };

@@ -76,6 +76,13 @@ export class MapNotFoundError extends NotFoundByIdError {
   }
 }
 
+export class UserNotFoundError extends NotFoundByIdError {
+  constructor(userId: number) {
+    super("User", userId);
+    this.name = "UserNotFoundError";
+  }
+}
+
 export class RegistrationNotFoundError extends NotFoundError {
   constructor(registration: Registration) {
     super();
@@ -194,7 +201,7 @@ export class AlreadySetTempusIdError extends ConflictError {
   constructor(user: User) {
     super();
     this.message = `User with id '${user.id}' has already set their tempus id`;
-    this.name = "AlreadySetTempusIdError"
+    this.name = "AlreadySetTempusIdError";
   }
 }
 

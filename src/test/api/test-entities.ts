@@ -1,6 +1,5 @@
 import { ctx } from "#/db-context";
 import { Division, DivisionType } from "#/db-entities/Division";
-import { Role } from "#/db-entities/Role";
 import { User, UserTempusIdStatus } from "#/db-entities/User";
 
 export let testSoldierDivision: Division;

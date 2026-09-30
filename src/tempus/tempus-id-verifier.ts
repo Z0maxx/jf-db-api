@@ -12,7 +12,7 @@ type TempusPlayerInfo = {
 };
 
 const queue: {
-  resolve: (status: "verified" | "failed") => void;
+  resolve: (status: typeof UserTempusIdStatus.VERIFIED | typeof UserTempusIdStatus.FAILED) => void;
   user: TempusUser;
 }[] = [];
 
@@ -21,15 +21,17 @@ const tempusApiTimeout = 1100;
 let loop: NodeJS.Timeout | undefined;
 
 export async function verifyTempusIdAsync(user: TempusUser) {
-  return new Promise<"verified" | "failed">((resolve) => {
-    queue.push({
-      resolve,
-      user,
-    });
-    if (!loop) {
-      processQueue();
-    }
-  });
+  return new Promise<typeof UserTempusIdStatus.VERIFIED | typeof UserTempusIdStatus.FAILED>(
+    (resolve) => {
+      queue.push({
+        resolve,
+        user,
+      });
+      if (!loop) {
+        processQueue();
+      }
+    },
+  );
 }
 
 function processQueue() {
@@ -38,6 +40,7 @@ function processQueue() {
     const item = queue[0];
     if (!item) {
       clearInterval(loop);
+      loop = undefined;
       return;
     }
 
