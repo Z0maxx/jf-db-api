@@ -21,12 +21,14 @@ describe("GET /divisions", () => {
     assert.containsSubset(res.body, {
       soldier: [
         {
+          id: testSoldierDivision.id,
           name: testSoldierDivision.name,
           color: testSoldierDivision.color,
         },
       ],
       demoman: [
         {
+          id: testDemomanDivision.id,
           name: testDemomanDivision.name,
           color: testDemomanDivision.color,
         },

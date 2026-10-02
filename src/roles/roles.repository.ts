@@ -8,6 +8,10 @@ export const rolesRepository = {
     return await ctx.roles.findAll({ populate: ["claimCollection"] });
   },
 
+  async getRoleByIdAsync(roleId: number) {
+    return ctx.roles.findOne({ id: roleId });
+  },
+
   async getDefaultRolesAsync() {
     return await ctx.roles.find(
       { name: { $in: ["head admin", "user"] } },

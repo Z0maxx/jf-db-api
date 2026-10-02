@@ -14,6 +14,7 @@ import {
   UpdateAllOutEventSchema,
   SetUserDivisionsSchema,
   DivisionsListSchema,
+  SetUserRoleSchema,
 } from "./schemas";
 
 export type ClaimDto = {
@@ -201,6 +202,8 @@ export type UserDivisions = {
 };
 
 export type SetUserDivisions = z.infer<typeof SetUserDivisionsSchema>;
+
+export type SetUserRole = z.infer<typeof SetUserRoleSchema>;
 
 export type TempusIdVerificationResult = {
   status: TUserTempusIdStatus;

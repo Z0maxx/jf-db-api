@@ -1,6 +1,5 @@
 import { MikroORM } from "@mikro-orm/sql";
 
-import { claimNames } from "./claim-names";
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { AllOutParticipant } from "./db-entities/AllOutParticipant";
 import { AllOutStage1LeaderboardItem } from "./db-entities/AllOutStage1LeaderboardItem";
@@ -10,7 +9,7 @@ import { AllOutStage2Map } from "./db-entities/AllOutStage2Map";
 import { AllOutStage3LeaderboardItem } from "./db-entities/AllOutStage3LeaderboardItem";
 import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
 import { Claim } from "./db-entities/Claim";
-import { Division, DivisionType } from "./db-entities/Division";
+import { Division } from "./db-entities/Division";
 import { Role } from "./db-entities/Role";
 import { User } from "./db-entities/User";
 import mikroOrmConfig from "./mikro-orm.config";
@@ -56,43 +55,4 @@ export async function initCtx() {
   }
 
   ctx.orm = await MikroORM.init(mikroOrmConfig);
-  await seedAsync();
-}
-
-async function seedAsync() {
-  ctx.orm.em = ctx.orm.em.fork();
-  const claims: Claim[] = await ctx.claims.findAll();
-  const missingClaims = claimNames.filter(cn => !claims.some(c => c.name !== cn))
-  if (missingClaims.length > 0) {
-    claims.push(...missingClaims.map((name) => ctx.claims.create({ name })));
-  }
-
-  if (!(await ctx.roles.findOne({ name: "user" }))) {
-    ctx.roles.create({ name: "user" });
-  }
-
-  let headAdminRole = await ctx.roles.findOne({ name: "head admin" })
-  if (!headAdminRole) {
-    headAdminRole = ctx.roles.create({ name: "head admin" });
-  }
-
-  headAdminRole.claimCollection.set(claims);
-
-  if (!(await ctx.divisions.findOne({ name: "Unassigned Soldier" }))) {
-    ctx.divisions.create({
-      type: DivisionType.SOLDIER,
-      name: "Unassigned Soldier",
-      color: "FFFFFF",
-    });
-  }
-
-  if (!(await ctx.divisions.findOne({ name: "Unassigned Demoman" }))) {
-    ctx.divisions.create({
-      type: DivisionType.DEMOMAN,
-      name: "Unassigned Demoman",
-      color: "FFFFFF",
-    });
-  }
-
-  await ctx.saveAsync();
 }

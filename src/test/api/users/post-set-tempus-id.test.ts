@@ -1,8 +1,8 @@
 import { app } from "#/app";
 import { authService } from "#/auth/auth.service";
 import { ctx } from "#/db-context";
-import { Role } from "#/db-entities/Role";
 import { UserTempusIdStatus } from "#/db-entities/User";
+import { userRole } from "#/default-entities";
 import { AlreadySetTempusIdError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
 import { Server } from "node:http";
@@ -17,7 +17,6 @@ import {
 } from "../util";
 
 let server: Server;
-let role: Role = null!;
 const entities: BaseEntity[] = [];
 describe("POST /users/set-tempus-id", () => {
   beforeAll(async () => {
@@ -28,12 +27,11 @@ describe("POST /users/set-tempus-id", () => {
     });
 
     await setupApiTestSuiteAsync();
-    role = await ctx.roles.findOneOrFail({ name: "user" });
   });
 
   afterAll(async () => {
     await teardownApiTestSuiteAsync(entities);
-    server.close()
+    server.close();
   });
 
   it("sets tempus id when it belongs to user and sends SSE of verified status", async () => {
@@ -41,7 +39,7 @@ describe("POST /users/set-tempus-id", () => {
     const user = await ctx.users.upsert({
       steam64Id: "76561198202756431",
       tempusIdStatus: UserTempusIdStatus.UNSET,
-      role,
+      role: userRole,
     });
     entities.push(user);
 
@@ -67,7 +65,7 @@ describe("POST /users/set-tempus-id", () => {
     const user = await ctx.users.upsert({
       steam64Id: "76561198311745679",
       tempusIdStatus: UserTempusIdStatus.UNSET,
-      role,
+      role: userRole,
     });
     entities.push(user);
 

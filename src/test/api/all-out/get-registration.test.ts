@@ -40,16 +40,16 @@ describe("GET /all-out/events/:eventId/registration", () => {
     });
 
     const res1 = await loginAs(
-      request(app).get(`/all-out/events/${testAllOutEvent.id}/registration`),
       testUser1,
+      request(app).get(`/all-out/events/${testAllOutEvent.id}/registration`),
     );
     const res2 = await loginAs(
-      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
       testUser1,
+      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
     );
     const res3 = await loginAs(
-      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
       testUser2,
+      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
     );
 
     assert(res1.ok);

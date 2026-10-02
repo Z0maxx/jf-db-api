@@ -1,6 +1,5 @@
-import { BaseEntity, Collection, type Opt, defineEntity, p } from "@mikro-orm/core";
-
-import { BountyPrize } from "./BountyPrize";
+import { BaseEntity, Collection, type Opt, defineEntity, p } from '@mikro-orm/core';
+import { BountyPrize } from './BountyPrize';
 
 export class BountyEvent extends BaseEntity {
   id!: number;
@@ -19,6 +18,6 @@ export const BountyEventSchema = defineEntity({
     description: p.text().length(65535),
     start: p.datetime(),
     end: p.datetime(),
-    bountyPrizeCollection: () => p.oneToMany(BountyPrize).mappedBy("event"),
+    bountyPrizeCollection: () => p.oneToMany(BountyPrize).mappedBy('event'),
   },
 });

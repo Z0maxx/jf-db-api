@@ -1,16 +1,20 @@
 import { allOutRepository } from "#/all-out/all-out.repository";
-import { Division } from "#/db-entities/Division";
+import { Role } from "#/db-entities/Role";
 import { User, UserTempusIdStatus } from "#/db-entities/User";
 import { divisionsRepository } from "#/divisions/divisions.repository";
 import {
   AlreadySetTempusIdError,
+  CannotSetOwnRoleError,
+  CannotSetRoleWithLevelError,
   DivisionsNotFoundError,
+  RoleNotFoundError,
   UserNotFoundError,
   ValidationError,
 } from "#/errors";
+import { rolesRepository } from "#/roles/roles.repository";
 import { steamService } from "#/steam/steam.service";
 import { tempusService } from "#/tempus/tempus.service";
-import { AppUser, LoadedUser, SetUserDivisions, UserDivisions } from "#/types";
+import { AppUser, LoadedUser, SetUserDivisions, SetUserRole, UserDivisions } from "#/types";
 import { convertToSteam64Id, getAppUser } from "#/util";
 
 import { usersRepository } from "./users.repository";
@@ -56,11 +60,28 @@ export const usersService = {
     await usersRepository.setUserDivisionsAsync(user, divisions);
     await updateUserParticipationsAsync(user);
   },
+
+  async setUserRoleAsync(adminUser: LoadedUser, setUserRole: SetUserRole) {
+    const otherUser = await getUserAsync(setUserRole.userId);
+    const role = await getRoleAsync(setUserRole.roleId);
+    checkUserCanSetRole(adminUser, otherUser, role);
+    await usersRepository.setUserRoleAsync(otherUser, role)
+  },
 };
 
 function checkUserTempusIdNotSet(user: User) {
   if (user.tempusId) {
     throw new AlreadySetTempusIdError(user);
+  }
+}
+
+function checkUserCanSetRole(adminUser: LoadedUser, otherUser: User, role: Role) {
+  if (adminUser.id === otherUser.id) {
+    throw new CannotSetOwnRoleError();
+  }
+
+  if (adminUser.role.$.level >= role.level) {
+    throw new CannotSetRoleWithLevelError();
   }
 }
 
@@ -71,6 +92,15 @@ async function getUserAsync(userId: number) {
   }
 
   return user;
+}
+
+async function getRoleAsync(roleId: number) {
+  const role = await rolesRepository.getRoleByIdAsync(roleId);
+  if (!role) {
+    throw new RoleNotFoundError(roleId);
+  }
+
+  return role;
 }
 
 async function getDivisionsAsync({

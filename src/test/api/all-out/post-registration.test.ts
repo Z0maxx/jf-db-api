@@ -46,8 +46,8 @@ describe("POST /all-out/events/:eventId/registration", () => {
     });
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/registration`),
       testUser1,
+      request(app).post(`/all-out/events/${event.id}/registration`),
     );
 
     assert(res.ok);
@@ -89,8 +89,8 @@ describe("POST /all-out/events/:eventId/registration", () => {
     });
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/registration`),
       testUser1,
+      request(app).post(`/all-out/events/${event.id}/registration`),
     );
 
     assert.equal(res.status, 409);
@@ -120,8 +120,8 @@ describe("POST /all-out/events/:eventId/registration", () => {
     entities.push(event);
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/registration`),
       testUser1,
+      request(app).post(`/all-out/events/${event.id}/registration`),
     );
 
     assert.equal(res.status, 403);
@@ -186,8 +186,8 @@ describe("POST /all-out/events/:eventId/registration", () => {
     );
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/registration`),
       testUser1,
+      request(app).post(`/all-out/events/${event.id}/registration`),
     );
 
     assert.equal(res.status, 403);

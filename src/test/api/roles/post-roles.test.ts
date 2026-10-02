@@ -110,7 +110,7 @@ describe("POST /roles", () => {
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
       errorCode: "DefaultRolesDeletedError",
-      errorMessages: new DefaultRolesDeletedError(["head admin", "user"]).messages,
+      errorMessages: new DefaultRolesDeletedError(["user", "head admin"]).messages,
     });
   });
 
@@ -132,7 +132,7 @@ describe("POST /roles", () => {
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
       errorCode: "DefaultRolesModifiedError",
-      errorMessages: new DefaultRolesModifiedError(["head admin", "user"]).messages,
+      errorMessages: new DefaultRolesModifiedError(["user", "head admin"]).messages,
     });
   });
 

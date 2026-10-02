@@ -13,8 +13,8 @@ export const divisionsService = {
     const divisions = await divisionsRepository.getAllDivisionsAsync();
     const groups = Object.groupBy(divisions, (d) => d.type);
     return {
-      soldier: groups.soldier!.map(({ name, color }) => ({ name, color })),
-      demoman: groups.demoman!.map(({ name, color }) => ({ name, color })),
+      soldier: groups.soldier!.map(({ id, name, color }) => ({ id, name, color })),
+      demoman: groups.demoman!.map(({ id, name, color }) => ({ id, name, color })),
     };
   },
 

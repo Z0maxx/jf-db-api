@@ -35,8 +35,8 @@ describe("POST /events/:eventId/cancel", () => {
     entities.push(event);
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/cancel`),
       testHeadAdmin,
+      request(app).post(`/all-out/events/${event.id}/cancel`),
     );
 
     assert(res.ok);
@@ -61,8 +61,8 @@ describe("POST /events/:eventId/cancel", () => {
     entities.push(event);
 
     const res = await loginAs(
-      request(app).post(`/all-out/events/${event.id}/cancel`),
       testHeadAdmin,
+      request(app).post(`/all-out/events/${event.id}/cancel`),
     );
 
     assert.equal(res.status, 403);

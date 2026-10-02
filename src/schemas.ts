@@ -72,3 +72,8 @@ export const SetUserDivisionsSchema = z.object({
   soldierDivisionId: z.number().positive(),
   demomanDivisionId: z.number().positive(),
 });
+
+export const SetUserRoleSchema = z.object({
+  userId: z.number().positive(),
+  roleId: z.number().positive(),
+});

@@ -3,5 +3,5 @@ export const claimNames = [
   "manage users",
   "manage divisions",
   "manage events",
-  "manage user divisions"
+  "manage user divisions",
 ] as const;

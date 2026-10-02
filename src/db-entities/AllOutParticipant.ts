@@ -1,11 +1,10 @@
-import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from "@mikro-orm/core";
-
-import { AllOutEvent } from "./AllOutEvent";
-import { AllOutStage1LeaderboardItem } from "./AllOutStage1LeaderboardItem";
-import { AllOutStage2LeaderboardItem } from "./AllOutStage2LeaderboardItem";
-import { AllOutStage3LeaderboardItem } from "./AllOutStage3LeaderboardItem";
-import { Division } from "./Division";
-import { User } from "./User";
+import { BaseEntity, Collection, type Opt, type Ref, defineEntity, p } from '@mikro-orm/core';
+import { AllOutEvent } from './AllOutEvent';
+import { AllOutStage1LeaderboardItem } from './AllOutStage1LeaderboardItem';
+import { AllOutStage2LeaderboardItem } from './AllOutStage2LeaderboardItem';
+import { AllOutStage3LeaderboardItem } from './AllOutStage3LeaderboardItem';
+import { Division } from './Division';
+import { User } from './User';
 
 export class AllOutParticipant extends BaseEntity {
   id!: number;
@@ -20,36 +19,16 @@ export class AllOutParticipant extends BaseEntity {
 
 export const AllOutParticipantSchema = defineEntity({
   class: AllOutParticipant,
-  indexes: [{ name: "idx_all_out_participant_3", properties: ["event", "user"] }],
-  uniques: [{ name: "unq_all_out_participant", properties: ["event", "user"] }],
+  indexes: [{ name: 'idx_all_out_participant_3', properties: ['event', 'user'] }],
+  uniques: [{ name: 'unq_all_out_participant', properties: ['event', 'user'] }],
   properties: {
     id: p.integer().primary(),
     resigned: p.boolean(),
-    user: () =>
-      p
-        .manyToOne(User)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("restrict")
-        .index("idx_all_out_participant_2"),
-    event: () =>
-      p
-        .manyToOne(AllOutEvent)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("cascade")
-        .index("idx_all_out_participant_1"),
-    divisionCollection: () =>
-      p
-        .manyToMany(Division)
-        .pivotTable("all_out_participant_division")
-        .joinColumn("participant_id")
-        .inverseJoinColumn("division_id"),
-    allOutStage1LeaderboardItemCollection: () =>
-      p.oneToMany(AllOutStage1LeaderboardItem).mappedBy("participant"),
-    allOutStage2LeaderboardItemCollection: () =>
-      p.oneToMany(AllOutStage2LeaderboardItem).mappedBy("participant"),
-    allOutStage3LeaderboardItemCollection: () =>
-      p.oneToMany(AllOutStage3LeaderboardItem).mappedBy("participant"),
+    user: () => p.manyToOne(User).ref().updateRule('restrict').deleteRule('restrict').index('idx_all_out_participant_2'),
+    event: () => p.manyToOne(AllOutEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_all_out_participant_1'),
+    divisionCollection: () => p.manyToMany(Division).pivotTable('all_out_participant_division').joinColumn('participant_id').inverseJoinColumn('division_id'),
+    allOutStage1LeaderboardItemCollection: () => p.oneToMany(AllOutStage1LeaderboardItem).mappedBy('participant'),
+    allOutStage2LeaderboardItemCollection: () => p.oneToMany(AllOutStage2LeaderboardItem).mappedBy('participant'),
+    allOutStage3LeaderboardItemCollection: () => p.oneToMany(AllOutStage3LeaderboardItem).mappedBy('participant'),
   },
 });

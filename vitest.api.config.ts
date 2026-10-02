@@ -12,7 +12,6 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     include: ["src/test/**/*.test.ts"],
-    globalSetup: ["./src/test/api/setup.ts"],
     server: {
       deps: {
         inline: true,

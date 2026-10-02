@@ -1,8 +1,6 @@
 import { claimsRepository } from "#/claims/claims.repository";
 import {
   ClaimsNotFoundError,
-  DefaultEntitiesDeletedError,
-  DefaultEntitiesModifiedError,
   DefaultRolesDeletedError,
   DefaultRolesModifiedError,
   RolesHaveUsersError,
@@ -17,7 +15,8 @@ import { roleDuplicateValidator } from "./validators/role-duplicate.validator";
 export const rolesService = {
   async getAllRolesAsync(): Promise<RoleDto[]> {
     const roles = await rolesRepository.getAllRolesAsync();
-    return roles.map(({ name, claimCollection }) => ({
+    return roles.map(({ id, name, claimCollection }) => ({
+      id,
       name,
       claims: claimCollection.$.map(({ id, name }) => ({
         id,

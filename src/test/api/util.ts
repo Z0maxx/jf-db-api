@@ -2,6 +2,7 @@ import "dotenv/config";
 import { authService } from "#/auth/auth.service";
 import { ctx, initCtx } from "#/db-context";
 import { User } from "#/db-entities/User";
+import { seedEntitiesAsync } from "#/default-entities";
 import { fetchEventSource, FetchEventSourceInit } from "@microsoft/fetch-event-source";
 import { BaseEntity } from "@mikro-orm/core";
 import request from "supertest";
@@ -11,6 +12,7 @@ import { createTestEntitiesAsync } from "./test-entities";
 
 export async function setupApiTestSuiteAsync() {
   await initCtx();
+  await seedEntitiesAsync();
   ctx.orm.em = ctx.em.fork();
   await createTestEntitiesAsync();
   await createAllOutTestEntitiesAsync();

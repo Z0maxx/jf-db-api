@@ -1,5 +1,5 @@
 import { app } from "#/app";
-import { claimNames } from "#/claim-names";
+import { headAdminRole, userRole } from "#/default-entities";
 import request from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
@@ -20,12 +20,14 @@ describe("GET /roles", () => {
     assert(res.ok);
     assert.containsSubset(res.body, [
       {
-        name: "head admin",
-        claims: claimNames.map((name) => ({ name })),
+        id: headAdminRole.id,
+        name: headAdminRole.name,
+        claims: headAdminRole.claimCollection.$.map(({ id, name }) => ({ id, name })),
       },
       {
-        name: "user",
-        claims: [],
+        id: userRole.id,
+        name: userRole.name,
+        claims: userRole.claimCollection.$.map((c) => c.name),
       },
     ]);
   });

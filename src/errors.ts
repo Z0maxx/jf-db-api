@@ -83,6 +83,13 @@ export class UserNotFoundError extends NotFoundByIdError {
   }
 }
 
+export class RoleNotFoundError extends NotFoundByIdError {
+  constructor(roleId: number) {
+    super("Role", roleId);
+    this.name = "RoleNotFoundError";
+  }
+}
+
 export class RegistrationNotFoundError extends NotFoundError {
   constructor(registration: Registration) {
     super();
@@ -165,6 +172,22 @@ export class RolesHaveUsersError extends ForbiddenError {
     super();
     this.messages = roleNames.map((r) => `Role '${r}' has users`);
     this.name = "RolesHaveUsersError";
+  }
+}
+
+export class CannotSetOwnRoleError extends ForbiddenError {
+  constructor() {
+    super();
+    this.message = "Admins cannot set their own role";
+    this.name = "CannotSetOwnRoleError";
+  }
+}
+
+export class CannotSetRoleWithLevelError extends ForbiddenError {
+  constructor() {
+    super();
+    this.message = "Admins can only set another user's role to a higher level one than theirs";
+    this.name = "CannotSetRoleWithLevelError";
   }
 }
 

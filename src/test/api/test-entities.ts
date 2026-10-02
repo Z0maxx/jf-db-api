@@ -1,6 +1,7 @@
 import { ctx } from "#/db-context";
 import { Division, DivisionType } from "#/db-entities/Division";
 import { User, UserTempusIdStatus } from "#/db-entities/User";
+import { headAdminRole, userRole } from "#/default-entities";
 
 export let testSoldierDivision: Division;
 export let testDemomanDivision: Division;
@@ -24,8 +25,6 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  const headAdminRole = await ctx.roles.findOne({ name: "head admin" });
-  const userRole = await ctx.roles.findOneOrFail({ name: "user" });
   [testUser1, testUser2, testHeadAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
@@ -52,5 +51,6 @@ export async function createTestEntitiesAsync() {
 
   testUser1.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
   testUser2.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  testHeadAdmin.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
   await ctx.saveAsync();
 }

@@ -1,8 +1,7 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
-
-import { Division } from "./Division";
-import { MonthlyEvent } from "./MonthlyEvent";
-import { MonthlyLeaderboardItem } from "./MonthlyLeaderboardItem";
+import { BaseEntity, Collection, type Ref, defineEntity, p } from '@mikro-orm/core';
+import { Division } from './Division';
+import { MonthlyEvent } from './MonthlyEvent';
+import { MonthlyLeaderboardItem } from './MonthlyLeaderboardItem';
 
 export class MonthlyMap extends BaseEntity {
   id!: number;
@@ -14,24 +13,14 @@ export class MonthlyMap extends BaseEntity {
 
 export const MonthlyMapSchema = defineEntity({
   class: MonthlyMap,
-  checks: [{ name: "chk_monthly_map_name", expression: "char_length(`name`) > 0" }],
+  checks: [
+    { name: 'chk_monthly_map_name', expression: 'char_length(`name`) > 0' },
+  ],
   properties: {
     id: p.integer().primary(),
     name: p.string().length(50),
-    division: () =>
-      p
-        .manyToOne(Division)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("restrict")
-        .index("fk_monthly_map_divison_id"),
-    event: () =>
-      p
-        .manyToOne(MonthlyEvent)
-        .ref()
-        .updateRule("restrict")
-        .deleteRule("cascade")
-        .index("idx_monthly_map"),
-    monthlyLeaderboardItemCollection: () => p.oneToMany(MonthlyLeaderboardItem).mappedBy("map"),
+    division: () => p.manyToOne(Division).ref().updateRule('restrict').deleteRule('restrict').index('fk_monthly_map_divison_id'),
+    event: () => p.manyToOne(MonthlyEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_monthly_map'),
+    monthlyLeaderboardItemCollection: () => p.oneToMany(MonthlyLeaderboardItem).mappedBy('map'),
   },
 });

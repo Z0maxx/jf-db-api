@@ -1,7 +1,9 @@
 import { ctx } from "#/db-context";
-import { Division } from "#/db-entities/Division";
+import { Role } from "#/db-entities/Role";
 import { TUserTempusIdStatus, User, UserTempusIdStatus } from "#/db-entities/User";
+import { unassignedDemomanDivision, unassignedSoldierDivision, userRole } from "#/default-entities";
 import { UserDivisions } from "#/types";
+import { ref } from "@mikro-orm/core";
 
 export const usersRepository = {
   async getAllUsersAsync() {
@@ -23,25 +25,13 @@ export const usersRepository = {
   },
 
   async createUserAsync(steam64Id: string) {
-    const role = await ctx.roles.findOne({ name: "user" });
-    if (!role) {
-      throw new Error("User role must exist");
-    }
-
     const user = ctx.users.create({
       tempusIdStatus: UserTempusIdStatus.UNSET,
       steam64Id,
-      role,
+      role: userRole,
     });
 
-    const divisions = await ctx.divisions.find({
-      name: { $in: ["Unassigned Soldier", "Unassigned Demoman"] },
-    });
-    if (divisions.length < 2) {
-      throw new Error("Unassigned divisions must exist");
-    }
-
-    user.divisionCollection.set(divisions);
+    user.divisionCollection.set([unassignedSoldierDivision, unassignedDemomanDivision]);
     await ctx.saveAsync();
     return (await this.getUserBySteamIdAsync(user.steam64Id))!;
   },
@@ -59,6 +49,11 @@ export const usersRepository = {
 
   async setUserDivisionsAsync(user: User, divisions: UserDivisions) {
     user.divisionCollection.set(Object.values(divisions));
+    await ctx.saveAsync();
+  },
+
+  async setUserRoleAsync(user: User, role: Role) {
+    user.role = ref(role);
     await ctx.saveAsync();
   },
 };
