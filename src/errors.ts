@@ -83,6 +83,13 @@ export class UserNotFoundError extends NotFoundByIdError {
   }
 }
 
+export class ParticipantNotFoundError extends NotFoundByIdError {
+  constructor(participantId: number) {
+    super("Participant", participantId)
+    this.name = "ParticipantNotFoundError"
+  }
+}
+
 export class RoleNotFoundError extends NotFoundByIdError {
   constructor(roleId: number) {
     super("Role", roleId);
@@ -116,6 +123,13 @@ export class ClaimsNotFoundError extends NotFoundByIdsError {
   constructor(claimIds: number[]) {
     super("Claim", claimIds);
     this.name = "ClaimsNotFoundError";
+  }
+}
+
+export class UsersNotFoundError extends NotFoundByIdsError {
+  constructor(userIds: number[]) {
+    super("User", userIds);
+    this.name = "UsersNotFoundError";
   }
 }
 

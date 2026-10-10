@@ -2,7 +2,7 @@ import { Loaded } from "@mikro-orm/core";
 import z from "zod";
 
 import { AllOutEvent } from "./db-entities/AllOutEvent";
-import { Division, TDivisionType } from "./db-entities/Division";
+import { Division } from "./db-entities/Division";
 import { TUserTempusIdStatus, User } from "./db-entities/User";
 import {
   CreateAllOutEventSchema,
@@ -11,11 +11,13 @@ import {
   CreateTimeLimitedEventMapSchema,
   DivisionSchema,
   LeaderboardQuerySchema,
-  UpdateAllOutEventSchema,
   SetUserDivisionsSchema,
   DivisionsListSchema,
   SetUserRoleSchema,
+  CreateLanEventSchema,
+  CreateLanParticipantSchema,
 } from "./schemas";
+import { LanEvent } from "./db-entities/LanEvent";
 
 export type ClaimDto = {
   id: number;
@@ -69,6 +71,16 @@ export type ParticipantDto = SteamUser & {
   demomanDivision: DivisionDto;
 };
 
+export type CreateLanParticipantDto = z.infer<typeof CreateLanParticipantSchema>;
+
+export type LanParticipantDto = SteamUser & {
+  id: number;
+  disqualified: boolean;
+  soldierDivision: DivisionDto;
+  demomanDivision: DivisionDto;
+  alias: string;
+};
+
 export type LeaderboardItemDto = {
   id: number;
   user: SteamUser;
@@ -89,18 +101,41 @@ export type TimeLimitedEventMapDto = EventMapDto & {
   timeLimit: number;
 };
 
+export type LanEventPreviewDto = {
+  id: number;
+  name: string;
+  start: Date;
+  canceled: boolean;
+};
+
+export type LanEventDetailsDto = {
+  id: number;
+  name: string;
+  start: Date;
+  end: Date | undefined
+  description: string;
+  trailerUrl: string;
+  posterUrl: string;
+  canceled: boolean;
+  maps: MapsDto<string>;
+  participants: LanParticipantDto[];
+};
+
+export type CreateLanEventDto = z.infer<typeof CreateLanEventSchema>;
+
 export type AllOutEventPreviewDto = {
   id: number;
-  canceled: boolean;
   start: Date;
   end: Date;
+  canceled: boolean;
 };
 
 export type CreateAllOutEventDto = z.infer<typeof CreateAllOutEventSchema>;
 
-export type UpdateAllOutEventDto = z.infer<typeof UpdateAllOutEventSchema>;
-
-export type MapsDto<TEventMap extends EventMapDto> = { [K in TDivisionType]: TEventMap[] };
+export type MapsDto<TMap> = {
+  soldier: TMap[];
+  demoman: TMap[];
+};
 
 export type AllOutStageDto<TEventMap extends EventMapDto> = {
   description: string;
@@ -167,12 +202,13 @@ export type AuthResponse = {
   user: AppUser;
 };
 
-export type AllOutValidator<T> = {
-  validate(
-    errors: string[],
-    event: CreateAllOutEventDto | UpdateAllOutEventDto,
-    originalEvent?: AllOutEvent,
-  ): void;
+export type LanEventValidator<T> = {
+  validate(errors: string[], event: CreateLanEventDto, originalEvent?: LanEvent): void;
+  getMessages(items: T[]): string[];
+};
+
+export type AllOutEventValidator<T> = {
+  validate(errors: string[], event: CreateAllOutEventDto, originalEvent?: AllOutEvent): void;
   getMessages(items: T[]): string[];
 };
 

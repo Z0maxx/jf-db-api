@@ -7,7 +7,6 @@ import { setMapsAsync } from "#/helpers/map.helper";
 import { getLeaderboardFilter } from "#/mikro-filters";
 import {
   CreateAllOutEventDto,
-  UpdateAllOutEventDto,
   LeaderboardQuery,
   Registration,
   CreateEventMapDto,
@@ -116,17 +115,16 @@ export const allOutRepository = {
   },
 
   async createEventAsync(event: CreateAllOutEventDto) {
-    const createdEvent = ctx.allOut.events.create(mapToDbAllOutEvent(event));
+    const createdEvent = ctx.allOut.events.create(transformToDbAllOutEvent(event));
     await setStageMapsAsync(createdEvent, event);
     await ctx.saveAsync();
     return createdEvent.id;
   },
 
-  async updateEventAsync(event: UpdateAllOutEventDto) {
-    const existingEvent = await ctx.allOut.events.findOneOrFail({ id: event.id });
-    wrap(existingEvent).assign(mapToDbAllOutEvent(event));
-    await setStageMapsAsync(existingEvent, event);
-    await updateEventParticipantsAsync(existingEvent);
+  async updateEventAsync(originalEvent: AllOutEvent, event: CreateAllOutEventDto) {
+    wrap(originalEvent).assign(transformToDbAllOutEvent(event));
+    await setStageMapsAsync(originalEvent, event);
+    await updateEventParticipantsAsync(originalEvent);
     await ctx.saveAsync();
   },
 
@@ -181,7 +179,7 @@ export const allOutRepository = {
   },
 };
 
-function mapToDbAllOutEvent(event: CreateAllOutEventDto | UpdateAllOutEventDto) {
+function transformToDbAllOutEvent(event: CreateAllOutEventDto) {
   const { stage1, stage2, stage3 } = event;
   return {
     description: event.description,
@@ -200,10 +198,7 @@ function mapToDbAllOutEvent(event: CreateAllOutEventDto | UpdateAllOutEventDto) 
   };
 }
 
-async function setStageMapsAsync(
-  event: AllOutEvent,
-  newEvent: CreateAllOutEventDto | UpdateAllOutEventDto,
-) {
+async function setStageMapsAsync(event: AllOutEvent, newEvent: CreateAllOutEventDto) {
   const divisionIds = [
     ...newEvent.stage1.maps.map((m) => m.divisionId),
     ...newEvent.stage2.maps.map((m) => m.divisionId),

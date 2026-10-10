@@ -103,7 +103,7 @@ describe("POST /users/set-tempus-id", () => {
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/users/set-tempus-id").send();
+    const res = await request(app).post("/users/set-tempus-id");
 
     assert.equal(res.statusCode, 401);
   });

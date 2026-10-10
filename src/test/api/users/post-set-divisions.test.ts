@@ -51,7 +51,7 @@ describe("POST /users/set-divisions", () => {
     });
     user.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
     const allOutEvent = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
@@ -61,13 +61,13 @@ describe("POST /users/set-divisions", () => {
     });
     await ctx.allOut.stage1Maps.upsertMany([
       {
-        name: "test stage 1 soldier map",
+        name: "stage 1 soldier map",
         timeLimit: 10,
         event: allOutEvent,
         division: testSoldierDivision,
       },
       {
-        name: "test stage 1 demoman map",
+        name: "stage 1 demoman map",
         timeLimit: 11,
         event: allOutEvent,
         division: testDemomanDivision,
@@ -124,7 +124,7 @@ describe("POST /users/set-divisions", () => {
     });
     user.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
     const allOutEvent = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${yesterday} 10:00`),
       stage1End: new Date(`${yesterday} 11:00`),
       stage2Start: new Date(`${yesterday} 12:00`),
@@ -134,13 +134,13 @@ describe("POST /users/set-divisions", () => {
     });
     await ctx.allOut.stage1Maps.upsertMany([
       {
-        name: "test stage 1 soldier map",
+        name: "stage 1 soldier map",
         timeLimit: 10,
         event: allOutEvent,
         division: testSoldierDivision,
       },
       {
-        name: "test stage 1 demoman map",
+        name: "stage 1 demoman map",
         timeLimit: 11,
         event: allOutEvent,
         division: testDemomanDivision,
@@ -233,13 +233,13 @@ describe("POST /users/set-divisions", () => {
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/users/set-divisions").send();
+    const res = await request(app).post("/users/set-divisions");
 
     assert.equal(res.status, 401);
   });
 
   it("returns forbidden when user cannot manage user divisions", async () => {
-    const res = await loginAs(testUser1, request(app).post("/users/set-divisions")).send();
+    const res = await loginAs(testUser1, request(app).post("/users/set-divisions"));
 
     assert.equal(res.status, 403);
   });

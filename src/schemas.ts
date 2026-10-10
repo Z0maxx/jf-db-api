@@ -15,11 +15,23 @@ export const DivisionsListSchema = z.object({
   demoman: z.array(DivisionSchema),
 });
 
-export const GeneralEventSchema = z.object({
-  id: z.number().positive(),
-  description: z.string().nonempty(),
+export const CreateLanParticipantSchema = z.object({
+  userId: z.number().positive(),
+  alias: z.string().optional(),
+});
+
+export const CreateLanEventSchema = z.object({
+  name: z.string().nonempty(),
   start: z.coerce.date(),
-  end: z.coerce.date(),
+  end: z.coerce.date().optional(),
+  description: z.string().nonempty(),
+  trailerUrl: z.url().optional(),
+  posterUrl: z.url().optional(),
+  participants: z.array(CreateLanParticipantSchema),
+  maps: z.object({
+    soldier: z.array(z.string().nonempty()),
+    demoman: z.array(z.string().nonempty()),
+  }),
 });
 
 export const CreateEventMapSchema = z.object({
@@ -46,11 +58,6 @@ export const CreateAllOutEventSchema = z.object({
   stage1: CreateAllOutEventStageSchema(CreateTimeLimitedEventMapSchema),
   stage2: CreateAllOutEventStageSchema(CreateEventMapSchema),
   stage3: CreateAllOutEventStageSchema(CreateEventMapSchema),
-});
-
-export const UpdateAllOutEventSchema = z.object({
-  id: z.number().positive(),
-  ...CreateAllOutEventSchema.shape,
 });
 
 export const LeaderboardQuerySchema = z.object({

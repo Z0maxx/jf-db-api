@@ -10,6 +10,9 @@ import { AllOutStage3LeaderboardItem } from "./db-entities/AllOutStage3Leaderboa
 import { AllOutStage3Map } from "./db-entities/AllOutStage3Map";
 import { Claim } from "./db-entities/Claim";
 import { Division } from "./db-entities/Division";
+import { LanEvent } from "./db-entities/LanEvent";
+import { LanMap } from "./db-entities/LanMap";
+import { LanParticipant } from "./db-entities/LanParticipant";
 import { Role } from "./db-entities/Role";
 import { User } from "./db-entities/User";
 import mikroOrmConfig from "./mikro-orm.config";
@@ -42,6 +45,13 @@ export const ctx = {
       stage2Leaderboard: this.em.getRepository(AllOutStage2LeaderboardItem),
       stage3Maps: this.em.getRepository(AllOutStage3Map),
       stage3Leaderboard: this.em.getRepository(AllOutStage3LeaderboardItem),
+    };
+  },
+  get lan() {
+    return {
+      events: this.em.getRepository(LanEvent),
+      participants: this.em.getRepository(LanParticipant),
+      maps: this.em.getRepository(LanMap),
     };
   },
   async saveAsync() {

@@ -7,6 +7,7 @@ import { claimsRouter } from "./claims/claims.router";
 import { ctx } from "./db-context";
 import { divisionsRouter } from "./divisions/divisions.router";
 import { envConfig } from "./env-config";
+import { lanRouter } from "./lan/lan.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 import { rolesRouter } from "./roles/roles.router";
 import { usersRouter } from "./users/users.router";
@@ -27,6 +28,7 @@ app.use((_, __, next) => {
   RequestContext.create(ctx.orm.em, next);
 });
 
+app.use("/lan", lanRouter);
 app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
 app.use("/divisions", divisionsRouter);

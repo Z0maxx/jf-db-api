@@ -6,6 +6,7 @@ import { User } from './User';
 export class TournamentParticipant extends BaseEntity {
   id!: number;
   resigned: boolean & Opt = false;
+  alias!: string;
   user!: Ref<User>;
   event!: Ref<TournamentEvent>;
   tournamentLeaderboardItemCollection = new Collection<TournamentLeaderboardItem>(this);
@@ -20,6 +21,7 @@ export const TournamentParticipantSchema = defineEntity({
   properties: {
     id: p.integer().primary(),
     resigned: p.boolean(),
+    alias: p.string().length(30),
     user: () => p.manyToOne(User).ref().updateRule('restrict').deleteRule('restrict').index('idx_tournament_participant_2'),
     event: () => p.manyToOne(TournamentEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_tournament_participant_1'),
     tournamentLeaderboardItemCollection: () => p.oneToMany(TournamentLeaderboardItem).mappedBy('participant'),

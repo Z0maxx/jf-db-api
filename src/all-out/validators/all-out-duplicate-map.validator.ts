@@ -1,9 +1,4 @@
-import {
-  AllOutValidator,
-  CreateAllOutEventDto,
-  CreateEventMapDto,
-  UpdateAllOutEventDto,
-} from "#/types";
+import { AllOutEventValidator, CreateAllOutEventDto, CreateEventMapDto } from "#/types";
 import { getDuplicates } from "#/util";
 
 type StageMaps = {
@@ -16,8 +11,8 @@ type StageDuplicateMaps = {
   duplicates: CreateEventMapDto[];
 };
 
-export const allOutDuplicateMapValidator: AllOutValidator<StageDuplicateMaps> = {
-  validate(errors: string[], event: CreateAllOutEventDto | UpdateAllOutEventDto) {
+export const allOutDuplicateMapValidator: AllOutEventValidator<StageDuplicateMaps> = {
+  validate(errors: string[], event: CreateAllOutEventDto) {
     const stageMapsList: StageMaps[] = [
       {
         stage: 1,

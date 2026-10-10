@@ -1,7 +1,5 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
-import { DivisionType } from "#/db-entities/Division";
-import { User } from "#/db-entities/User";
 import {
   AlreadyRegisteredError,
   DivisionsNotFoundError,
@@ -17,7 +15,7 @@ import { transformDbMaps } from "#/helpers/map.helper";
 import { steamService } from "#/steam/steam.service";
 import {
   AllOutEventPreviewDto,
-  AllOutValidator,
+  AllOutEventValidator,
   CreateAllOutEventDto,
   LapLeaderboardItemDto,
   LeaderboardItemDto,
@@ -26,15 +24,14 @@ import {
   ParticipantDto,
   Registration,
   RegistrationDetails,
-  UpdateAllOutEventDto,
 } from "#/types";
-import { Loaded } from "@mikro-orm/core";
+import { getUserDivisionDtos } from "#/util";
 
 import { allOutRepository } from "./all-out.repository";
-import { allOutCreatedDatesValidator } from "./validators/all-out-created-dates.validator";
+import { allOutCreatedDateValidator } from "./validators/all-out-created-date.validator";
 import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
-import { allOutUpdatedDatesValidator } from "./validators/all-out-updated-dates.validator";
+import { allOutUpdatedDateValidator } from "./validators/all-out-updated-date.validator";
 
 export const allOutService = {
   async getEventByIdAsync(eventId: number) {
@@ -127,21 +124,12 @@ export const allOutService = {
     await this.getEventByIdAsync(eventId);
     const participants = await allOutRepository.getAllEventParticipantsAsync(eventId);
     const users = await steamService.getUsersAsync(participants.map((p) => p.user.$.steam64Id));
-    return participants.map((p) => {
-      const divisions = p.divisionCollection.$;
-      const [soldierDivision, demomanDivision] = [
-        divisions.find((d) => d.type === DivisionType.SOLDIER)!,
-        divisions.find((d) => d.type === DivisionType.DEMOMAN)!,
-      ].map(({ name, color }) => ({ name, color }));
-
-      return {
-        id: p.id,
-        resigned: p.resigned,
-        ...users.get(p.user.$.steam64Id)!,
-        soldierDivision,
-        demomanDivision,
-      };
-    });
+    return participants.map((p) => ({
+      id: p.id,
+      resigned: p.resigned,
+      ...users.get(p.user.$.steam64Id)!,
+      ...getUserDivisionDtos(p),
+    }));
   },
 
   async getStage1LeaderboardAsync(query: LeaderboardQuery): Promise<LeaderboardItemDto[]> {
@@ -211,7 +199,7 @@ export const allOutService = {
 
   async createEventAsync(event: CreateAllOutEventDto) {
     validate(
-      [allOutDuplicateMapValidator, allOutCreatedDatesValidator, allOutScheduleValidator],
+      [allOutDuplicateMapValidator, allOutCreatedDateValidator, allOutScheduleValidator],
       event,
     );
 
@@ -220,17 +208,17 @@ export const allOutService = {
     return await this.getEventDetailsAsync(id);
   },
 
-  async updateEventAsync(event: UpdateAllOutEventDto) {
-    const originalEvent = await this.getEventByIdAsync(event.id);
+  async updateEventAsync(eventId: number, event: CreateAllOutEventDto) {
+    const originalEvent = await this.getEventByIdAsync(eventId);
     validate(
-      [allOutDuplicateMapValidator, allOutUpdatedDatesValidator, allOutScheduleValidator],
+      [allOutDuplicateMapValidator, allOutUpdatedDateValidator, allOutScheduleValidator],
       event,
       originalEvent,
     );
 
     await checkEventDivisionsExistAsync(event);
-    await allOutRepository.updateEventAsync(event);
-    return await this.getEventDetailsAsync(event.id);
+    await allOutRepository.updateEventAsync(originalEvent, event);
+    return await this.getEventDetailsAsync(eventId);
   },
 
   async registerAsync(registration: Registration) {
@@ -302,7 +290,7 @@ async function checkStage3MapExistsAsync(mapId: number) {
   }
 }
 
-async function checkEventDivisionsExistAsync(event: CreateAllOutEventDto | UpdateAllOutEventDto) {
+async function checkEventDivisionsExistAsync(event: CreateAllOutEventDto) {
   const divisionIds = Array.from(
     new Set([
       ...event.stage1.maps.map((m) => m.divisionId),
@@ -334,8 +322,8 @@ function checkEventNotEnded(event: AllOutEvent) {
 }
 
 function validate(
-  validators: AllOutValidator<any>[],
-  event: CreateAllOutEventDto | UpdateAllOutEventDto,
+  validators: AllOutEventValidator<any>[],
+  event: CreateAllOutEventDto,
   originalEvent?: AllOutEvent,
 ) {
   const errors: string[] = [];

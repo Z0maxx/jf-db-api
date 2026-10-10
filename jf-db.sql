@@ -112,14 +112,16 @@ ALTER TABLE bounty_prize ADD INDEX idx_bounty_prize (event_id);
 
 CREATE TABLE bounty_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   prize_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_bounty_map_prize_id
     FOREIGN KEY (prize_id)
     REFERENCES bounty_prize(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_bounty_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_bounty_map
+    UNIQUE (prize_id, name)
 );
 
 ALTER TABLE bounty_map ADD INDEX idx_bounty_map (prize_id);
@@ -151,9 +153,9 @@ CREATE TABLE all_out_event (
   stage_1_end DATETIME NOT NULL,
   stage_2_end DATETIME NOT NULL,
   stage_3_end DATETIME NOT NULL,
-  stage_1_description TEXT NOT NULL,
-  stage_2_description TEXT NOT NULL,
-  stage_3_description TEXT NOT NULL,
+  stage_1_description TEXT NOT NULL DEFAULT "",
+  stage_2_description TEXT NOT NULL DEFAULT "",
+  stage_3_description TEXT NOT NULL DEFAULT "",
   CONSTRAINT chk_all_out_event_description
     CHECK (CHAR_LENGTH(description) > 0)
 );
@@ -195,7 +197,7 @@ ALTER TABLE all_out_participant_division ADD INDEX idx_all_out_participant_divis
 
 CREATE TABLE all_out_stage_1_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   time_limit INT UNSIGNED NOT NULL,
   division_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
@@ -207,14 +209,16 @@ CREATE TABLE all_out_stage_1_map (
     REFERENCES all_out_event(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_all_out_stage_1_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_all_out_stage_1_map
+    UNIQUE (event_id, division_id, name)
 );
 
 ALTER TABLE all_out_stage_1_map ADD INDEX idx_all_out_stage_1_map (event_id);
 
 CREATE TABLE all_out_stage_2_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   division_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_all_out_stage_2_map_division_id
@@ -225,14 +229,16 @@ CREATE TABLE all_out_stage_2_map (
     REFERENCES all_out_event(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_all_out_stage_2_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_all_out_stage_2_map
+    UNIQUE (event_id, division_id, name)
 );
 
 ALTER TABLE all_out_stage_2_map ADD INDEX idx_all_out_stage_2_map (event_id);
 
 CREATE TABLE all_out_stage_3_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   division_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_all_out_stage_3_map_division_id
@@ -243,7 +249,9 @@ CREATE TABLE all_out_stage_3_map (
     REFERENCES all_out_event(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_all_out_stage_3_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_all_out_stage_3_map
+    UNIQUE (event_id, division_id, name)
 );
 
 ALTER TABLE all_out_stage_3_map ADD INDEX idx_all_out_stage_3_map (event_id);
@@ -359,7 +367,7 @@ ALTER TABLE monthly_participant_division ADD INDEX idx_monthly_participant_divis
 
 CREATE TABLE monthly_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   division_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_monthly_map_divison_id
@@ -370,7 +378,9 @@ CREATE TABLE monthly_map (
     REFERENCES monthly_event(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_monthly_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_monthly_map
+    UNIQUE (event_id, name)
 );
 
 ALTER TABLE monthly_map ADD INDEX idx_monthly_map (event_id);
@@ -400,13 +410,13 @@ CREATE TABLE tournament_event (
   canceled BOOLEAN NOT NULL DEFAULT 0,
   type ENUM('soldier', 'demoman') NOT NULL,
   description TEXT NOT NULL,
-  start DATETIME NOT NULL,
-  end DATETIME NOT NULL
+  start DATETIME NOT NULL
 );
 
 CREATE TABLE tournament_participant (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   resigned BOOLEAN NOT NULL DEFAULT 0,
+  alias VARCHAR(30) NOT NULL,
   user_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_tournament_participant
@@ -426,14 +436,16 @@ ALTER TABLE tournament_participant ADD INDEX idx_tournament_participant_3 (event
 
 CREATE TABLE tournament_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(100) NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_tournament_map_event_id
     FOREIGN KEY (event_id)
     REFERENCES tournament_event(id)
     ON DELETE CASCADE,
   CONSTRAINT chk_tournament_map_name
-    CHECK (CHAR_LENGTH(name) > 0)
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_tournament_map
+    UNIQUE (event_id, name)
 );
 
 ALTER TABLE tournament_map ADD INDEX idx_tournament_map (event_id);
@@ -460,3 +472,50 @@ CREATE TABLE tournament_leaderboard (
 );
 
 ALTER TABLE tournament_leaderboard ADD INDEX idx_tournament_leaderboard (map_id);
+
+CREATE TABLE lan_event (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  poster_url VARCHAR(200) NOT NULL,
+  trailer_url VARCHAR(200) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  canceled BOOLEAN NOT NULL DEFAULT 0,
+  description TEXT NOT NULL,
+  start DATETIME NOT NULL,
+  end DATETIME,
+  CONSTRAINT chk_lan_event_name
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT chk_lan_event_description
+    CHECK (CHAR_LENGTH(description) > 0)
+);
+
+CREATE TABLE lan_map (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  type ENUM('soldier', 'demoman') NOT NULL,
+  event_id INT UNSIGNED NOT NULL,
+  CONSTRAINT fk_lan_map_event_id
+    FOREIGN KEY (event_id)
+    REFERENCES lan_event(id)
+    ON DELETE CASCADE,
+  CONSTRAINT chk_lan_map_name
+    CHECK (CHAR_LENGTH(name) > 0),
+  CONSTRAINT unq_lan_map
+    UNIQUE (event_id, name)
+);
+
+CREATE TABLE lan_participant(
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  alias VARCHAR(30) NOT NULL,
+  disqualified BOOLEAN NOT NULL DEFAULT 0,
+  user_id INT UNSIGNED NOT NULL,
+  event_id INT UNSIGNED NOT NULL,
+  CONSTRAINT fk_lan_participant
+    FOREIGN KEY (user_id)
+    REFERENCES user(id),
+  CONSTRAINT fk_lan_participant_event_id
+    FOREIGN KEY (event_id)
+    REFERENCES lan_event(id)
+    ON DELETE CASCADE,
+  CONSTRAINT unq_lan_participant
+    UNIQUE (event_id, user_id)
+);

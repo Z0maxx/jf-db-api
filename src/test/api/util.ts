@@ -9,6 +9,7 @@ import request from "supertest";
 
 import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
+import { createLanEntitiesAsync } from "./lan/lan-test-entities";
 
 export async function setupApiTestSuiteAsync() {
   await initCtx();
@@ -16,6 +17,7 @@ export async function setupApiTestSuiteAsync() {
   ctx.orm.em = ctx.em.fork();
   await createTestEntitiesAsync();
   await createAllOutTestEntitiesAsync();
+  await createLanEntitiesAsync()
 }
 
 export async function teardownApiTestSuiteAsync(entitiesToDelete: BaseEntity[] = []) {

@@ -24,7 +24,7 @@ describe("GET /all-out/event/:eventId/participants", () => {
     const res = await request(app).get(`/all-out/events/${testAllOutEvent.id}/participants`);
 
     assert(res.ok);
-    assert.equal(res.body.length, 2);
+    assert.lengthOf(res.body, 2);
     assert.hasAnyKeys(res.body[0], ["name", "avatar"]);
     assert.containsSubset(res.body, [
       {

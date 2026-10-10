@@ -4,7 +4,12 @@ import { getAppError } from "#/middlewares/error-handler.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { querySchema } from "#/middlewares/query-schema.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { SetUserDivisionsSchema, SetUserRoleSchema, TempusIdSchema, UserQuerySchema } from "#/schemas";
+import {
+  SetUserDivisionsSchema,
+  SetUserRoleSchema,
+  TempusIdSchema,
+  UserQuerySchema,
+} from "#/schemas";
 import { initSse } from "#/sse";
 import { TempusIdVerificationResult } from "#/types";
 import express from "express";
@@ -18,10 +23,16 @@ usersRouter.get("/", querySchema(UserQuerySchema), async (req, res) => {
   res.status(200).json(await usersService.queryUsersAsync(query));
 });
 
-usersRouter.post("/set-role", loggedIn, userCan("manage users"), bodySchema(SetUserRoleSchema), async (req, res) => {
-  await usersService.setUserRoleAsync(req.user!, SetUserRoleSchema.parse(req.body))
-  res.status(204).send()
-})
+usersRouter.post(
+  "/set-role",
+  loggedIn,
+  userCan("manage users"),
+  bodySchema(SetUserRoleSchema),
+  async (req, res) => {
+    await usersService.setUserRoleAsync(req.user!, SetUserRoleSchema.parse(req.body));
+    res.status(204).send();
+  },
+);
 
 usersRouter.post(
   "/set-divisions",

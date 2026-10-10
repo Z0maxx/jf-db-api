@@ -65,7 +65,7 @@ export const usersService = {
     const otherUser = await getUserAsync(setUserRole.userId);
     const role = await getRoleAsync(setUserRole.roleId);
     checkUserCanSetRole(adminUser, otherUser, role);
-    await usersRepository.setUserRoleAsync(otherUser, role)
+    await usersRepository.setUserRoleAsync(otherUser, role);
   },
 };
 

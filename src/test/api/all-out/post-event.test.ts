@@ -1,4 +1,4 @@
-import { allOutCreatedDatesValidator } from "#/all-out/validators/all-out-created-dates.validator";
+import { allOutCreatedDateValidator } from "#/all-out/validators/all-out-created-date.validator";
 import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplicate-map.validator";
 import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
 import { app } from "#/app";
@@ -29,11 +29,11 @@ describe("POST /all-out/events", () => {
 
   it("creates event with maps", async () => {
     const event = {
-      description: "test created event description",
+      description: "created event description",
       stage1: {
         start: new Date(`${tomorrow} 10:00`),
         end: new Date(`${tomorrow} 11:00`),
-        description: "test created stage 1 description",
+        description: "created stage 1 description",
         maps: [
           {
             name: "stage 1 map",
@@ -50,7 +50,7 @@ describe("POST /all-out/events", () => {
       stage2: {
         start: new Date(`${tomorrow} 12:00`),
         end: new Date(`${tomorrow} 13:00`),
-        description: "test created stage 2 description",
+        description: "created stage 2 description",
         maps: [
           {
             name: "stage 2 map",
@@ -65,7 +65,7 @@ describe("POST /all-out/events", () => {
       stage3: {
         start: new Date(`${tomorrow} 14:00`),
         end: new Date(`${tomorrow} 15:00`),
-        description: "test created stage 3 description",
+        description: "created stage 3 description",
         maps: [
           {
             name: "stage 3 map",
@@ -101,7 +101,7 @@ describe("POST /all-out/events", () => {
     });
     entities.push(createdEvent!);
     const createdStage1Maps = await ctx.allOut.stage1Maps.find({ event: createdEvent });
-    assert.equal(createdStage1Maps.length, 2);
+    assert.lengthOf(createdStage1Maps, 2);
     assert.containsSubset(
       createdStage1Maps.map((m) => m.serialize()),
       [
@@ -118,7 +118,7 @@ describe("POST /all-out/events", () => {
       ],
     );
     const createdStage2Maps = await ctx.allOut.stage2Maps.find({ event: createdEvent });
-    assert.equal(createdStage2Maps.length, 2);
+    assert.lengthOf(createdStage2Maps, 2);
     assert.containsSubset(
       createdStage2Maps.map((m) => m.serialize()),
       [
@@ -133,7 +133,7 @@ describe("POST /all-out/events", () => {
       ],
     );
     const createdStage3Maps = await ctx.allOut.stage3Maps.find({ event: createdEvent });
-    assert.equal(createdStage3Maps.length, 2);
+    assert.lengthOf(createdStage3Maps, 2);
     assert.containsSubset(
       createdStage3Maps.map((m) => m.serialize()),
       [
@@ -157,7 +157,7 @@ describe("POST /all-out/events", () => {
 
   it("returns validation error when stage times are out of order", async () => {
     const event = {
-      description: "test description",
+      description: "description",
       stage1: {
         start: new Date(`${tomorrow} 16:00`),
         end: new Date(`${tomorrow} 15:00`),
@@ -189,7 +189,7 @@ describe("POST /all-out/events", () => {
 
   it("returns validation error when there are multiple maps with same name and division in a stage", async () => {
     const event = {
-      description: "test description",
+      description: "description",
       stage1: {
         start: new Date(`${tomorrow} 10:00`),
         end: new Date(`${tomorrow} 11:00`),
@@ -251,7 +251,7 @@ describe("POST /all-out/events", () => {
 
   it("returns validation error when stage times are in the past", async () => {
     const event = {
-      description: "test description",
+      description: "description",
       stage1: {
         start: new Date(`${yesterday} 10:00`),
         end: new Date(`${yesterday} 11:00`),
@@ -274,7 +274,7 @@ describe("POST /all-out/events", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: allOutCreatedDatesValidator.getMessages([
+      errorMessages: allOutCreatedDateValidator.getMessages([
         { stage: 1, invalidDateFields: ["start", "end"] },
         { stage: 2, invalidDateFields: ["start", "end"] },
         { stage: 3, invalidDateFields: ["start", "end"] },
@@ -284,7 +284,7 @@ describe("POST /all-out/events", () => {
 
   it("returns divisions not found error when divisions don't exist", async () => {
     const event = {
-      description: "test description",
+      description: "description",
       stage1: {
         start: new Date(`${tomorrow} 10:00`),
         end: new Date(`${tomorrow} 11:00`),

@@ -10,6 +10,11 @@ export const usersRepository = {
     return await ctx.users.findAll({ populate: ["role.claimCollection", "divisionCollection"] });
   },
 
+  async getExistingUsersAsync(userIds: number[]) {
+    const users = await ctx.users.find({ id: { $in: userIds } });
+    return new Set<number>(users.map((u) => u.id));
+  },
+
   async getUserBySteamIdAsync(steam64Id: string) {
     return await ctx.users.findOne(
       { steam64Id },

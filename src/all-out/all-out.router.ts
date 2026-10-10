@@ -3,11 +3,7 @@ import { id } from "#/middlewares/id.middleware";
 import { leaderboardQuery } from "#/middlewares/leaderboard-query.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import {
-  CreateAllOutEventSchema,
-  LeaderboardQuerySchema,
-  UpdateAllOutEventSchema,
-} from "#/schemas";
+import { CreateAllOutEventSchema, LeaderboardQuerySchema } from "#/schemas";
 import express from "express";
 
 import { allOutService } from "./all-out.service";
@@ -97,14 +93,20 @@ allOutRouter.post("/events/:eventId/resign", loggedIn, id("eventId"), async (req
 });
 
 allOutRouter.put(
-  "/events",
+  "/events/:eventId",
   loggedIn,
   userCan("manage events"),
-  bodySchema(UpdateAllOutEventSchema),
+  bodySchema(CreateAllOutEventSchema),
+  id("eventId"),
   async (req, res) => {
     res
       .status(200)
-      .send(await allOutService.updateEventAsync(UpdateAllOutEventSchema.parse(req.body)));
+      .json(
+        await allOutService.updateEventAsync(
+          req.ids.eventId,
+          CreateAllOutEventSchema.parse(req.body),
+        ),
+      );
   },
 );
 

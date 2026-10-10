@@ -64,20 +64,20 @@ describe("GET /all-out/leaderboard/stage-2", () => {
 
   it("doesn't return resigned participant's items", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date("2030-01-01 10:00"),
       stage1End: new Date("2030-01-01 16:00"),
       stage2Start: new Date("2030-01-02 10:00"),
       stage2End: new Date("2030-01-02 16:00"),
       stage3Start: new Date("2030-01-03 10:00"),
       stage3End: new Date("2030-01-03 16:00"),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
     const map = await ctx.allOut.stage2Maps.upsert({
-      name: "test stage 2 soldier map",
+      name: "stage 2 soldier map",
       division: testSoldierDivision,
       event,
     });

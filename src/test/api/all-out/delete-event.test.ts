@@ -21,31 +21,31 @@ describe("DELETE /all-out/entities/:eventId", () => {
 
   it("deletes event, its maps and participants", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
     await ctx.allOut.stage1Maps.upsert({
-      name: "test stage 1 soldier map",
+      name: "stage 1 soldier map",
       division: testSoldierDivision,
       timeLimit: 10,
       event,
     });
     await ctx.allOut.stage2Maps.upsert({
-      name: "test stage 2 soldier map",
+      name: "stage 2 soldier map",
       division: testSoldierDivision,
       event,
     });
     await ctx.allOut.stage3Maps.upsert({
-      name: "test stage 3 soldier map",
+      name: "stage 3 soldier map",
       division: testSoldierDivision,
       event,
     });
@@ -71,16 +71,16 @@ describe("DELETE /all-out/entities/:eventId", () => {
 
   it("returns event started in past error when trying to delete an event that started in the past", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${yesterday} 10:00`),
       stage1End: new Date(`${yesterday} 11:00`),
       stage2Start: new Date(`${yesterday} 12:00`),
       stage2End: new Date(`${yesterday} 13:00`),
       stage3Start: new Date(`${yesterday} 14:00`),
       stage3End: new Date(`${yesterday} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
 

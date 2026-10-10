@@ -15,6 +15,7 @@ export class AllOutStage1Map extends BaseEntity {
 export const AllOutStage1MapSchema = defineEntity({
   class: AllOutStage1Map,
   tableName: 'all_out_stage_1_map',
+  uniques: [{ name: 'unq_all_out_stage_1_map', properties: ['event', 'name'] }],
   checks: [
     {
       name: 'chk_all_out_stage_1_map_name',
@@ -23,7 +24,7 @@ export const AllOutStage1MapSchema = defineEntity({
   ],
   properties: {
     id: p.integer().primary(),
-    name: p.string().length(50),
+    name: p.string().length(100),
     timeLimit: p.integer().unsigned(),
     division: () => p.manyToOne(Division).ref().updateRule('restrict').deleteRule('restrict').index('fk_all_out_stage_1_map_division_id'),
     event: () => p.manyToOne(AllOutEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_all_out_stage_1_map'),

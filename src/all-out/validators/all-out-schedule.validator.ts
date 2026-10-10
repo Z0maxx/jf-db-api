@@ -1,10 +1,7 @@
-import { AllOutValidator, CreateAllOutEventDto, Schedule, UpdateAllOutEventDto } from "#/types";
+import { AllOutEventValidator, CreateAllOutEventDto, Schedule } from "#/types";
 
-export const allOutScheduleValidator: AllOutValidator<Schedule> = {
-  validate(
-    errors: string[],
-    { stage1, stage2, stage3 }: CreateAllOutEventDto | UpdateAllOutEventDto,
-  ) {
+export const allOutScheduleValidator: AllOutEventValidator<Schedule> = {
+  validate(errors: string[], { stage1, stage2, stage3 }: CreateAllOutEventDto) {
     const schedules = [stage1, stage2, stage3]
       .map((stage, idx) => [
         { name: `Stage ${idx + 1} start time`, time: stage.start },

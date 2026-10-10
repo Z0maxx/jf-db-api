@@ -13,13 +13,13 @@ export async function createTestEntitiesAsync() {
   [testSoldierDivision, testDemomanDivision] = await ctx.divisions.upsertMany([
     {
       id: 100_001,
-      name: "test soldier division",
+      name: "soldier division",
       color: "111111",
       type: DivisionType.SOLDIER,
     },
     {
       id: 100_002,
-      name: "test demoman division",
+      name: "demoman division",
       color: "222222",
       type: DivisionType.DEMOMAN,
     },

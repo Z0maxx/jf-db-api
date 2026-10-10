@@ -11,12 +11,13 @@ export class TournamentMap extends BaseEntity {
 
 export const TournamentMapSchema = defineEntity({
   class: TournamentMap,
+  uniques: [{ name: 'unq_tournament_map', properties: ['event', 'name'] }],
   checks: [
     { name: 'chk_tournament_map_name', expression: 'char_length(`name`) > 0' },
   ],
   properties: {
     id: p.integer().primary(),
-    name: p.string().length(50),
+    name: p.string().length(100),
     event: () => p.manyToOne(TournamentEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_tournament_map'),
     tournamentLeaderboardItemCollection: () => p.oneToMany(TournamentLeaderboardItem).mappedBy('map'),
   },

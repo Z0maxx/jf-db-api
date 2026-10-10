@@ -23,9 +23,9 @@ describe("GET /users", () => {
     assert(res1.ok);
     assert(res2.ok);
     assert(res3.ok);
-    assert.equal(res1.body.length, 1);
-    assert.equal(res2.body.length, 1);
-    assert.equal(res3.body.length, 1);
+    assert.lengthOf(res1.body, 1);
+    assert.lengthOf(res2.body, 1);
+    assert.lengthOf(res3.body, 1);
     assert.equal(res1.body[0].id, testUser1.id);
     assert.equal(res2.body[0].id, testUser1.id);
     assert.equal(res3.body[0].id, testUser1.id);

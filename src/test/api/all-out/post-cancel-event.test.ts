@@ -21,16 +21,13 @@ describe("POST /events/:eventId/cancel", () => {
 
   it("cancels event", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
     });
     entities.push(event);
 
@@ -47,16 +44,13 @@ describe("POST /events/:eventId/cancel", () => {
 
   it("returns event ended error when trying to cancel an event that has ended", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${yesterday} 10:00`),
       stage1End: new Date(`${yesterday} 11:00`),
       stage2Start: new Date(`${yesterday} 12:00`),
       stage2End: new Date(`${yesterday} 13:00`),
       stage3Start: new Date(`${yesterday} 14:00`),
       stage3End: new Date(`${yesterday} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
     });
     entities.push(event);
 

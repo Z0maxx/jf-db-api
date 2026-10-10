@@ -26,20 +26,20 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
   it("registers user to event", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
     await ctx.allOut.stage1Maps.upsert({
-      name: "test stage 1 soldier map",
+      name: "stage 1 soldier map",
       timeLimit: 10,
       event,
       division: testSoldierDivision,
@@ -65,20 +65,20 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
   it("returns already registered error when user is already registered", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
     await ctx.allOut.stage1Maps.upsert({
-      name: "test stage 1 soldier map",
+      name: "stage 1 soldier map",
       timeLimit: 10,
       event,
       division: testSoldierDivision,
@@ -106,16 +106,16 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
   it("returns event started in past error when trying to register to an event that started in the past", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${yesterday} 10:00`),
       stage1End: new Date(`${yesterday} 11:00`),
       stage2Start: new Date(`${yesterday} 12:00`),
       stage2End: new Date(`${yesterday} 13:00`),
       stage3Start: new Date(`${yesterday} 14:00`),
       stage3End: new Date(`${yesterday} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
 
@@ -149,16 +149,16 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
   it("returns no maps with user divisions error when event has no maps with user's divisions", async () => {
     const event = await ctx.allOut.events.upsert({
-      description: "test description",
+      description: "description",
       stage1Start: new Date(`${tomorrow} 10:00`),
       stage1End: new Date(`${tomorrow} 11:00`),
       stage2Start: new Date(`${tomorrow} 12:00`),
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "test stage 1 description",
-      stage2Description: "test stage 2 description",
-      stage3Description: "test stage 3 description",
+      stage1Description: "stage 1 description",
+      stage2Description: "stage 2 description",
+      stage3Description: "stage 3 description",
     });
     entities.push(event);
     const division = await ctx.divisions.upsert({

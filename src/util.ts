@@ -1,7 +1,6 @@
-import { Loaded } from "@mikro-orm/core";
+import { Loaded, LoadedCollection } from "@mikro-orm/core";
 
-import { DivisionType } from "./db-entities/Division";
-import { User } from "./db-entities/User";
+import { Division, DivisionType } from "./db-entities/Division";
 import { AppUser, LoadedUser, SteamUser } from "./types";
 
 export function getDuplicates<T>(items: T[], groupFn: (item: T) => string | number) {
@@ -77,6 +76,20 @@ export function getAppUser(user: LoadedUser, steamUser: SteamUser): AppUser {
     tempusIdStatus: user.tempusIdStatus,
     role: user.role.$.name,
     claims: user.role.$.claimCollection.$.map((c) => c.name),
+    soldierDivision,
+    demomanDivision,
+  };
+}
+
+export function getUserDivisionDtos(user: {
+  divisionCollection: LoadedCollection<Loaded<Division>>;
+}) {
+  const [soldierDivision, demomanDivision] = [
+    user.divisionCollection.$.find((d) => d.type === DivisionType.SOLDIER)!,
+    user.divisionCollection.$.find((d) => d.type === DivisionType.DEMOMAN)!,
+  ].map(({ name, color }) => ({ name, color }));
+
+  return {
     soldierDivision,
     demomanDivision,
   };
