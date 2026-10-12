@@ -18,7 +18,7 @@ export const lanRepository = {
   },
 
   async getParticipantByIdAsync(participantId: number) {
-    return ctx.lan.participants.findOne({ id: participantId })
+    return ctx.lan.participants.findOne({ id: participantId });
   },
 
   async createEventAsync(event: CreateLanEventDto) {
@@ -37,14 +37,14 @@ export const lanRepository = {
   },
 
   async disqualifyParticipantAsync(participant: LanParticipant) {
-    participant.disqualified = true
-    await ctx.saveAsync()
+    participant.disqualified = true;
+    await ctx.saveAsync();
   },
 
   async cancelEventAsync(event: LanEvent) {
-    event.canceled = true
-    await ctx.saveAsync()
-  }
+    event.canceled = true;
+    await ctx.saveAsync();
+  },
 };
 
 async function setMapsAsync(event: LanEvent, newEvent: CreateLanEventDto) {
@@ -56,7 +56,7 @@ async function setMapsByTypeAsync(event: LanEvent, maps: string[], type: TLanMap
   const mapsSet = new Set<string>(maps);
   const existing = await ctx.lan.maps.find({ event, type });
   const deleted = existing.filter((e) => !mapsSet.has(e.name));
-  deleted.forEach((r) => ctx.em.remove(r));
+  deleted.forEach((d) => ctx.em.remove(d));
   mapsSet.values().forEach((m) =>
     ctx.lan.maps.create({
       name: m,
@@ -70,8 +70,11 @@ async function setParticipantsAsync(event: LanEvent, participants: CreateLanPart
   const participantsMap = new Map<number, CreateLanParticipantDto>(
     participants.map((p) => [p.userId, p]),
   );
-  const existing = await ctx.lan.participants.find({ event });
+  console.log(participantsMap);
+  const existing = await ctx.lan.participants.find({ event }, { populate: ["user"] });
+  console.log(existing.map((e) => e.user.id));
   const deleted = existing.filter((e) => !participantsMap.get(e.user.id));
+  deleted.forEach((d) => ctx.em.remove(d));
   const updated = existing.filter((e) => !deleted.includes(e));
   updated.forEach((u) => {
     u.alias = participantsMap.get(u.user.id)!.alias ?? "";

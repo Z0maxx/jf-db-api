@@ -1,7 +1,7 @@
 import { app } from "#/app";
 import { DivisionType } from "#/db-entities/Division";
 import { EventNotFoundError } from "#/errors";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testDemomanDivision, testSoldierDivision } from "../test-entities";
@@ -16,6 +16,10 @@ import {
   testAllOutStage3SoldierMap,
 } from "./all-out-test-entities";
 
+function request(eventId = 200000) {
+  return supertest(app).get("/all-out/events/" + eventId);
+}
+
 describe("GET /all-out/events/:eventId", () => {
   beforeAll(async () => {
     await setupApiTestSuiteAsync();
@@ -26,7 +30,7 @@ describe("GET /all-out/events/:eventId", () => {
   });
 
   it("returns event details", async () => {
-    const res = await request(app).get("/all-out/events/" + testAllOutEvent.id);
+    const res = await request(testAllOutEvent.id);
 
     assert(res.ok);
     assert.deepStrictEqual(res.body, {
@@ -126,7 +130,7 @@ describe("GET /all-out/events/:eventId", () => {
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await request(app).get("/all-out/events/" + 200_000);
+    const res = await request(200_000);
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

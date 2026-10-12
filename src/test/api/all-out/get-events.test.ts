@@ -1,9 +1,13 @@
 import { app } from "#/app";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import { testAllOutEvent } from "./all-out-test-entities";
+
+function request() {
+  return supertest(app).get("/all-out/events");
+}
 
 describe("GET /all-out/events", () => {
   beforeAll(async () => {
@@ -15,7 +19,7 @@ describe("GET /all-out/events", () => {
   });
 
   it("returns event previews", async () => {
-    const res = await request(app).get("/all-out/events");
+    const res = await request();
 
     assert(res.ok);
     assert.deepStrictEqual(res.body, [

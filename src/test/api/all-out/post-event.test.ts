@@ -6,7 +6,7 @@ import { ctx } from "#/db-context";
 import { DivisionsNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import {
@@ -16,6 +16,11 @@ import {
   testUser1,
 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(event?: object) {
+  const req = supertest(app).post("/all-out/events");
+  return event === undefined ? req : req.send(event);
+}
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events", () => {
@@ -79,7 +84,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
+    const res = await loginAs(testHeadAdmin, request(event));
 
     assert(res.ok);
     const createdEvent = await ctx.allOut.events.findOne({ id: res.body.id });
@@ -150,7 +155,7 @@ describe("POST /all-out/events", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send({});
+    const res = await loginAs(testHeadAdmin, request({}));
 
     assert.equal(res.status, 400);
   });
@@ -175,7 +180,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
+    const res = await loginAs(testHeadAdmin, request(event));
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
@@ -236,7 +241,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
+    const res = await loginAs(testHeadAdmin, request(event));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -269,7 +274,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
+    const res = await loginAs(testHeadAdmin, request(event));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -316,7 +321,7 @@ describe("POST /all-out/events", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/all-out/events")).send(event);
+    const res = await loginAs(testHeadAdmin, request(event));
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -326,13 +331,13 @@ describe("POST /all-out/events", () => {
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/all-out/events");
+    const res = await request();
 
     assert.equal(res.status, 401);
   });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(testUser1, request(app).post("/all-out/events"));
+    const res = await loginAs(testUser1, request());
 
     assert.equal(res.status, 403);
   });

@@ -1,7 +1,12 @@
-import { LanMapType } from "#/db-entities/LanMap";
-import { EventNotFoundError, ParticipantNotFoundError, UsersNotFoundError, ValidationError } from "#/errors";
-import { steamService } from "#/steam/steam.service";
 import { LanEvent } from "#/db-entities/LanEvent";
+import { LanMapType } from "#/db-entities/LanMap";
+import {
+  EventNotFoundError,
+  ParticipantNotFoundError,
+  UsersNotFoundError,
+  ValidationError,
+} from "#/errors";
+import { steamService } from "#/steam/steam.service";
 import {
   CreateLanEventDto,
   LanEventDetailsDto,
@@ -97,14 +102,14 @@ export const lanService = {
   },
 
   async cancelEventAsync(eventId: number) {
-    const event = await getEventByIdAsync(eventId)
-    await lanRepository.cancelEventAsync(event)
+    const event = await getEventByIdAsync(eventId);
+    await lanRepository.cancelEventAsync(event);
   },
 
   async disqualifyParticipant(participantId: number) {
-    const participant = await getParticipantByIdAsync(participantId)
-    await lanRepository.disqualifyParticipantAsync(participant)
-  }
+    const participant = await getParticipantByIdAsync(participantId);
+    await lanRepository.disqualifyParticipantAsync(participant);
+  },
 };
 
 async function getEventByIdAsync(eventId: number) {
@@ -117,12 +122,12 @@ async function getEventByIdAsync(eventId: number) {
 }
 
 async function getParticipantByIdAsync(participantId: number) {
-  const participant = await lanRepository.getParticipantByIdAsync(participantId)
+  const participant = await lanRepository.getParticipantByIdAsync(participantId);
   if (!participant) {
-    throw new ParticipantNotFoundError(participantId)
+    throw new ParticipantNotFoundError(participantId);
   }
 
-  return participant
+  return participant;
 }
 
 async function checkUsersExistAsync(event: CreateLanEventDto) {

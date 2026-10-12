@@ -3,14 +3,18 @@ import { ctx } from "#/db-context";
 import { EventNotFoundError, EventStartedInPastError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
+function request(id: number) {
+  return supertest(app).delete("/all-out/events/" + id)
+}
+
 const entities: BaseEntity[] = [];
-describe("DELETE /all-out/entities/:eventId", () => {
+describe("DELETE /all-out/events/:eventId", () => {
   beforeAll(async () => {
     await setupApiTestSuiteAsync();
   });
@@ -54,7 +58,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
       event,
     });
 
-    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/" + event.id));
+    const res = await loginAs(testHeadAdmin, request(event.id));
 
     assert(res.ok);
     const deletedEvent = await ctx.allOut.events.findOne({ id: event.id });
@@ -84,7 +88,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/" + event.id));
+    const res = await loginAs(testHeadAdmin, request(event.id));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -94,7 +98,7 @@ describe("DELETE /all-out/entities/:eventId", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).delete("/all-out/events/200000"));
+    const res = await loginAs(testHeadAdmin, request(200000));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

@@ -8,11 +8,15 @@ import {
 } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(eventId: number) {
+  return supertest(app).post(`/all-out/events/${eventId}/registration`);
+}
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events/:eventId/registration", () => {
@@ -45,10 +49,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
       division: testSoldierDivision,
     });
 
-    const res = await loginAs(
-      testUser1,
-      request(app).post(`/all-out/events/${event.id}/registration`),
-    );
+    const res = await loginAs(testUser1, request(event.id));
 
     assert(res.ok);
     const participant = await ctx.allOut.participants.findOne(
@@ -88,10 +89,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
       user: testUser1,
     });
 
-    const res = await loginAs(
-      testUser1,
-      request(app).post(`/all-out/events/${event.id}/registration`),
-    );
+    const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 409);
     const loadedTestUser = await ctx.users.findOneOrFail(
@@ -119,10 +117,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(
-      testUser1,
-      request(app).post(`/all-out/events/${event.id}/registration`),
-    );
+    const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -132,7 +127,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/200000/registration`));
+    const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -142,7 +137,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
   });
 
   it("returns unauthorized when not logged in", async () => {
-    const res = request(app).post(`/all-out/events/200000/registration`);
+    const res = request(200000);
 
     assert.equal((await res).status, 401);
   });
@@ -187,7 +182,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
 
     const res = await loginAs(
       testUser1,
-      request(app).post(`/all-out/events/${event.id}/registration`),
+      request(event.id),
     );
 
     assert.equal(res.status, 403);

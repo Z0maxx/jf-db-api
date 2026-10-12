@@ -3,11 +3,15 @@ import { ctx } from "#/db-context";
 import { EventEndedError, EventNotFoundError, RegistrationNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(eventId: number) {
+  return supertest(app).post("/all-out/events/" + eventId + "/resign");
+}
 
 const entities: BaseEntity[] = [];
 describe("POST /all-out/events/:eventId/resign", () => {
@@ -43,7 +47,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
     participant.divisionCollection.set([testSoldierDivision]);
     await ctx.saveAsync();
 
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
+    const res = await loginAs(testUser1, request(event.id));
 
     assert(res.ok);
     const deletedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
@@ -75,7 +79,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
       event,
     });
 
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
+    const res = await loginAs(testUser1, request(event.id));
 
     assert(res.ok);
     const resignedParticipant = await ctx.allOut.participants.findOne({ user: testUser1, event });
@@ -98,7 +102,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
       event,
     });
 
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
+    const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -108,7 +112,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
   });
 
   it("returns event not found error when event doesn't exist", async () => {
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/200000/resign`));
+    const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -129,7 +133,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
     });
     entities.push(event);
 
-    const res = await loginAs(testUser1, request(app).post(`/all-out/events/${event.id}/resign`));
+    const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.statusCode, 404);
     const loadedTestUser = await ctx.users.findOneOrFail(
@@ -144,7 +148,7 @@ describe("POST /all-out/events/:eventId/resign", () => {
   });
 
   it("returns unauthorized when not logged in", async () => {
-    const res = await request(app).post(`/all-out/events/200000/resign`);
+    const res = await request(200000);
 
     assert.equal(res.status, 401);
   });

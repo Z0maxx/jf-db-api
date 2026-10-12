@@ -2,12 +2,13 @@ import { ctx } from "#/db-context";
 import { LanEvent } from "#/db-entities/LanEvent";
 import { LanMap, LanMapType } from "#/db-entities/LanMap";
 import { LanParticipant } from "#/db-entities/LanParticipant";
+
 import { testUser1 } from "../test-entities";
 
 export let testLanEvent: LanEvent = null!;
-export let testLanParticipant: LanParticipant = null!
-export let testLanSoldierMap: LanMap = null!
-export let testLanDemomanMap: LanMap = null!
+export let testLanParticipant: LanParticipant = null!;
+export let testLanSoldierMap: LanMap = null!;
+export let testLanDemomanMap: LanMap = null!;
 
 export async function createLanEntitiesAsync() {
   testLanEvent = await ctx.lan.events.upsert({
@@ -18,14 +19,14 @@ export async function createLanEntitiesAsync() {
     trailerUrl: "https://www.youtube.com/watch?v=mJE42pzZzv0",
     start: new Date("2030-01-01 10:00"),
     end: new Date("2030-01-01 16:00"),
-    canceled: false
+    canceled: false,
   });
 
   testLanParticipant = await ctx.lan.participants.upsert({
     id: 100_000,
     alias: "user 1",
     user: testUser1,
-    event: testLanEvent
+    event: testLanEvent,
   });
 
   testLanEvent.lanParticipantCollection.set([testLanParticipant]);
@@ -35,15 +36,15 @@ export async function createLanEntitiesAsync() {
       id: 100_001,
       type: LanMapType.SOLDIER,
       name: "soldier map",
-      event: testLanEvent
+      event: testLanEvent,
     },
     {
       id: 100_002,
       type: LanMapType.DEMOMAN,
       name: "demoman map",
-      event: testLanEvent
-    }
-  ])
+      event: testLanEvent,
+    },
+  ]);
 
-  testLanEvent.lanMapCollection.set([testLanSoldierMap, testLanDemomanMap])
+  testLanEvent.lanMapCollection.set([testLanSoldierMap, testLanDemomanMap]);
 }

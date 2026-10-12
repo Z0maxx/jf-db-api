@@ -6,11 +6,16 @@ import { ctx } from "#/db-context";
 import { DivisionsNotFoundError, EventNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(eventId: number, event?: object) {
+  const req = supertest(app).put("/all-out/events/" + eventId);
+  return event === undefined ? req : req.send(event);
+}
 
 const entities: BaseEntity[] = [];
 describe("PUT /all-out/events/:eventId", () => {
@@ -79,10 +84,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(
-      testHeadAdmin,
-      request(app).put("/all-out/events/" + originalEvent.id),
-    ).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert(res.ok);
     const updatedEvent = await ctx.allOut.events.findOne({ id: originalEvent.id });
@@ -134,7 +136,7 @@ describe("PUT /all-out/events/:eventId", () => {
       name: "stage 2 soldier map",
       event: originalEvent,
       division: testSoldierDivision,
-    })
+    });
     const participant = await ctx.allOut.participants.upsert({
       user: testUser1,
       event: originalEvent,
@@ -170,7 +172,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events/" + originalEvent.id)).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.ok(res.status);
     const deletedParticipant = await ctx.allOut.participants.findOne({
@@ -214,10 +216,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(
-      testHeadAdmin,
-      request(app).put("/all-out/events/" + originalEvent.id),
-    ).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -261,7 +260,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events/" + originalEvent.id)).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -286,8 +285,8 @@ describe("PUT /all-out/events/:eventId", () => {
     const event = {
       description: "description",
       stage1: {
-        start: new Date(`${tomorrow} 10:00`),
-        end: new Date(`${tomorrow} 11:00`),
+        start: originalEvent.stage1Start,
+        end: originalEvent.stage1End,
         maps: [
           {
             name: "stage 1 duplicate map",
@@ -302,8 +301,8 @@ describe("PUT /all-out/events/:eventId", () => {
         ],
       },
       stage2: {
-        start: new Date(`${tomorrow} 12:00`),
-        end: new Date(`${tomorrow} 13:00`),
+        start: originalEvent.stage2Start,
+        end: originalEvent.stage2End,
         maps: [
           {
             name: "stage 2 duplicate map",
@@ -316,8 +315,8 @@ describe("PUT /all-out/events/:eventId", () => {
         ],
       },
       stage3: {
-        start: new Date(`${tomorrow} 14:00`),
-        end: new Date(`${tomorrow} 15:00`),
+        start: originalEvent.stage3Start,
+        end: originalEvent.stage3End,
         maps: [
           {
             name: "stage 3 duplicate map",
@@ -331,10 +330,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(
-      testHeadAdmin,
-      request(app).put("/all-out/events/" + originalEvent.id),
-    ).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -367,9 +363,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events/200000")).send(
-      event,
-    );
+    const res = await loginAs(testHeadAdmin, request(200000, event));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -422,10 +416,7 @@ describe("PUT /all-out/events/:eventId", () => {
       },
     };
 
-    const res = await loginAs(
-      testHeadAdmin,
-      request(app).put("/all-out/events/" + originalEvent.id),
-    ).send(event);
+    const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -435,19 +426,19 @@ describe("PUT /all-out/events/:eventId", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).put("/all-out/events/200000")).send({});
+    const res = await loginAs(testHeadAdmin, request(200000, {}));
 
     assert.equal(res.status, 400);
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).put("/all-out/events/200000");
+    const res = await request(200000);
 
     assert.equal(res.status, 401);
   });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(testUser1, request(app).put("/all-out/events/200000"));
+    const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.status, 403);
   });

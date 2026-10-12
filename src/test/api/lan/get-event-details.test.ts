@@ -1,9 +1,19 @@
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import request from "supertest"
 import { app } from "#/app";
-import { testLanDemomanMap, testLanEvent, testLanParticipant, testLanSoldierMap } from "./lan-test-entities";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
+import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+import {
+  testLanDemomanMap,
+  testLanEvent,
+  testLanParticipant,
+  testLanSoldierMap,
+} from "./lan-test-entities";
+
+function request(eventId = testLanEvent.id) {
+  return supertest(app).get("/lan/events/" + eventId);
+}
 
 describe("GET /lan/events/:eventId", () => {
   beforeAll(async () => {
@@ -15,9 +25,9 @@ describe("GET /lan/events/:eventId", () => {
   });
 
   it("returns event details", async () => {
-    const res = await request(app).get("/lan/events/" + testLanEvent.id)
+    const res = await request();
 
-    assert(res.ok)
+    assert(res.ok);
     assert.containsSubset(res.body, {
       id: testLanEvent.id,
       start: testLanEvent.start.toISOString(),
@@ -29,23 +39,25 @@ describe("GET /lan/events/:eventId", () => {
       canceled: testLanEvent.canceled,
       maps: {
         soldier: [testLanSoldierMap.name],
-        demoman: [testLanDemomanMap.name]
+        demoman: [testLanDemomanMap.name],
       },
-      participants: [{
-        id: testLanParticipant.id,
-        alias: testLanParticipant.alias,
-        disqualified: testLanParticipant.disqualified,
-        steam64Id: testUser1.steam64Id,
-        soldierDivision: {
-          name: testSoldierDivision.name,
-          color: testSoldierDivision.color
+      participants: [
+        {
+          id: testLanParticipant.id,
+          alias: testLanParticipant.alias,
+          disqualified: testLanParticipant.disqualified,
+          steam64Id: testUser1.steam64Id,
+          soldierDivision: {
+            name: testSoldierDivision.name,
+            color: testSoldierDivision.color,
+          },
+          demomanDivision: {
+            name: testDemomanDivision.name,
+            color: testDemomanDivision.color,
+          },
         },
-        demomanDivision: {
-          name: testDemomanDivision.name,
-          color: testDemomanDivision.color
-        }
-      }]
-    })
-    assert.hasAnyKeys(res.body.participants[0], ["name", "avatar"])
-  })
-})
+      ],
+    });
+    assert.hasAnyKeys(res.body.participants[0], ["name", "avatar"]);
+  });
+});

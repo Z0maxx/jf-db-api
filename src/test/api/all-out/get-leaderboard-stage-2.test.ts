@@ -2,7 +2,7 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { MapNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testSoldierDivision, testUser1 } from "../test-entities";
@@ -11,6 +11,10 @@ import {
   testAllOutStage2LeaderboardItem1,
   testAllOutStage2SoldierMap,
 } from "./all-out-test-entities";
+
+function request(queryParams: URLSearchParams) {
+  return supertest(app).get("/all-out/leaderboard/stage-2").query(queryParams.toString());
+}
 
 const entities: BaseEntity[] = [];
 describe("GET /all-out/leaderboard/stage-2", () => {
@@ -28,7 +32,7 @@ describe("GET /all-out/leaderboard/stage-2", () => {
       page: "2",
       pageSize: "1",
     });
-    const res = await request(app).get("/all-out/leaderboard/stage-2?" + queryParams);
+    const res = await request(queryParams);
 
     assert(res.ok);
     assert.hasAnyKeys(res.body[0].user, ["name", "avatar"]);
@@ -56,7 +60,7 @@ describe("GET /all-out/leaderboard/stage-2", () => {
       page: "10",
       pageSize: "2",
     });
-    const res = await request(app).get("/all-out/leaderboard/stage-2?" + queryParams);
+    const res = await request(queryParams);
 
     assert(res.ok);
     assert.isEmpty(res.body);
@@ -100,7 +104,7 @@ describe("GET /all-out/leaderboard/stage-2", () => {
       page: "1",
       pageSize: "1",
     });
-    const res = await request(app).get("/all-out/leaderboard/stage-2?" + queryParams);
+    const res = await request(queryParams);
 
     assert.ok(res.ok);
     assert.isEmpty(res.body);
@@ -112,7 +116,7 @@ describe("GET /all-out/leaderboard/stage-2", () => {
       page: "2",
       pageSize: "2",
     });
-    const res = await request(app).get("/all-out/leaderboard/stage-2?" + queryParams);
+    const res = await request(queryParams);
 
     assert.equal(res.statusCode, 404);
     assert.deepEqual(res.body, {
@@ -126,7 +130,7 @@ describe("GET /all-out/leaderboard/stage-2", () => {
       page: "-10",
       pageSize: "asd",
     });
-    const res = await request(app).get("/all-out/leaderboard/stage-1?" + queryParams);
+    const res = await request(queryParams);
 
     assert(res.badRequest);
     assert(["mapId", "page", "pageSize"].every((param) => res.text.includes(param)));

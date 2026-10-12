@@ -48,10 +48,10 @@ lanRouter.post(
   userCan("manage events"),
   id("eventId"),
   async (req, res) => {
-    await lanService.cancelEventAsync(req.ids.eventId)
-    res.status(204).send()
-  }
-)
+    await lanService.cancelEventAsync(req.ids.eventId);
+    res.status(204).send();
+  },
+);
 
 lanRouter.post(
   "/participants/:participantId/disqualify",
@@ -59,7 +59,7 @@ lanRouter.post(
   userCan("manage events"),
   id("participantId"),
   async (req, res) => {
-    await lanService.disqualifyParticipant(req.ids.participantId)
-    res.status(204).send()
-  }
-)
+    await lanService.disqualifyParticipant(req.ids.participantId);
+    res.status(204).send();
+  },
+);

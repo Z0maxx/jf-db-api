@@ -3,6 +3,7 @@ import z from "zod";
 
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { Division } from "./db-entities/Division";
+import { LanEvent } from "./db-entities/LanEvent";
 import { TUserTempusIdStatus, User } from "./db-entities/User";
 import {
   CreateAllOutEventSchema,
@@ -17,7 +18,6 @@ import {
   CreateLanEventSchema,
   CreateLanParticipantSchema,
 } from "./schemas";
-import { LanEvent } from "./db-entities/LanEvent";
 
 export type ClaimDto = {
   id: number;
@@ -112,7 +112,7 @@ export type LanEventDetailsDto = {
   id: number;
   name: string;
   start: Date;
-  end: Date | undefined
+  end: Date | undefined;
   description: string;
   trailerUrl: string;
   posterUrl: string;

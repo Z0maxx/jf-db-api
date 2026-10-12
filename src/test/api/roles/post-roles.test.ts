@@ -9,11 +9,16 @@ import {
 import { roleDuplicateClaimValidator } from "#/roles/validators/role-duplicate-claim.validator";
 import { roleDuplicateValidator } from "#/roles/validators/role-duplicate.validator";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(roles?: object) {
+  const req = supertest(app).post("/roles");
+  return roles === undefined ? req : req.send(roles);
+}
 
 const entities: BaseEntity[] = [];
 describe("POST /roles", () => {
@@ -57,7 +62,7 @@ describe("POST /roles", () => {
       },
     ];
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(roles);
+    const res = await loginAs(testHeadAdmin, request(roles));
 
     assert.equal(res.status, 204);
     const deletedRole = await ctx.roles.findOne({ id: roleToDelete.id });
@@ -78,7 +83,7 @@ describe("POST /roles", () => {
       claimIds: [],
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role, role]);
+    const res = await loginAs(testHeadAdmin, request([role, role]));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -93,7 +98,7 @@ describe("POST /roles", () => {
       claimIds: [1, 1],
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role]);
+    const res = await loginAs(testHeadAdmin, request([role]));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -105,7 +110,7 @@ describe("POST /roles", () => {
   });
 
   it("returns default roles deleted error when trying to delete default roles", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([]);
+    const res = await loginAs(testHeadAdmin, request([]));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -127,7 +132,7 @@ describe("POST /roles", () => {
       },
     ];
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(roles);
+    const res = await loginAs(testHeadAdmin, request(roles));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -145,7 +150,7 @@ describe("POST /roles", () => {
       .filter((r) => r.name !== role.name)
       .map(({ name, claimCollection }) => ({ name, claimIds: claimCollection.map((c) => c.id) }));
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send(otherRoles);
+    const res = await loginAs(testHeadAdmin, request(otherRoles));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -157,7 +162,7 @@ describe("POST /roles", () => {
   it("returns claims not found error when a role has not existing claim ids", async () => {
     const role = { name: "role with missing claim", claimIds: [200_000] };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([role]);
+    const res = await loginAs(testHeadAdmin, request([role]));
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -167,19 +172,19 @@ describe("POST /roles", () => {
   });
 
   it("returns bad request when body in incorrect", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).post("/roles")).send([{}]);
+    const res = await loginAs(testHeadAdmin, request([{}]));
 
     assert.equal(res.status, 400);
   });
 
   it("returns forbidden when the user cannot manage roles", async () => {
-    const res = await loginAs(testUser1, request(app).post("/roles")).send([]);
+    const res = await loginAs(testUser1, request([]));
 
     assert.equal(res.statusCode, 403);
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/roles").send([]);
+    const res = await request([]);
 
     assert.equal(res.statusCode, 401);
   });

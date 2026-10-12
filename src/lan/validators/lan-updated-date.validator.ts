@@ -16,12 +16,7 @@ export const lanUpdatedDateValidator: LanEventValidator<string> = {
         name: "end",
       },
     ]
-      .filter(
-        (df) =>
-          df.date &&
-          df.date < now &&
-          df.date.getTime() !== df.originalDate?.getTime(),
-      )
+      .filter((df) => df.date && df.date < now && df.date.getTime() !== df.originalDate?.getTime())
       .map((df) => df.name);
 
     errors.push(...this.getMessages(fields));

@@ -85,8 +85,8 @@ export class UserNotFoundError extends NotFoundByIdError {
 
 export class ParticipantNotFoundError extends NotFoundByIdError {
   constructor(participantId: number) {
-    super("Participant", participantId)
-    this.name = "ParticipantNotFoundError"
+    super("Participant", participantId);
+    this.name = "ParticipantNotFoundError";
   }
 }
 

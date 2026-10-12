@@ -32,6 +32,7 @@ export const usersRepository = {
   async createUserAsync(steam64Id: string) {
     const user = ctx.users.create({
       tempusIdStatus: UserTempusIdStatus.UNSET,
+      tempusId: null,
       steam64Id,
       role: userRole,
     });

@@ -503,6 +503,8 @@ CREATE TABLE lan_map (
     UNIQUE (event_id, name)
 );
 
+ALTER TABLE lan_map ADD INDEX idx_lan_map (event_id);
+
 CREATE TABLE lan_participant(
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   alias VARCHAR(30) NOT NULL,
@@ -519,3 +521,5 @@ CREATE TABLE lan_participant(
   CONSTRAINT unq_lan_participant
     UNIQUE (event_id, user_id)
 );
+
+ALTER TABLE lan_participant ADD INDEX idx_lan_participant (event_id);

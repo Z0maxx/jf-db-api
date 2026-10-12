@@ -2,12 +2,16 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { EventNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testUser1, testUser2 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import { testAllOutEvent } from "./all-out-test-entities";
+
+function request(id: number) {
+  return supertest(app).get(`/all-out/events/${id}/registration`);
+}
 
 const entities: BaseEntity[] = [];
 describe("GET /all-out/events/:eventId/registration", () => {
@@ -39,18 +43,9 @@ describe("GET /all-out/events/:eventId/registration", () => {
       resigned: true,
     });
 
-    const res1 = await loginAs(
-      testUser1,
-      request(app).get(`/all-out/events/${testAllOutEvent.id}/registration`),
-    );
-    const res2 = await loginAs(
-      testUser1,
-      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
-    );
-    const res3 = await loginAs(
-      testUser2,
-      request(app).get(`/all-out/events/${otherEvent.id}/registration`),
-    );
+    const res1 = await loginAs(testUser1, request(testAllOutEvent.id));
+    const res2 = await loginAs(testUser1, request(otherEvent.id));
+    const res3 = await loginAs(testUser2, request(otherEvent.id));
 
     assert(res1.ok);
     assert(res2.ok);
@@ -61,7 +56,7 @@ describe("GET /all-out/events/:eventId/registration", () => {
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await loginAs(testUser1, request(app).get("/all-out/events/200000/registration"));
+    const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {
@@ -71,7 +66,7 @@ describe("GET /all-out/events/:eventId/registration", () => {
   });
 
   it("returns unauthorized when not logged in", async () => {
-    const res = request(app).get(`/all-out/events/${testAllOutEvent.id}/registration`);
+    const res = request(testAllOutEvent.id);
 
     assert.equal((await res).status, 401);
   });

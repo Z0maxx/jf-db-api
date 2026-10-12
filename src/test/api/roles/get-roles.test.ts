@@ -1,9 +1,12 @@
 import { app } from "#/app";
 import { headAdminRole, userRole } from "#/default-entities";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+function request() {
+  return supertest(app).get("/roles");
+}
 
 describe("GET /roles", () => {
   beforeAll(async () => {
@@ -15,7 +18,7 @@ describe("GET /roles", () => {
   });
 
   it("returns all roles", async () => {
-    const res = await request(app).get("/roles");
+    const res = await request();
 
     assert(res.ok);
     assert.containsSubset(res.body, [

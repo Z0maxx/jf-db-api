@@ -1,7 +1,8 @@
-import { BaseEntity, Collection, type Ref, defineEntity, p } from '@mikro-orm/core';
-import { AllOutEvent } from './AllOutEvent';
-import { AllOutStage2LeaderboardItem } from './AllOutStage2LeaderboardItem';
-import { Division } from './Division';
+import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
+
+import { AllOutEvent } from "./AllOutEvent";
+import { AllOutStage2LeaderboardItem } from "./AllOutStage2LeaderboardItem";
+import { Division } from "./Division";
 
 export class AllOutStage2Map extends BaseEntity {
   id!: number;
@@ -13,19 +14,32 @@ export class AllOutStage2Map extends BaseEntity {
 
 export const AllOutStage2MapSchema = defineEntity({
   class: AllOutStage2Map,
-  tableName: 'all_out_stage_2_map',
-  uniques: [{ name: 'unq_all_out_stage_2_map', properties: ['event', 'name'] }],
+  tableName: "all_out_stage_2_map",
+  uniques: [{ name: "unq_all_out_stage_2_map", properties: ["event", "name"] }],
   checks: [
     {
-      name: 'chk_all_out_stage_2_map_name',
-      expression: 'char_length(`name`) > 0',
+      name: "chk_all_out_stage_2_map_name",
+      expression: "char_length(`name`) > 0",
     },
   ],
   properties: {
     id: p.integer().primary(),
     name: p.string().length(100),
-    division: () => p.manyToOne(Division).ref().updateRule('restrict').deleteRule('restrict').index('fk_all_out_stage_2_map_division_id'),
-    event: () => p.manyToOne(AllOutEvent).ref().updateRule('restrict').deleteRule('cascade').index('idx_all_out_stage_2_map'),
-    allOutStage2LeaderboardItemCollection: () => p.oneToMany(AllOutStage2LeaderboardItem).mappedBy('map'),
+    division: () =>
+      p
+        .manyToOne(Division)
+        .ref()
+        .updateRule("restrict")
+        .deleteRule("restrict")
+        .index("fk_all_out_stage_2_map_division_id"),
+    event: () =>
+      p
+        .manyToOne(AllOutEvent)
+        .ref()
+        .updateRule("restrict")
+        .deleteRule("cascade")
+        .index("idx_all_out_stage_2_map"),
+    allOutStage2LeaderboardItemCollection: () =>
+      p.oneToMany(AllOutStage2LeaderboardItem).mappedBy("map"),
   },
 });

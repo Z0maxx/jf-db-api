@@ -1,6 +1,6 @@
 import { app } from "#/app";
 import { EventNotFoundError } from "#/errors";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testDemomanDivision, testSoldierDivision, testUser1, testUser2 } from "../test-entities";
@@ -10,6 +10,10 @@ import {
   testAllOutParticipant1,
   testAllOutParticipant2,
 } from "./all-out-test-entities";
+
+function request(id: number) {
+  return supertest(app).get(`/all-out/events/${id}/participants`);
+}
 
 describe("GET /all-out/event/:eventId/participants", () => {
   beforeAll(async () => {
@@ -21,7 +25,7 @@ describe("GET /all-out/event/:eventId/participants", () => {
   });
 
   it("returns event participants", async () => {
-    const res = await request(app).get(`/all-out/events/${testAllOutEvent.id}/participants`);
+    const res = await request(testAllOutEvent.id);
 
     assert(res.ok);
     assert.lengthOf(res.body, 2);
@@ -55,7 +59,7 @@ describe("GET /all-out/event/:eventId/participants", () => {
   });
 
   it("returns not found error when event doesn't exist", async () => {
-    const res = await request(app).get(`/all-out/events/200000/participants`);
+    const res = await request(200000);
 
     assert.equal(res.statusCode, 404);
     assert.deepStrictEqual(res.body, {

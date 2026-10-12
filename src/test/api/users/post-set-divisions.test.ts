@@ -7,7 +7,7 @@ import { DivisionsNotFoundError, UserNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { divisionTypeValidator } from "#/users/validators/division-type.validator";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import {
@@ -20,6 +20,12 @@ import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../u
 
 let otherSoldierDivision: Division = null!;
 let otherDemomanDivision: Division = null!;
+
+function request(userDivisions?: object) {
+  const req = supertest(app).post("/users/set-divisions");
+  return userDivisions === undefined ? req : req.send(userDivisions);
+}
+
 const entities: BaseEntity[] = [];
 describe("POST /users/set-divisions", () => {
   beforeAll(async () => {
@@ -99,9 +105,7 @@ describe("POST /users/set-divisions", () => {
       soldierDivisionId: otherSoldierDivision.id,
       demomanDivisionId: otherDemomanDivision.id,
     };
-    const res = await loginAs(testHeadAdmin, request(app).post("/users/set-divisions")).send(
-      userDivisions,
-    );
+    const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert(res.ok);
     await user.divisionCollection.load({ refresh: true });
@@ -160,9 +164,7 @@ describe("POST /users/set-divisions", () => {
       soldierDivisionId: otherSoldierDivision.id,
       demomanDivisionId: otherDemomanDivision.id,
     };
-    const res = await loginAs(testHeadAdmin, request(app).post("/users/set-divisions")).send(
-      userDivisions,
-    );
+    const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert(res.ok);
     await user.divisionCollection.load({ refresh: true });
@@ -183,9 +185,7 @@ describe("POST /users/set-divisions", () => {
       soldierDivisionId: testDemomanDivision.id,
       demomanDivisionId: testSoldierDivision.id,
     };
-    const res = await loginAs(testHeadAdmin, request(app).post("/users/set-divisions")).send(
-      userDivisions,
-    );
+    const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
@@ -203,9 +203,7 @@ describe("POST /users/set-divisions", () => {
       soldierDivisionId: otherSoldierDivision.id,
       demomanDivisionId: otherDemomanDivision.id,
     };
-    const res = await loginAs(testHeadAdmin, request(app).post("/users/set-divisions")).send(
-      userDivisions,
-    );
+    const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -221,9 +219,7 @@ describe("POST /users/set-divisions", () => {
       demomanDivisionId: 200_002,
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/users/set-divisions")).send(
-      userDivisions,
-    );
+    const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
@@ -233,13 +229,13 @@ describe("POST /users/set-divisions", () => {
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/users/set-divisions");
+    const res = await request();
 
     assert.equal(res.status, 401);
   });
 
   it("returns forbidden when user cannot manage user divisions", async () => {
-    const res = await loginAs(testUser1, request(app).post("/users/set-divisions"));
+    const res = await loginAs(testUser1, request());
 
     assert.equal(res.status, 403);
   });

@@ -4,11 +4,16 @@ import { DivisionType } from "#/db-entities/Division";
 import { divisionDuplicateValidator } from "#/divisions/validators/division-duplicate.validator";
 import { UnassignedDivisionsDeletedError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
+
+function request(divisions?: object) {
+  const req = supertest(app).post("/divisions");
+  return divisions === undefined ? req : req.send(divisions);
+}
 
 const entities: BaseEntity[] = [];
 describe("POST /divisions", () => {
@@ -59,7 +64,7 @@ describe("POST /divisions", () => {
       ],
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send(divisions);
+    const res = await loginAs(testHeadAdmin, request(divisions));
 
     assert.equal(res.statusCode, 204);
     const deletedDivision = await ctx.divisions.findOne({ id: divisionToDelete.id });
@@ -82,7 +87,7 @@ describe("POST /divisions", () => {
       demoman: [],
     };
 
-    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send(divisions);
+    const res = await loginAs(testHeadAdmin, request(divisions));
 
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
@@ -92,10 +97,10 @@ describe("POST /divisions", () => {
   });
 
   it("returns unassigned divisions deleted error when trying to delete unassigned divisions", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send({
+    const res = await loginAs(testHeadAdmin, request({
       soldier: [],
       demoman: [],
-    });
+    }));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -108,19 +113,19 @@ describe("POST /divisions", () => {
   });
 
   it("returns bad request when body is incorrect", async () => {
-    const res = await loginAs(testHeadAdmin, request(app).post("/divisions")).send([{}]);
+    const res = await loginAs(testHeadAdmin, request([{}]));
 
     assert.equal(res.status, 400);
   });
 
   it("returns forbidden when the user cannot manage divisions", async () => {
-    const res = await loginAs(testUser1, request(app).post("/divisions")).send([]);
+    const res = await loginAs(testUser1, request([]));
 
     assert.equal(res.statusCode, 403);
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/divisions").send([]);
+    const res = await request([]);
 
     assert.equal(res.statusCode, 401);
   });

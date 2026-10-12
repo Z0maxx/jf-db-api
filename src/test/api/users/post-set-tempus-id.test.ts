@@ -6,7 +6,7 @@ import { userRole } from "#/default-entities";
 import { AlreadySetTempusIdError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
 import { Server } from "node:http";
-import request from "supertest";
+import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testUser1 } from "../test-entities";
@@ -17,6 +17,7 @@ import {
 } from "../util";
 
 let server: Server;
+
 const entities: BaseEntity[] = [];
 describe("POST /users/set-tempus-id", () => {
   beforeAll(async () => {
@@ -103,7 +104,7 @@ describe("POST /users/set-tempus-id", () => {
   });
 
   it("returns unauthorized when user is not logged in", async () => {
-    const res = await request(app).post("/users/set-tempus-id");
+    const res = await supertest(app).post("/users/set-tempus-id");
 
     assert.equal(res.statusCode, 401);
   });
