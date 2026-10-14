@@ -1,6 +1,7 @@
 import { LanMapType, TLanMapType } from "#/db-entities/LanMap";
-import { CreateLanEventDto, LanEventValidator } from "#/types";
 import { getDuplicates } from "#/util";
+
+import { LanEventValidator, CreateLanEventDto } from "../lan.types";
 
 type LanDuplicateMaps = {
   type: TLanMapType;

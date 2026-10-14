@@ -2,8 +2,9 @@ import { ctx } from "#/db-context";
 import { Role } from "#/db-entities/Role";
 import { TUserTempusIdStatus, User, UserTempusIdStatus } from "#/db-entities/User";
 import { unassignedDemomanDivision, unassignedSoldierDivision, userRole } from "#/default-entities";
-import { UserDivisions } from "#/types";
 import { ref } from "@mikro-orm/core";
+
+import { UserDivisions } from "./users.types";
 
 export const usersRepository = {
   async getAllUsersAsync() {

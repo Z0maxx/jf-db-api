@@ -1,5 +1,6 @@
-import { CreateRoleDto, RoleValidator } from "#/types";
 import { getDuplicates } from "#/util";
+
+import { RoleValidator, CreateRoleDto } from "../roles.types";
 
 type DuplicateRoleClaims = {
   role: string;

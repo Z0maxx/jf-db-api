@@ -1,8 +1,8 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { DivisionType } from "#/db-entities/Division";
+import { UnassignedDivisionsDeletedError } from "#/divisions/divisions.errors";
 import { divisionDuplicateValidator } from "#/divisions/validators/division-duplicate.validator";
-import { UnassignedDivisionsDeletedError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
@@ -97,10 +97,13 @@ describe("POST /divisions", () => {
   });
 
   it("returns unassigned divisions deleted error when trying to delete unassigned divisions", async () => {
-    const res = await loginAs(testHeadAdmin, request({
-      soldier: [],
-      demoman: [],
-    }));
+    const res = await loginAs(
+      testHeadAdmin,
+      request({
+        soldier: [],
+        demoman: [],
+      }),
+    );
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {
@@ -118,15 +121,15 @@ describe("POST /divisions", () => {
     assert.equal(res.status, 400);
   });
 
-  it("returns forbidden when the user cannot manage divisions", async () => {
-    const res = await loginAs(testUser1, request([]));
-
-    assert.equal(res.statusCode, 403);
-  });
-
   it("returns unauthorized when user is not logged in", async () => {
     const res = await request([]);
 
     assert.equal(res.statusCode, 401);
+  });
+
+  it("returns forbidden when the user cannot manage divisions", async () => {
+    const res = await loginAs(testUser1, request([]));
+
+    assert.equal(res.statusCode, 403);
   });
 });

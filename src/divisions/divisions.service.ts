@@ -1,11 +1,8 @@
-import {
-  UnassignedDivisionsDeletedError,
-  DivisionsHaveUsersError,
-  ValidationError,
-} from "#/errors";
-import { DivisionDto, DivisionsListDto, DivisionValidator } from "#/types";
+import { ValidationError } from "#/errors";
 
+import { DivisionsHaveUsersError, UnassignedDivisionsDeletedError } from "./divisions.errors";
 import { divisionsRepository } from "./divisions.repository";
+import { DivisionsListDto, DivisionDto, DivisionValidator } from "./divisions.types";
 import { divisionDuplicateValidator } from "./validators/division-duplicate.validator";
 
 export const divisionsService = {

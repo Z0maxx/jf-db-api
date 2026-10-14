@@ -3,7 +3,8 @@ import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.v
 import { allOutUpdatedDateValidator } from "#/all-out/validators/all-out-updated-date.validator";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
-import { DivisionsNotFoundError, EventNotFoundError } from "#/errors";
+import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
+import { EventNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";

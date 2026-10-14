@@ -5,7 +5,7 @@ import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
 import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
 import { DivisionType } from "#/db-entities/Division";
 import { MonthlyMap } from "#/db-entities/MonthlyMap";
-import { CreateEventMapDto, EventMapDto, MapsDto } from "#/types";
+import { CreateDivisionMapDto, DivisionMapDto, MapsDto } from "#/types";
 import {
   EntityData,
   FromEntityType,
@@ -17,8 +17,8 @@ import {
 } from "@mikro-orm/core";
 import { SqlEntityRepository } from "@mikro-orm/sql";
 
-export async function setMapsAsync<
-  TCreateMap extends CreateEventMapDto,
+export async function setDivisionMapsAsync<
+  TCreateMap extends CreateDivisionMapDto,
   TDbMap extends AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
 >(
   repository: SqlEntityRepository<TDbMap>,
@@ -46,7 +46,7 @@ export function transformDbMaps<
     AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
     "division"
   >,
-  TMap extends EventMapDto,
+  TMap extends DivisionMapDto,
 >(maps: Collection<TDbMap>, transformFn: (map: TDbMap) => TMap) {
   return {
     soldier: maps.filter((m) => m.division.$.type === DivisionType.SOLDIER).map(transformFn),

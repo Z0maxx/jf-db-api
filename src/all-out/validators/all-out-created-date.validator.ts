@@ -1,4 +1,9 @@
-import { AllOutEventValidator, CreateAllOutEventDto, StageInvalidDateFields } from "#/types";
+import { AllOutEventValidator, CreateAllOutEventDto } from "../all-out.types";
+
+export type StageInvalidDateFields = {
+  stage: number;
+  invalidDateFields: string[];
+};
 
 type CreatedDateFields = {
   stage: number;

@@ -1,4 +1,6 @@
-import { AllOutEventValidator, CreateAllOutEventDto, Schedule } from "#/types";
+import { Schedule } from "#/types";
+
+import { AllOutEventValidator, CreateAllOutEventDto } from "../all-out.types";
 
 export const allOutScheduleValidator: AllOutEventValidator<Schedule> = {
   validate(errors: string[], { stage1, stage2, stage3 }: CreateAllOutEventDto) {

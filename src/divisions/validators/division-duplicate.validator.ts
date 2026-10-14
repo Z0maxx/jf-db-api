@@ -1,5 +1,6 @@
-import { DivisionsListDto, DivisionValidator } from "#/types";
 import { getDuplicates } from "#/util";
+
+import { DivisionsListDto, DivisionValidator } from "../divisions.types";
 
 export const divisionDuplicateValidator: DivisionValidator = {
   validate(errors: string[], divisions: DivisionsListDto) {

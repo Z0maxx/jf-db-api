@@ -3,14 +3,14 @@ import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
 import { Division } from "#/db-entities/Division";
 import { User } from "#/db-entities/User";
-import { setMapsAsync } from "#/helpers/map.helper";
+import { setDivisionMapsAsync } from "#/helpers/division-map.helper";
 import { getLeaderboardFilter } from "#/mikro-filters";
 import {
   CreateAllOutEventDto,
   LeaderboardQuery,
   Registration,
-  CreateEventMapDto,
-  CreateTimeLimitedEventMapDto,
+  CreateDivisionMapDto,
+  CreateTimeLimitedDivisionMapDto,
 } from "#/types";
 import { Loaded, wrap } from "@mikro-orm/core";
 
@@ -214,45 +214,45 @@ async function setStageMapsAsync(event: AllOutEvent, newEvent: CreateAllOutEvent
 
 async function setStage1MapsAsync(
   event: AllOutEvent,
-  maps: CreateTimeLimitedEventMapDto[],
+  maps: CreateTimeLimitedDivisionMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateTimeLimitedEventMapDto) => ({
+  const transformFn = (m: CreateTimeLimitedDivisionMapDto) => ({
     name: m.name,
     timeLimit: m.timeLimit,
     division: divisionsMap.get(m.divisionId)!,
     event,
   });
 
-  await setMapsAsync(ctx.allOut.stage1Maps, event, maps, transformFn, transformFn);
+  await setDivisionMapsAsync(ctx.allOut.stage1Maps, event, maps, transformFn, transformFn);
 }
 
 async function setStage2MapsAsync(
   event: AllOutEvent,
-  maps: CreateEventMapDto[],
+  maps: CreateDivisionMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateEventMapDto) => ({
+  const transformFn = (m: CreateDivisionMapDto) => ({
     name: m.name,
     division: divisionsMap.get(m.divisionId)!,
     event,
   });
 
-  await setMapsAsync(ctx.allOut.stage2Maps, event, maps, transformFn, transformFn);
+  await setDivisionMapsAsync(ctx.allOut.stage2Maps, event, maps, transformFn, transformFn);
 }
 
 async function setStage3MapsAsync(
   event: AllOutEvent,
-  maps: CreateEventMapDto[],
+  maps: CreateDivisionMapDto[],
   divisionsMap: Map<number, Division>,
 ) {
-  const transformFn = (m: CreateEventMapDto) => ({
+  const transformFn = (m: CreateDivisionMapDto) => ({
     name: m.name,
     division: divisionsMap.get(m.divisionId)!,
     event,
   });
 
-  await setMapsAsync(ctx.allOut.stage3Maps, event, maps, transformFn, transformFn);
+  await setDivisionMapsAsync(ctx.allOut.stage3Maps, event, maps, transformFn, transformFn);
 }
 
 async function updateEventParticipantsAsync(event: AllOutEvent) {

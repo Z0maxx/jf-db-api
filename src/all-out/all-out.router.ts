@@ -3,9 +3,10 @@ import { id } from "#/middlewares/id.middleware";
 import { leaderboardQuery } from "#/middlewares/leaderboard-query.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { CreateAllOutEventSchema, LeaderboardQuerySchema } from "#/schemas";
+import { LeaderboardQuerySchema } from "#/schemas";
 import express from "express";
 
+import { CreateAllOutEventSchema } from "./all-out.schemas";
 import { allOutService } from "./all-out.service";
 
 export const allOutRouter = express.Router();

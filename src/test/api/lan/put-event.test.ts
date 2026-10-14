@@ -1,19 +1,20 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { LanMapType } from "#/db-entities/LanMap";
+import { EventNotFoundError } from "#/errors";
+import { lanDuplicateMapValidator } from "#/lan/validators/lan-duplicate-map.validator";
+import { lanDuplicateParticipantAliasValidator } from "#/lan/validators/lan-duplicate-participant-alias.validator";
+import { lanDuplicateParticipantValidator } from "#/lan/validators/lan-duplicate-participant.validator";
 import { lanUpdatedDateValidator } from "#/lan/validators/lan-updated-date.validator";
 import { tomorrow, yesterday } from "#/test/test-dates";
+import { UsersNotFoundError } from "#/users/users.errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testUser1, testUser2 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { lanDuplicateParticipantValidator } from "#/lan/validators/lan-duplicate-participant.validator";
-import { lanDuplicateParticipantAliasValidator } from "#/lan/validators/lan-duplicate-participant-alias.validator";
-import { EventNotFoundError, UsersNotFoundError } from "#/errors";
 import { testLanDemomanMap, testLanSoldierMap } from "./lan-test-entities";
-import { lanDuplicateMapValidator } from "#/lan/validators/lan-duplicate-map.validator";
 
 function request(eventId: number, event?: object) {
   const req = supertest(app).put("/lan/events/" + eventId);

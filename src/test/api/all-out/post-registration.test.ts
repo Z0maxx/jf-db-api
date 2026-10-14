@@ -180,10 +180,7 @@ describe("POST /all-out/events/:eventId/registration", () => {
       }),
     );
 
-    const res = await loginAs(
-      testUser1,
-      request(event.id),
-    );
+    const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
     assert.deepStrictEqual(res.body, {

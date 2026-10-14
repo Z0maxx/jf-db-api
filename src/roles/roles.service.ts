@@ -1,14 +1,14 @@
+import { ClaimsNotFoundError } from "#/claims/claims.errors";
 import { claimsRepository } from "#/claims/claims.repository";
+import { ValidationError } from "#/errors";
+
 import {
-  ClaimsNotFoundError,
   DefaultRolesDeletedError,
   DefaultRolesModifiedError,
   RolesHaveUsersError,
-  ValidationError,
-} from "#/errors";
-import { CreateRoleDto, RoleDto, RoleValidator } from "#/types";
-
+} from "./roles.errors";
 import { rolesRepository } from "./roles.repository";
+import { CreateRoleDto, RoleDto, RoleValidator } from "./roles.types";
 import { roleDuplicateClaimValidator } from "./validators/role-duplicate-claim.validator";
 import { roleDuplicateValidator } from "./validators/role-duplicate.validator";
 

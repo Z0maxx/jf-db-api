@@ -4,16 +4,12 @@ import { getAppError } from "#/middlewares/error-handler.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { querySchema } from "#/middlewares/query-schema.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import {
-  SetUserDivisionsSchema,
-  SetUserRoleSchema,
-  TempusIdSchema,
-  UserQuerySchema,
-} from "#/schemas";
+import { TempusIdSchema, UserQuerySchema } from "#/schemas";
 import { initSse } from "#/sse";
-import { TempusIdVerificationResult } from "#/types";
+import { TempusIdVerificationResult } from "#/tempus/tempus.types";
 import express from "express";
 
+import { SetUserDivisionsSchema, SetUserRoleSchema } from "./users.schemas";
 import { usersService } from "./users.service";
 
 export const usersRouter = express.Router();

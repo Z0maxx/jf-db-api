@@ -1,23 +1,23 @@
 import { allOutRepository } from "#/all-out/all-out.repository";
 import { Role } from "#/db-entities/Role";
 import { User, UserTempusIdStatus } from "#/db-entities/User";
+import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { divisionsRepository } from "#/divisions/divisions.repository";
+import { UserNotFoundError, ValidationError } from "#/errors";
+import { RoleNotFoundError } from "#/roles/roles.errors";
+import { rolesRepository } from "#/roles/roles.repository";
+import { steamService } from "#/steam/steam.service";
+import { tempusService } from "#/tempus/tempus.service";
+import { AppUser, LoadedUser } from "#/types";
+import { convertToSteam64Id, getAppUser } from "#/util";
+
 import {
   AlreadySetTempusIdError,
   CannotSetOwnRoleError,
   CannotSetRoleWithLevelError,
-  DivisionsNotFoundError,
-  RoleNotFoundError,
-  UserNotFoundError,
-  ValidationError,
-} from "#/errors";
-import { rolesRepository } from "#/roles/roles.repository";
-import { steamService } from "#/steam/steam.service";
-import { tempusService } from "#/tempus/tempus.service";
-import { AppUser, LoadedUser, SetUserDivisions, SetUserRole, UserDivisions } from "#/types";
-import { convertToSteam64Id, getAppUser } from "#/util";
-
+} from "./users.errors";
 import { usersRepository } from "./users.repository";
+import { SetUserDivisions, SetUserRole, UserDivisions } from "./users.types";
 import { divisionTypeValidator } from "./validators/division-type.validator";
 
 export const usersService = {

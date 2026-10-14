@@ -1,7 +1,8 @@
 import { ctx } from "#/db-context";
 import { Claim } from "#/db-entities/Claim";
-import { CreateRoleDto } from "#/types";
 import { wrap } from "@mikro-orm/core";
+
+import { CreateRoleDto } from "./roles.types";
 
 export const rolesRepository = {
   async getAllRolesAsync() {

@@ -1,11 +1,11 @@
 import { app } from "#/app";
+import { ClaimsNotFoundError } from "#/claims/claims.errors";
 import { ctx } from "#/db-context";
 import {
-  ClaimsNotFoundError,
   DefaultRolesDeletedError,
   DefaultRolesModifiedError,
   RolesHaveUsersError,
-} from "#/errors";
+} from "#/roles/roles.errors";
 import { roleDuplicateClaimValidator } from "#/roles/validators/role-duplicate-claim.validator";
 import { roleDuplicateValidator } from "#/roles/validators/role-duplicate.validator";
 import { BaseEntity } from "@mikro-orm/core";

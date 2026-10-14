@@ -1,9 +1,9 @@
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { DivisionsListSchema } from "#/schemas";
 import express from "express";
 
+import { DivisionsListSchema } from "./divisions.schemas";
 import { divisionsService } from "./divisions.service";
 
 export const divisionsRouter = express.Router();

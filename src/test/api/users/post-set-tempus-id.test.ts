@@ -3,7 +3,7 @@ import { authService } from "#/auth/auth.service";
 import { ctx } from "#/db-context";
 import { UserTempusIdStatus } from "#/db-entities/User";
 import { userRole } from "#/default-entities";
-import { AlreadySetTempusIdError } from "#/errors";
+import { AlreadySetTempusIdError } from "#/users/users.errors";
 import { BaseEntity } from "@mikro-orm/core";
 import { Server } from "node:http";
 import supertest from "supertest";

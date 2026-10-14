@@ -1,5 +1,6 @@
 import { DivisionType, TDivisionType } from "#/db-entities/Division";
-import { UserDivisions } from "#/types";
+
+import { UserDivisions } from "../users.types";
 
 type InvalidDivisionType = {
   divisionId: number;

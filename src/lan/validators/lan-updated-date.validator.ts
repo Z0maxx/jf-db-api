@@ -1,5 +1,6 @@
 import { LanEvent } from "#/db-entities/LanEvent";
-import { CreateLanEventDto, LanEventValidator } from "#/types";
+
+import { LanEventValidator, CreateLanEventDto } from "../lan.types";
 
 export const lanUpdatedDateValidator: LanEventValidator<string> = {
   validate(errors: string[], event: CreateLanEventDto, originalEvent: LanEvent) {

@@ -9,7 +9,6 @@ function request(query: string) {
   return supertest(app).get("/users").query({ query });
 }
 
-
 describe("GET /users", () => {
   beforeAll(async () => {
     await setupApiTestSuiteAsync();

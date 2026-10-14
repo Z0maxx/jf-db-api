@@ -1,4 +1,3 @@
-import { User } from "./db-entities/User";
 import { Registration } from "./types";
 
 export abstract class AppError extends Error {
@@ -90,46 +89,11 @@ export class ParticipantNotFoundError extends NotFoundByIdError {
   }
 }
 
-export class RoleNotFoundError extends NotFoundByIdError {
-  constructor(roleId: number) {
-    super("Role", roleId);
-    this.name = "RoleNotFoundError";
-  }
-}
-
 export class RegistrationNotFoundError extends NotFoundError {
   constructor(registration: Registration) {
     super();
     this.message = `Registration for user with id '${registration.user.id}' not found to event with id '${registration.eventId}'`;
     this.name = "RegistrationNotFoundError";
-  }
-}
-
-export class SteamUsersNotFoundError extends NotFoundByIdsError {
-  constructor(steam64Ids: string[]) {
-    super("Steam user", steam64Ids);
-    this.name = "SteamUsersNotFoundError";
-  }
-}
-
-export class DivisionsNotFoundError extends NotFoundByIdsError {
-  constructor(divisionIds: number[]) {
-    super("Division", divisionIds);
-    this.name = "DivisionsNotFoundError";
-  }
-}
-
-export class ClaimsNotFoundError extends NotFoundByIdsError {
-  constructor(claimIds: number[]) {
-    super("Claim", claimIds);
-    this.name = "ClaimsNotFoundError";
-  }
-}
-
-export class UsersNotFoundError extends NotFoundByIdsError {
-  constructor(userIds: number[]) {
-    super("User", userIds);
-    this.name = "UsersNotFoundError";
   }
 }
 
@@ -173,72 +137,11 @@ export class EventEndedError extends ForbiddenError {
   }
 }
 
-export class DivisionsHaveUsersError extends ForbiddenError {
-  constructor(divisionNames: string[]) {
-    super();
-    this.messages = divisionNames.map((d) => `Division '${d}' has users`);
-    this.name = "DivisionsHaveUsersError";
-  }
-}
-
-export class RolesHaveUsersError extends ForbiddenError {
-  constructor(roleNames: string[]) {
-    super();
-    this.messages = roleNames.map((r) => `Role '${r}' has users`);
-    this.name = "RolesHaveUsersError";
-  }
-}
-
-export class CannotSetOwnRoleError extends ForbiddenError {
-  constructor() {
-    super();
-    this.message = "Admins cannot set their own role";
-    this.name = "CannotSetOwnRoleError";
-  }
-}
-
-export class CannotSetRoleWithLevelError extends ForbiddenError {
-  constructor() {
-    super();
-    this.message = "Admins can only set another user's role to a higher level one than theirs";
-    this.name = "CannotSetRoleWithLevelError";
-  }
-}
-
-export class UnassignedDivisionsDeletedError extends DefaultEntitiesDeletedError {
-  constructor(divisionNames: string[]) {
-    super("Division", divisionNames);
-    this.name = "UnassignedDivisionsDeletedError";
-  }
-}
-
-export class DefaultRolesDeletedError extends DefaultEntitiesDeletedError {
-  constructor(roleNames: string[]) {
-    super("Role", roleNames);
-    this.name = "DefaultRolesDeletedError";
-  }
-}
-
-export class DefaultRolesModifiedError extends DefaultEntitiesModifiedError {
-  constructor(roleNames: string[]) {
-    super("Role", roleNames);
-    this.name = "DefaultRolesModifiedError";
-  }
-}
-
 export class AlreadyRegisteredError extends ConflictError {
   constructor(registration: Registration) {
     super();
     this.message = `User with id '${registration.user.id}' has already registered to event with id '${registration.eventId}'`;
     this.name = "AlreadyRegisteredError";
-  }
-}
-
-export class AlreadySetTempusIdError extends ConflictError {
-  constructor(user: User) {
-    super();
-    this.message = `User with id '${user.id}' has already set their tempus id`;
-    this.name = "AlreadySetTempusIdError";
   }
 }
 

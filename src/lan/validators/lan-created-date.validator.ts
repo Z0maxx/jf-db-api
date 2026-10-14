@@ -1,4 +1,4 @@
-import { CreateLanEventDto, LanEventValidator } from "#/types";
+import { LanEventValidator, CreateLanEventDto } from "../lan.types";
 
 export const lanCreatedDateValidator: LanEventValidator<string> = {
   validate(errors: string[], event: CreateLanEventDto) {

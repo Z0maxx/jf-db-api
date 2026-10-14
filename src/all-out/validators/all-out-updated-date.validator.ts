@@ -1,5 +1,7 @@
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
-import { AllOutEventValidator, CreateAllOutEventDto, StageInvalidDateFields } from "#/types";
+import { StageInvalidDateFields } from "#/types";
+
+import { AllOutEventValidator, CreateAllOutEventDto } from "../all-out.types";
 
 type UpdatedDateFields = {
   stage: number;

@@ -2,8 +2,9 @@ import { ctx } from "#/db-context";
 import { LanEvent } from "#/db-entities/LanEvent";
 import { LanMapType, TLanMapType } from "#/db-entities/LanMap";
 import { LanParticipant } from "#/db-entities/LanParticipant";
-import { CreateLanEventDto, CreateLanParticipantDto } from "#/types";
 import { wrap } from "@mikro-orm/core";
+
+import { CreateLanEventDto, CreateLanParticipantDto } from "./lan.types";
 
 export const lanRepository = {
   async getAllEventsAsync() {
@@ -43,6 +44,11 @@ export const lanRepository = {
 
   async cancelEventAsync(event: LanEvent) {
     event.canceled = true;
+    await ctx.saveAsync();
+  },
+
+  async deleteEventAsync(event: LanEvent) {
+    ctx.em.remove(event);
     await ctx.saveAsync();
   },
 };

@@ -1,9 +1,12 @@
 import { envConfig } from "#/env-config";
 import { steamService } from "#/steam/steam.service";
-import { AppUser, AuthResponse, JwtUser, SteamUser } from "#/types";
+import { SteamUser } from "#/steam/steam.types";
+import { AppUser } from "#/types";
 import { usersRepository } from "#/users/users.repository";
 import { getAppUser } from "#/util";
 import jwt from "jsonwebtoken";
+
+import { AuthResponse, JwtUser } from "./auth.types";
 
 const openIdEndpoint = "https://steamcommunity.com/openid/login";
 

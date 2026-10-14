@@ -3,7 +3,7 @@ import { allOutDuplicateMapValidator } from "#/all-out/validators/all-out-duplic
 import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
-import { DivisionsNotFoundError } from "#/errors";
+import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";

@@ -1,14 +1,15 @@
-import { BaseEntity } from "@mikro-orm/core";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
-import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
-import { ctx } from "#/db-context";
-import { testHeadAdmin, testUser1 } from "../test-entities";
-import supertest from "supertest"
 import { app } from "#/app";
+import { ctx } from "#/db-context";
 import { ParticipantNotFoundError } from "#/errors";
+import { BaseEntity } from "@mikro-orm/core";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { testHeadAdmin, testUser1 } from "../test-entities";
+import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 function request(id: number) {
-  return supertest(app).post(`/lan/participants/${id}/disqualify`)
+  return supertest(app).post(`/lan/participants/${id}/disqualify`);
 }
 
 const entities: BaseEntity[] = [];
@@ -31,35 +32,34 @@ describe("POST /lan/participants/:participantId/disqualify", () => {
     const participant = await ctx.lan.participants.upsert({
       user: testUser1,
       event,
-      alias: ""
-    })
+      alias: "",
+    });
 
-    const res = await loginAs(testHeadAdmin, request(participant.id))
+    const res = await loginAs(testHeadAdmin, request(participant.id));
 
-    assert(res.ok)
-    assert(participant.disqualified)
-  })
+    assert(res.ok);
+    assert(participant.disqualified);
+  });
 
   it("returns not found error when participant doesn't exist", async () => {
-    const res = await loginAs(testHeadAdmin, request(200_000))
+    const res = await loginAs(testHeadAdmin, request(200_000));
 
-    assert.equal(res.status, 404)
+    assert.equal(res.status, 404);
     assert.deepStrictEqual(res.body, {
       errorCode: "ParticipantNotFoundError",
-      errorMessage: new ParticipantNotFoundError(200_000).message
-    })
-  })
+      errorMessage: new ParticipantNotFoundError(200_000).message,
+    });
+  });
 
-  it("returns unauthorized when user is not logged in", async() => {
-    const res = await request(200_000)
+  it("returns unauthorized when user is not logged in", async () => {
+    const res = await request(200_000);
 
-    assert.equal(res.status, 401)
-  })
+    assert.equal(res.status, 401);
+  });
 
   it("returns forbidden when user can't manage events", async () => {
-    const res = await loginAs(testUser1, request(200_000))
+    const res = await loginAs(testUser1, request(200_000));
 
-    assert.equal(res.status, 403)
-  })
-})
-
+    assert.equal(res.status, 403);
+  });
+});

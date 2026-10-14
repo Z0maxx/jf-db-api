@@ -10,7 +10,7 @@ import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities"
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 
 function request(id: number) {
-  return supertest(app).delete("/all-out/events/" + id)
+  return supertest(app).delete("/all-out/events/" + id);
 }
 
 const entities: BaseEntity[] = [];
@@ -32,9 +32,6 @@ describe("DELETE /all-out/events/:eventId", () => {
       stage2End: new Date(`${tomorrow} 13:00`),
       stage3Start: new Date(`${tomorrow} 14:00`),
       stage3End: new Date(`${tomorrow} 15:00`),
-      stage1Description: "stage 1 description",
-      stage2Description: "stage 2 description",
-      stage3Description: "stage 3 description",
     });
     entities.push(event);
     await ctx.allOut.stage1Maps.upsert({

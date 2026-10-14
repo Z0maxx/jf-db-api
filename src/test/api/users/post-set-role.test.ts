@@ -2,7 +2,7 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { UserTempusIdStatus } from "#/db-entities/User";
 import { headAdminRole, userRole } from "#/default-entities";
-import { CannotSetOwnRoleError, CannotSetRoleWithLevelError } from "#/errors";
+import { CannotSetOwnRoleError, CannotSetRoleWithLevelError } from "#/users/users.errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";

@@ -1,11 +1,11 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
-import { UsersNotFoundError } from "#/errors";
 import { lanCreatedDateValidator } from "#/lan/validators/lan-created-date.validator";
 import { lanDuplicateMapValidator } from "#/lan/validators/lan-duplicate-map.validator";
 import { lanDuplicateParticipantAliasValidator } from "#/lan/validators/lan-duplicate-participant-alias.validator";
 import { lanDuplicateParticipantValidator } from "#/lan/validators/lan-duplicate-participant.validator";
 import { tomorrow, yesterday } from "#/test/test-dates";
+import { UsersNotFoundError } from "#/users/users.errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";

@@ -1,7 +1,8 @@
 import { ctx } from "#/db-context";
 import { DivisionType, TDivisionType } from "#/db-entities/Division";
-import { DivisionDto, DivisionsListDto } from "#/types";
 import { wrap } from "@mikro-orm/core";
+
+import { DivisionsListDto, DivisionDto } from "./divisions.types";
 
 export const divisionsRepository = {
   async getAllDivisionsAsync() {

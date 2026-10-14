@@ -1,6 +1,8 @@
 import { envConfig } from "#/env-config";
-import { SteamFailedError, SteamUsersNotFoundError } from "#/errors";
-import { SteamUser } from "#/types";
+import { SteamFailedError } from "#/errors";
+
+import { SteamUsersNotFoundError } from "./steam.errors";
+import { SteamUser } from "./steam.types";
 
 type SteamPlayerSummary = {
   steamid: string;

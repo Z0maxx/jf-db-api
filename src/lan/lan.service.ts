@@ -2,21 +2,22 @@ import { LanEvent } from "#/db-entities/LanEvent";
 import { LanMapType } from "#/db-entities/LanMap";
 import {
   EventNotFoundError,
+  EventStartedInPastError,
   ParticipantNotFoundError,
-  UsersNotFoundError,
   ValidationError,
 } from "#/errors";
 import { steamService } from "#/steam/steam.service";
-import {
-  CreateLanEventDto,
-  LanEventDetailsDto,
-  LanEventPreviewDto,
-  LanEventValidator,
-} from "#/types";
+import { UsersNotFoundError } from "#/users/users.errors";
 import { usersRepository } from "#/users/users.repository";
 import { getUserDivisionDtos } from "#/util";
 
 import { lanRepository } from "./lan.repository";
+import {
+  LanEventDetailsDto,
+  LanEventPreviewDto,
+  CreateLanEventDto,
+  LanEventValidator,
+} from "./lan.types";
 import { lanCreatedDateValidator } from "./validators/lan-created-date.validator";
 import { lanDuplicateMapValidator } from "./validators/lan-duplicate-map.validator";
 import { lanDuplicateParticipantAliasValidator } from "./validators/lan-duplicate-participant-alias.validator";
@@ -101,14 +102,20 @@ export const lanService = {
     return await this.getEventDetailsAsync(eventId);
   },
 
+  async disqualifyParticipant(participantId: number) {
+    const participant = await getParticipantByIdAsync(participantId);
+    await lanRepository.disqualifyParticipantAsync(participant);
+  },
+
   async cancelEventAsync(eventId: number) {
     const event = await getEventByIdAsync(eventId);
     await lanRepository.cancelEventAsync(event);
   },
 
-  async disqualifyParticipant(participantId: number) {
-    const participant = await getParticipantByIdAsync(participantId);
-    await lanRepository.disqualifyParticipantAsync(participant);
+  async deleteEventAsync(eventId: number) {
+    const event = await getEventByIdAsync(eventId);
+    checkEventNotStartedInPast(event);
+    await lanRepository.deleteEventAsync(event);
   },
 };
 
@@ -136,6 +143,13 @@ async function checkUsersExistAsync(event: CreateLanEventDto) {
   const missingUsers = userIds.filter((id) => !users.has(id));
   if (missingUsers.length > 0) {
     throw new UsersNotFoundError(missingUsers);
+  }
+}
+
+function checkEventNotStartedInPast(event: LanEvent) {
+  const now = new Date();
+  if (event.start <= now) {
+    throw new EventStartedInPastError(event.id, event.start);
   }
 }
 

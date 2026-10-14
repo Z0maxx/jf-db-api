@@ -1,8 +1,8 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import {
   AlreadyRegisteredError,
-  DivisionsNotFoundError,
   EventEndedError,
   EventNotFoundError,
   EventStartedInPastError,
@@ -11,12 +11,9 @@ import {
   RegistrationNotFoundError,
   ValidationError,
 } from "#/errors";
-import { transformDbMaps } from "#/helpers/map.helper";
+import { transformDbMaps } from "#/helpers/division-map.helper";
 import { steamService } from "#/steam/steam.service";
 import {
-  AllOutEventPreviewDto,
-  AllOutEventValidator,
-  CreateAllOutEventDto,
   LapLeaderboardItemDto,
   LeaderboardItemDto,
   LeaderboardQuery,
@@ -28,6 +25,7 @@ import {
 import { getUserDivisionDtos } from "#/util";
 
 import { allOutRepository } from "./all-out.repository";
+import { AllOutEventPreviewDto, CreateAllOutEventDto, AllOutEventValidator } from "./all-out.types";
 import { allOutCreatedDateValidator } from "./validators/all-out-created-date.validator";
 import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";

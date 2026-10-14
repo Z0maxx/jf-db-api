@@ -1,10 +1,10 @@
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { CreateRoleSchema } from "#/schemas";
 import express from "express";
 import z from "zod";
 
+import { CreateRoleSchema } from "./roles.schemas";
 import { rolesService } from "./roles.service";
 
 const CreateRoleListSchema = z.array(CreateRoleSchema);

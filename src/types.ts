@@ -1,35 +1,14 @@
 import { Loaded } from "@mikro-orm/core";
 import z from "zod";
 
-import { AllOutEvent } from "./db-entities/AllOutEvent";
-import { Division } from "./db-entities/Division";
-import { LanEvent } from "./db-entities/LanEvent";
 import { TUserTempusIdStatus, User } from "./db-entities/User";
+import { DivisionDto } from "./divisions/divisions.types";
 import {
-  CreateAllOutEventSchema,
-  CreateEventMapSchema,
-  CreateRoleSchema,
-  CreateTimeLimitedEventMapSchema,
-  DivisionSchema,
+  CreateDivisionMapSchema,
+  CreateTimeLimitedDivisionMapSchema,
   LeaderboardQuerySchema,
-  SetUserDivisionsSchema,
-  DivisionsListSchema,
-  SetUserRoleSchema,
-  CreateLanEventSchema,
-  CreateLanParticipantSchema,
 } from "./schemas";
-
-export type ClaimDto = {
-  id: number;
-  name: string;
-};
-
-export type CreateRoleDto = z.infer<typeof CreateRoleSchema>;
-
-export type RoleDto = {
-  name: string;
-  claims: ClaimDto[];
-};
+import { SteamUser } from "./steam/steam.types";
 
 export type GeneralEventDto = {
   id: number;
@@ -44,12 +23,6 @@ export type PrDto = {
   timestamp: Date;
 };
 
-export type SteamUser = {
-  steam64Id: string;
-  name: string;
-  avatar: string;
-};
-
 export type AppUser = SteamUser & {
   id: number;
   role: string;
@@ -60,25 +33,11 @@ export type AppUser = SteamUser & {
   demomanDivision: DivisionDto;
 };
 
-export type DivisionDto = z.infer<typeof DivisionSchema>;
-
-export type DivisionsListDto = z.infer<typeof DivisionsListSchema>;
-
 export type ParticipantDto = SteamUser & {
   id: number;
   resigned: boolean;
   soldierDivision: DivisionDto;
   demomanDivision: DivisionDto;
-};
-
-export type CreateLanParticipantDto = z.infer<typeof CreateLanParticipantSchema>;
-
-export type LanParticipantDto = SteamUser & {
-  id: number;
-  disqualified: boolean;
-  soldierDivision: DivisionDto;
-  demomanDivision: DivisionDto;
-  alias: string;
 };
 
 export type LeaderboardItemDto = {
@@ -87,70 +46,23 @@ export type LeaderboardItemDto = {
   pr: PrDto;
 };
 
-export type CreateEventMapDto = z.infer<typeof CreateEventMapSchema>;
+export type CreateDivisionMapDto = z.infer<typeof CreateDivisionMapSchema>;
 
-export type CreateTimeLimitedEventMapDto = z.infer<typeof CreateTimeLimitedEventMapSchema>;
+export type CreateTimeLimitedDivisionMapDto = z.infer<typeof CreateTimeLimitedDivisionMapSchema>;
 
-export type EventMapDto = {
+export type DivisionMapDto = {
   id: number;
   name: string;
   division: DivisionDto;
 };
 
-export type TimeLimitedEventMapDto = EventMapDto & {
+export type TimeLimitedDivisionMapDto = DivisionMapDto & {
   timeLimit: number;
 };
-
-export type LanEventPreviewDto = {
-  id: number;
-  name: string;
-  start: Date;
-  canceled: boolean;
-};
-
-export type LanEventDetailsDto = {
-  id: number;
-  name: string;
-  start: Date;
-  end: Date | undefined;
-  description: string;
-  trailerUrl: string;
-  posterUrl: string;
-  canceled: boolean;
-  maps: MapsDto<string>;
-  participants: LanParticipantDto[];
-};
-
-export type CreateLanEventDto = z.infer<typeof CreateLanEventSchema>;
-
-export type AllOutEventPreviewDto = {
-  id: number;
-  start: Date;
-  end: Date;
-  canceled: boolean;
-};
-
-export type CreateAllOutEventDto = z.infer<typeof CreateAllOutEventSchema>;
 
 export type MapsDto<TMap> = {
   soldier: TMap[];
   demoman: TMap[];
-};
-
-export type AllOutStageDto<TEventMap extends EventMapDto> = {
-  description: string;
-  start: Date;
-  end: Date;
-  maps: MapsDto<TEventMap>;
-};
-
-export type AllOutEventDetailsDto = {
-  id: number;
-  canceled: boolean;
-  description: string;
-  stage1: AllOutStageDto<TimeLimitedEventMapDto>;
-  stage2: AllOutStageDto<EventMapDto>;
-  stage3: AllOutStageDto<EventMapDto>;
 };
 
 export type Lap = {
@@ -160,25 +72,6 @@ export type Lap = {
 
 export type LapLeaderboardItemDto = LeaderboardItemDto & {
   lap: Lap;
-};
-
-export type BountyGroupsDto = {
-  id: number;
-  division: string;
-  keyPrize: number;
-  eventId: number;
-};
-
-export type BountyMapDto = {
-  id: number;
-  groupId: number;
-  name: string;
-};
-
-export type BountyCompletionDto = {
-  id: number;
-  steam64Id: string;
-  mapId: number;
 };
 
 export type LeaderboardQuery = z.infer<typeof LeaderboardQuerySchema>;
@@ -193,57 +86,9 @@ export type RegistrationDetails = {
   resigned: boolean;
 };
 
-export type JwtUser = {
-  id: number;
-};
-
-export type AuthResponse = {
-  token: string;
-  user: AppUser;
-};
-
-export type LanEventValidator<T> = {
-  validate(errors: string[], event: CreateLanEventDto, originalEvent?: LanEvent): void;
-  getMessages(items: T[]): string[];
-};
-
-export type AllOutEventValidator<T> = {
-  validate(errors: string[], event: CreateAllOutEventDto, originalEvent?: AllOutEvent): void;
-  getMessages(items: T[]): string[];
-};
-
-export type DivisionValidator = {
-  validate(errors: string[], divisions: DivisionsListDto): void;
-  getMessages(divisions: DivisionsListDto): string[];
-};
-
-export type RoleValidator<T> = {
-  validate(errors: string[], roles: CreateRoleDto[]): void;
-  getMessages(items: T[]): string[];
-};
-
 export type Schedule = {
   earlier: string;
   later: string;
-};
-
-export type StageInvalidDateFields = {
-  stage: number;
-  invalidDateFields: string[];
-};
-
-export type UserDivisions = {
-  soldierDivision: Division;
-  demomanDivision: Division;
-};
-
-export type SetUserDivisions = z.infer<typeof SetUserDivisionsSchema>;
-
-export type SetUserRole = z.infer<typeof SetUserRoleSchema>;
-
-export type TempusIdVerificationResult = {
-  status: TUserTempusIdStatus;
-  tempusId: number;
 };
 
 export type LoadedUser = Loaded<User, "role.claimCollection" | "divisionCollection">;
