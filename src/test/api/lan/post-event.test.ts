@@ -1,9 +1,9 @@
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { lanCreatedDateValidator } from "#/lan/validators/lan-created-date.validator";
-import { lanDuplicateMapValidator } from "#/lan/validators/lan-duplicate-map.validator";
-import { lanDuplicateParticipantAliasValidator } from "#/lan/validators/lan-duplicate-participant-alias.validator";
-import { lanDuplicateParticipantValidator } from "#/lan/validators/lan-duplicate-participant.validator";
+import { lanUniqueMapValidator } from "#/lan/validators/lan-unique-map.validator";
+import { lanUniqueParticipantAliasValidator } from "#/lan/validators/lan-unique-participant-alias.validator";
+import { lanUniqueParticipantValidator } from "#/lan/validators/lan-unique-participant.validator";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { UsersNotFoundError } from "#/users/users.errors";
 import { BaseEntity } from "@mikro-orm/core";
@@ -125,7 +125,7 @@ describe("POST /lan/events", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateMapValidator.getMessages([
+      errorMessages: lanUniqueMapValidator.getMessages([
         {
           type: "soldier",
           duplicates: [testLanSoldierMap.name],
@@ -162,7 +162,7 @@ describe("POST /lan/events", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateParticipantValidator.getMessages([testUser1.id]),
+      errorMessages: lanUniqueParticipantValidator.getMessages([testUser1.id]),
     });
   });
 
@@ -192,7 +192,7 @@ describe("POST /lan/events", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateParticipantAliasValidator.getMessages(["same alias"]),
+      errorMessages: lanUniqueParticipantAliasValidator.getMessages(["same alias"]),
     });
   });
 

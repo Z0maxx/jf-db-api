@@ -6,13 +6,14 @@ import { User } from "#/db-entities/User";
 import { setDivisionMapsAsync } from "#/helpers/division-map.helper";
 import { getLeaderboardFilter } from "#/mikro-filters";
 import {
-  CreateAllOutEventDto,
   LeaderboardQuery,
   Registration,
   CreateDivisionMapDto,
   CreateTimeLimitedDivisionMapDto,
 } from "#/types";
 import { Loaded, wrap } from "@mikro-orm/core";
+
+import { CreateAllOutEventDto } from "./all-out.types";
 
 export const allOutRepository = {
   async getAllEventsAsync(): Promise<AllOutEvent[]> {
@@ -59,10 +60,6 @@ export const allOutRepository = {
     const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
     const [items] = await ctx.allOut.stage3Leaderboard.findAndCount(filter.query, filter.options);
     return items;
-  },
-
-  async eventExistsAsync(eventId: number) {
-    return (await ctx.allOut.events.findOne({ id: eventId })) !== null;
   },
 
   async stage1MapExistsAsync(mapId: number) {

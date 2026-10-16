@@ -24,6 +24,7 @@ export const LanMapSchema = defineEntity({
     id: p.integer().primary(),
     name: p.string().length(100),
     type: p.enum(() => LanMapType),
-    event: () => p.manyToOne(LanEvent).ref().updateRule("restrict").deleteRule("cascade"),
+    event: () =>
+      p.manyToOne(LanEvent).ref().updateRule("restrict").deleteRule("cascade").index("idx_lan_map"),
   },
 });

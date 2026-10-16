@@ -2,7 +2,7 @@ import { getDuplicates } from "#/util";
 
 import { DivisionsListDto, DivisionValidator } from "../divisions.types";
 
-export const divisionDuplicateValidator: DivisionValidator = {
+export const divisionUniqueNameValidator: DivisionValidator = {
   validate(errors: string[], divisions: DivisionsListDto) {
     const soldierDuplicates = getDuplicates(divisions.soldier, (d) => d.name);
     const demomanDuplicates = getDuplicates(divisions.demoman, (d) => d.name);

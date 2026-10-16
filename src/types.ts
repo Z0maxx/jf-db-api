@@ -10,14 +10,6 @@ import {
 } from "./schemas";
 import { SteamUser } from "./steam/steam.types";
 
-export type GeneralEventDto = {
-  id: number;
-  canceled: boolean;
-  description: string;
-  start: Date;
-  end: Date;
-};
-
 export type PrDto = {
   seconds: number;
   timestamp: Date;

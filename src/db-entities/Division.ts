@@ -21,7 +21,6 @@ export class Division extends BaseEntity {
   bountyPrizeCollection = new Collection<BountyPrize>(this);
   monthlyMapCollection = new Collection<MonthlyMap>(this);
   monthlyParticipantCollection = new Collection<MonthlyParticipant>(this);
-  monthlyParticipantCollection1 = new Collection<MonthlyParticipant>(this);
   userCollection = new Collection<User>(this);
 }
 
@@ -51,8 +50,6 @@ export const DivisionSchema = defineEntity({
     bountyPrizeCollection: () => p.oneToMany(BountyPrize).mappedBy("division"),
     monthlyMapCollection: () => p.oneToMany(MonthlyMap).mappedBy("division"),
     monthlyParticipantCollection: () => p.oneToMany(MonthlyParticipant).mappedBy("division"),
-    monthlyParticipantCollection1: () =>
-      p.manyToMany(MonthlyParticipant).mappedBy("divisionCollection"),
     userCollection: () => p.manyToMany(User).mappedBy("divisionCollection"),
   },
 });

@@ -2,7 +2,7 @@ import { getDuplicates } from "#/util";
 
 import { RoleValidator, CreateRoleDto } from "../roles.types";
 
-export const roleDuplicateValidator: RoleValidator<string> = {
+export const roleUniqueNameValidator: RoleValidator<string> = {
   validate(errors: string[], roles: CreateRoleDto[]) {
     const duplicates = getDuplicates(
       roles.map((r) => r.name),

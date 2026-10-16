@@ -13,7 +13,7 @@ type StageDuplicateMaps = {
   duplicates: CreateDivisionMapDto[];
 };
 
-export const allOutDuplicateMapValidator: AllOutEventValidator<StageDuplicateMaps> = {
+export const allOutUniqueMapValidator: AllOutEventValidator<StageDuplicateMaps> = {
   validate(errors: string[], event: CreateAllOutEventDto) {
     const stageMapsList: StageMaps[] = [
       {

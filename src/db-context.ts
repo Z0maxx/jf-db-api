@@ -13,6 +13,10 @@ import { Division } from "./db-entities/Division";
 import { LanEvent } from "./db-entities/LanEvent";
 import { LanMap } from "./db-entities/LanMap";
 import { LanParticipant } from "./db-entities/LanParticipant";
+import { MonthlyEvent } from "./db-entities/MonthlyEvent";
+import { MonthlyLeaderboardItem } from "./db-entities/MonthlyLeaderboardItem";
+import { MonthlyMap } from "./db-entities/MonthlyMap";
+import { MonthlyParticipant } from "./db-entities/MonthlyParticipant";
 import { Role } from "./db-entities/Role";
 import { User } from "./db-entities/User";
 import mikroOrmConfig from "./mikro-orm.config";
@@ -52,6 +56,14 @@ export const ctx = {
       events: this.em.getRepository(LanEvent),
       participants: this.em.getRepository(LanParticipant),
       maps: this.em.getRepository(LanMap),
+    };
+  },
+  get monthlies() {
+    return {
+      events: this.em.getRepository(MonthlyEvent),
+      participants: this.em.getRepository(MonthlyParticipant),
+      maps: this.em.getRepository(MonthlyMap),
+      leaderboard: this.em.getRepository(MonthlyLeaderboardItem),
     };
   },
   async saveAsync() {

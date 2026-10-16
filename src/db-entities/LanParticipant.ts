@@ -25,6 +25,12 @@ export const LanParticipantSchema = defineEntity({
         .updateRule("restrict")
         .deleteRule("restrict")
         .index("fk_lan_participant"),
-    event: () => p.manyToOne(LanEvent).ref().updateRule("restrict").deleteRule("cascade"),
+    event: () =>
+      p
+        .manyToOne(LanEvent)
+        .ref()
+        .updateRule("restrict")
+        .deleteRule("cascade")
+        .index("idx_lan_participant"),
   },
 });

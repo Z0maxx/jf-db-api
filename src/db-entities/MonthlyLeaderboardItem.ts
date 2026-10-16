@@ -7,6 +7,7 @@ export class MonthlyLeaderboardItem extends BaseEntity {
   id!: number;
   prTimestamp!: Date;
   prSeconds!: number;
+  verified!: boolean;
   participant!: Ref<MonthlyParticipant>;
   map!: Ref<MonthlyMap>;
 }
@@ -19,6 +20,7 @@ export const MonthlyLeaderboardItemSchema = defineEntity({
     id: p.integer().primary(),
     prTimestamp: p.datetime(),
     prSeconds: p.float().columnType("float unsigned").unsigned(),
+    verified: p.boolean(),
     participant: () =>
       p
         .manyToOne(MonthlyParticipant)

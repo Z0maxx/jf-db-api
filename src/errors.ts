@@ -144,11 +144,3 @@ export class AlreadyRegisteredError extends ConflictError {
     this.name = "AlreadyRegisteredError";
   }
 }
-
-export class SteamFailedError extends BadGatewayError {
-  constructor(message: string) {
-    super();
-    this.message = message;
-    this.name = "SteamFailedError";
-  }
-}

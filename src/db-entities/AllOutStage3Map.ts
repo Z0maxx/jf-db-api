@@ -15,7 +15,7 @@ export class AllOutStage3Map extends BaseEntity {
 export const AllOutStage3MapSchema = defineEntity({
   class: AllOutStage3Map,
   tableName: "all_out_stage_3_map",
-  uniques: [{ name: "unq_all_out_stage_3_map", properties: ["event", "name"] }],
+  uniques: [{ name: "unq_all_out_stage_3_map", properties: ["event", "division", "name"] }],
   checks: [
     {
       name: "chk_all_out_stage_3_map_name",

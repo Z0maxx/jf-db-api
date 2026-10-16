@@ -26,7 +26,7 @@ export const allOutScheduleValidator: AllOutEventValidator<Schedule> = {
     }
   },
 
-  getMessages(schedules: Schedule[]) {
-    return schedules.map((to) => `${to.later} cannot be earlier than ${to.earlier}`);
+  getMessages(invalidSchedules: Schedule[]) {
+    return invalidSchedules.map((to) => `${to.later} cannot be earlier than ${to.earlier}`);
   },
 };

@@ -19,9 +19,9 @@ import {
   LanEventValidator,
 } from "./lan.types";
 import { lanCreatedDateValidator } from "./validators/lan-created-date.validator";
-import { lanDuplicateMapValidator } from "./validators/lan-duplicate-map.validator";
-import { lanDuplicateParticipantAliasValidator } from "./validators/lan-duplicate-participant-alias.validator";
-import { lanDuplicateParticipantValidator } from "./validators/lan-duplicate-participant.validator";
+import { lanUniqueMapValidator } from "./validators/lan-unique-map.validator";
+import { lanUniqueParticipantAliasValidator } from "./validators/lan-unique-participant-alias.validator";
+import { lanUniqueParticipantValidator } from "./validators/lan-unique-participant.validator";
 import { lanUpdatedDateValidator } from "./validators/lan-updated-date.validator";
 
 export const lanService = {
@@ -72,9 +72,9 @@ export const lanService = {
     validate(
       [
         lanCreatedDateValidator,
-        lanDuplicateMapValidator,
-        lanDuplicateParticipantValidator,
-        lanDuplicateParticipantAliasValidator,
+        lanUniqueMapValidator,
+        lanUniqueParticipantValidator,
+        lanUniqueParticipantAliasValidator,
       ],
       event,
     );
@@ -89,9 +89,9 @@ export const lanService = {
     validate(
       [
         lanUpdatedDateValidator,
-        lanDuplicateMapValidator,
-        lanDuplicateParticipantValidator,
-        lanDuplicateParticipantAliasValidator,
+        lanUniqueMapValidator,
+        lanUniqueParticipantValidator,
+        lanUniqueParticipantAliasValidator,
       ],
       event,
       originalEvent,

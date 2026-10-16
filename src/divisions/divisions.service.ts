@@ -3,7 +3,7 @@ import { ValidationError } from "#/errors";
 import { DivisionsHaveUsersError, UnassignedDivisionsDeletedError } from "./divisions.errors";
 import { divisionsRepository } from "./divisions.repository";
 import { DivisionsListDto, DivisionDto, DivisionValidator } from "./divisions.types";
-import { divisionDuplicateValidator } from "./validators/division-duplicate.validator";
+import { divisionUniqueNameValidator } from "./validators/division-unique-name.validator";
 
 export const divisionsService = {
   async getAllDivisionsAsync(): Promise<DivisionsListDto> {
@@ -16,7 +16,7 @@ export const divisionsService = {
   },
 
   async setDivisionsAsync(divisions: DivisionsListDto) {
-    validate([divisionDuplicateValidator], divisions);
+    validate([divisionUniqueNameValidator], divisions);
     checkUnassignedDivisions(divisions);
     await checkDeletedDivisionsHaveNoUsersAsync(divisions);
     await divisionsRepository.setDivisionsAsync(divisions);

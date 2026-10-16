@@ -2,7 +2,7 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { DivisionType } from "#/db-entities/Division";
 import { UnassignedDivisionsDeletedError } from "#/divisions/divisions.errors";
-import { divisionDuplicateValidator } from "#/divisions/validators/division-duplicate.validator";
+import { divisionUniqueNameValidator } from "#/divisions/validators/division-unique-name.validator";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
@@ -92,7 +92,7 @@ describe("POST /divisions", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: divisionDuplicateValidator.getMessages({ soldier: [division], demoman: [] }),
+      errorMessages: divisionUniqueNameValidator.getMessages({ soldier: [division], demoman: [] }),
     });
   });
 

@@ -7,7 +7,7 @@ type DuplicateRoleClaims = {
   duplicateClaims: number[];
 };
 
-export const roleDuplicateClaimValidator: RoleValidator<DuplicateRoleClaims> = {
+export const roleUniqueClaimValidator: RoleValidator<DuplicateRoleClaims> = {
   validate(errors: string[], roles: CreateRoleDto[]) {
     const duplicateRoleClaimsList: DuplicateRoleClaims[] = [];
     roles.forEach((r) => {

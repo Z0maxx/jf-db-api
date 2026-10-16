@@ -1,6 +1,11 @@
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
+import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
+import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
+import { AllOutStage3Map } from "#/db-entities/AllOutStage3Map";
+import { DivisionType } from "#/db-entities/Division";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
+import { divisionsRepository } from "#/divisions/divisions.repository";
 import {
   AlreadyRegisteredError,
   EventEndedError,
@@ -11,38 +16,31 @@ import {
   RegistrationNotFoundError,
   ValidationError,
 } from "#/errors";
-import { transformDbMaps } from "#/helpers/division-map.helper";
 import { steamService } from "#/steam/steam.service";
 import {
+  DivisionMapDto,
   LapLeaderboardItemDto,
   LeaderboardItemDto,
   LeaderboardQuery,
   LoadedUser,
+  MapsDto,
   ParticipantDto,
   Registration,
   RegistrationDetails,
 } from "#/types";
 import { getUserDivisionDtos } from "#/util";
+import { Loaded, Collection } from "@mikro-orm/core";
 
 import { allOutRepository } from "./all-out.repository";
 import { AllOutEventPreviewDto, CreateAllOutEventDto, AllOutEventValidator } from "./all-out.types";
 import { allOutCreatedDateValidator } from "./validators/all-out-created-date.validator";
-import { allOutDuplicateMapValidator } from "./validators/all-out-duplicate-map.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
+import { allOutUniqueMapValidatorMapValidator } from "./validators/all-out-unique-map.validator";
 import { allOutUpdatedDateValidator } from "./validators/all-out-updated-date.validator";
 
 export const allOutService = {
-  async getEventByIdAsync(eventId: number) {
-    const event = await allOutRepository.getEventByIdAsync(eventId);
-    if (!event) {
-      throw new EventNotFoundError(eventId);
-    }
-
-    return event;
-  },
-
   async getEventDetailsAsync(eventId: number) {
-    const event = await this.getEventByIdAsync(eventId);
+    const event = await getEventByIdAsync(eventId);
     const stage1Maps = transformDbMaps(
       event.allOutStage1MapCollection,
       ({ id, name, timeLimit, division }) => ({
@@ -119,7 +117,7 @@ export const allOutService = {
   },
 
   async getAllEventParticipantsAsync(eventId: number): Promise<ParticipantDto[]> {
-    await this.getEventByIdAsync(eventId);
+    await getEventByIdAsync(eventId);
     const participants = await allOutRepository.getAllEventParticipantsAsync(eventId);
     const users = await steamService.getUsersAsync(participants.map((p) => p.user.$.steam64Id));
     return participants.map((p) => ({
@@ -184,11 +182,12 @@ export const allOutService = {
   },
 
   async getRegistrationDetailsAsync(registration: Registration): Promise<RegistrationDetails> {
-    await this.getEventByIdAsync(registration.eventId);
+    await getEventByIdAsync(registration.eventId);
     const participant = await allOutRepository.getParticipantAsync(
       registration.eventId,
       registration.user,
     );
+
     return {
       registered: !!participant,
       resigned: participant ? participant.resigned : false,
@@ -197,7 +196,7 @@ export const allOutService = {
 
   async createEventAsync(event: CreateAllOutEventDto) {
     validate(
-      [allOutDuplicateMapValidator, allOutCreatedDateValidator, allOutScheduleValidator],
+      [allOutUniqueMapValidatorMapValidator, allOutCreatedDateValidator, allOutScheduleValidator],
       event,
     );
 
@@ -207,9 +206,9 @@ export const allOutService = {
   },
 
   async updateEventAsync(eventId: number, event: CreateAllOutEventDto) {
-    const originalEvent = await this.getEventByIdAsync(eventId);
+    const originalEvent = await getEventByIdAsync(eventId);
     validate(
-      [allOutDuplicateMapValidator, allOutUpdatedDateValidator, allOutScheduleValidator],
+      [allOutUniqueMapValidatorMapValidator, allOutUpdatedDateValidator, allOutScheduleValidator],
       event,
       originalEvent,
     );
@@ -220,7 +219,7 @@ export const allOutService = {
   },
 
   async registerAsync(registration: Registration) {
-    const event = await this.getEventByIdAsync(registration.eventId);
+    const event = await getEventByIdAsync(registration.eventId);
     checkEventNotStartedInPast(event);
     await checkUserHasEventDivisionsAsync(event, registration.user);
     await checkNotAlreadyRegisteredAsync(registration);
@@ -228,7 +227,7 @@ export const allOutService = {
   },
 
   async resignOrDeleteRegistrationAsync(registration: Registration) {
-    const event = await this.getEventByIdAsync(registration.eventId);
+    const event = await getEventByIdAsync(registration.eventId);
     await checkRegistrationExistsAsync(registration);
     checkEventNotEnded(event);
     const now = new Date();
@@ -240,17 +239,26 @@ export const allOutService = {
   },
 
   async deleteEventAsync(eventId: number) {
-    const event = await this.getEventByIdAsync(eventId);
+    const event = await getEventByIdAsync(eventId);
     checkEventNotStartedInPast(event);
     await allOutRepository.deleteEventAsync(event);
   },
 
   async cancelEventAsync(eventId: number) {
-    const event = await this.getEventByIdAsync(eventId);
+    const event = await getEventByIdAsync(eventId);
     checkEventNotEnded(event);
     await allOutRepository.cancelEventAsync(event);
   },
 };
+
+async function getEventByIdAsync(eventId: number) {
+  const event = await allOutRepository.getEventByIdAsync(eventId);
+  if (!event) {
+    throw new EventNotFoundError(eventId);
+  }
+
+  return event;
+}
 
 async function checkRegistrationExistsAsync(registration: Registration) {
   if (!(await allOutRepository.registrationExistsAsync(registration))) {
@@ -297,7 +305,7 @@ async function checkEventDivisionsExistAsync(event: CreateAllOutEventDto) {
     ]),
   );
 
-  const exisitingDivisions = await ctx.divisions.find({ id: { $in: divisionIds } });
+  const exisitingDivisions = await divisionsRepository.getDivisionsByIdsAsync(divisionIds);
   if (exisitingDivisions.length !== divisionIds.length) {
     throw new DivisionsNotFoundError(
       divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
@@ -329,4 +337,14 @@ function validate(
   if (errors.length > 0) {
     throw new ValidationError(errors);
   }
+}
+
+function transformDbMaps<
+  TDbMap extends Loaded<AllOutStage1Map | AllOutStage2Map | AllOutStage3Map, "division">,
+  TMap extends DivisionMapDto,
+>(maps: Collection<TDbMap>, transformFn: (map: TDbMap) => TMap) {
+  return {
+    soldier: maps.filter((m) => m.division.$.type === DivisionType.SOLDIER).map(transformFn),
+    demoman: maps.filter((m) => m.division.$.type === DivisionType.DEMOMAN).map(transformFn),
+  } as MapsDto<TMap>;
 }

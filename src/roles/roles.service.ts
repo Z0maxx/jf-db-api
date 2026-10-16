@@ -9,8 +9,8 @@ import {
 } from "./roles.errors";
 import { rolesRepository } from "./roles.repository";
 import { CreateRoleDto, RoleDto, RoleValidator } from "./roles.types";
-import { roleDuplicateClaimValidator } from "./validators/role-duplicate-claim.validator";
-import { roleDuplicateValidator } from "./validators/role-duplicate.validator";
+import { roleUniqueClaimValidator } from "./validators/role-unique-claim.validator";
+import { roleUniqueNameValidator } from "./validators/role-unique-name.validator";
 
 export const rolesService = {
   async getAllRolesAsync(): Promise<RoleDto[]> {
@@ -26,7 +26,7 @@ export const rolesService = {
   },
 
   async setRolesAsync(roles: CreateRoleDto[]) {
-    validate([roleDuplicateValidator, roleDuplicateClaimValidator], roles);
+    validate([roleUniqueNameValidator, roleUniqueClaimValidator], roles);
     await checkClaimsExistAsync(roles);
     await checkDefaultRolesAsync(roles);
     await checkDeletedRolesHaveNoUsersAsync(roles);

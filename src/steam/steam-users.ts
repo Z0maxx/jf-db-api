@@ -1,7 +1,6 @@
 import { envConfig } from "#/env-config";
-import { SteamFailedError } from "#/errors";
 
-import { SteamUsersNotFoundError } from "./steam.errors";
+import { SteamIsDownError, SteamUsersNotFoundError } from "./steam.errors";
 import { SteamUser } from "./steam.types";
 
 type SteamPlayerSummary = {
@@ -95,7 +94,7 @@ async function getPlayerSummariesAsync(steam64Ids: string[]) {
       const data = (await resp.json()) as SteamPlayerSummaries;
       summaries.push(...data.response.players);
     } catch {
-      throw new SteamFailedError("Steam API is down");
+      throw new SteamIsDownError();
     }
   } while (chunk.length > 0);
 

@@ -2,7 +2,7 @@ import { getDuplicates } from "#/util";
 
 import { LanEventValidator, CreateLanEventDto } from "../lan.types";
 
-export const lanDuplicateParticipantValidator: LanEventValidator<number> = {
+export const lanUniqueParticipantValidator: LanEventValidator<number> = {
   validate(errors: string[], event: CreateLanEventDto) {
     const duplicates = getDuplicates(event.participants, (p) => p.userId);
     errors.push(...this.getMessages(duplicates.map((d) => d.userId)));

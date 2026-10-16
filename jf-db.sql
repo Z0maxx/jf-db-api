@@ -320,6 +320,7 @@ ALTER TABLE all_out_stage_3_leaderboard ADD INDEX idx_all_out_stage_3_leaderboar
 
 CREATE TABLE monthly_event (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  type ENUM("soldier", "demoman") NOT NULL,
   canceled BOOLEAN NOT NULL DEFAULT 0,
   description TEXT NOT NULL,
   start DATETIME NOT NULL,
@@ -350,21 +351,6 @@ ALTER TABLE monthly_participant ADD INDEX idx_monthly_participant_1 (event_id);
 ALTER TABLE monthly_participant ADD INDEX idx_monthly_participant_2 (user_id);
 ALTER TABLE monthly_participant ADD INDEX idx_monthly_participant_3 (event_id, user_id);
 
-CREATE TABLE monthly_participant_division (
-  participant_id INT UNSIGNED NOT NULL,
-  division_id INT UNSIGNED NOT NULL,
-  PRIMARY KEY (participant_id, division_id),
-  CONSTRAINT fk_monthly_participant_division_participant_id
-    FOREIGN KEY (participant_id)
-    REFERENCES monthly_participant(id)
-    ON DELETE CASCADE,
-  CONSTRAINT fk_monthly_participant_division_division_id
-    FOREIGN KEY (division_id)
-    REFERENCES division(id)
-);
-
-ALTER TABLE monthly_participant_division ADD INDEX idx_monthly_participant_division (participant_id);
-
 CREATE TABLE monthly_map (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -389,6 +375,7 @@ CREATE TABLE monthly_leaderboard (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   pr_timestamp DATETIME NOT NULL,
   pr_seconds FLOAT(2) UNSIGNED NOT NULL,
+  verified BOOLEAN NOT NULL,
   participant_id INT UNSIGNED NOT NULL,
   map_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_monthly_leaderboard_participant_id

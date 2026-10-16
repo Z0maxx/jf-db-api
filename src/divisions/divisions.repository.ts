@@ -24,6 +24,10 @@ export const divisionsRepository = {
     );
   },
 
+  async getDivisionsByIdsAsync(divisionIds: number[]) {
+    return await ctx.divisions.find({ id: { $in: divisionIds } });
+  },
+
   async setDivisionsAsync(divisions: DivisionsListDto) {
     const divisionsMap = new Map<string, DivisionDto & { type: TDivisionType }>([
       ...divisions.soldier.map((d) => [d.name, { ...d, type: DivisionType.SOLDIER }] as const),

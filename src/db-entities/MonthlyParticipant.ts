@@ -11,7 +11,6 @@ export class MonthlyParticipant extends BaseEntity {
   event!: Ref<MonthlyEvent>;
   division!: Ref<Division>;
   resigned: boolean & Opt = false;
-  divisionCollection = new Collection<Division>(this);
   monthlyLeaderboardItemCollection = new Collection<MonthlyLeaderboardItem>(this);
 }
 
@@ -43,12 +42,6 @@ export const MonthlyParticipantSchema = defineEntity({
         .deleteRule("restrict")
         .index("fk_monthly_participant_division_id"),
     resigned: p.boolean(),
-    divisionCollection: () =>
-      p
-        .manyToMany(Division)
-        .pivotTable("monthly_participant_division")
-        .joinColumn("participant_id")
-        .inverseJoinColumn("division_id"),
     monthlyLeaderboardItemCollection: () =>
       p.oneToMany(MonthlyLeaderboardItem).mappedBy("participant"),
   },

@@ -6,8 +6,8 @@ import {
   DefaultRolesModifiedError,
   RolesHaveUsersError,
 } from "#/roles/roles.errors";
-import { roleDuplicateClaimValidator } from "#/roles/validators/role-duplicate-claim.validator";
-import { roleDuplicateValidator } from "#/roles/validators/role-duplicate.validator";
+import { roleUniqueClaimValidator } from "#/roles/validators/role-unique-claim.validator";
+import { roleUniqueNameValidator } from "#/roles/validators/role-unique-name.validator";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
@@ -88,7 +88,7 @@ describe("POST /roles", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: roleDuplicateValidator.getMessages([role.name]),
+      errorMessages: roleUniqueNameValidator.getMessages([role.name]),
     });
   });
 
@@ -103,7 +103,7 @@ describe("POST /roles", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: roleDuplicateClaimValidator.getMessages([
+      errorMessages: roleUniqueClaimValidator.getMessages([
         { role: role.name, duplicateClaims: [1] },
       ]),
     });

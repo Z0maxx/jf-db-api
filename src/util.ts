@@ -1,7 +1,8 @@
 import { Loaded, LoadedCollection } from "@mikro-orm/core";
 
 import { Division, DivisionType } from "./db-entities/Division";
-import { AppUser, LoadedUser, SteamUser } from "./types";
+import { SteamUser } from "./steam/steam.types";
+import { AppUser, LoadedUser } from "./types";
 
 export function getDuplicates<T>(items: T[], groupFn: (item: T) => string | number) {
   const groups = Object.groupBy(items, groupFn);

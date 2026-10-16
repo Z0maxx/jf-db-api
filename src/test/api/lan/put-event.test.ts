@@ -2,9 +2,9 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { LanMapType } from "#/db-entities/LanMap";
 import { EventNotFoundError } from "#/errors";
-import { lanDuplicateMapValidator } from "#/lan/validators/lan-duplicate-map.validator";
-import { lanDuplicateParticipantAliasValidator } from "#/lan/validators/lan-duplicate-participant-alias.validator";
-import { lanDuplicateParticipantValidator } from "#/lan/validators/lan-duplicate-participant.validator";
+import { lanUniqueMapValidator } from "#/lan/validators/lan-unique-map.validator";
+import { lanUniqueParticipantAliasValidator } from "#/lan/validators/lan-unique-participant-alias.validator";
+import { lanUniqueParticipantValidator } from "#/lan/validators/lan-unique-participant.validator";
 import { lanUpdatedDateValidator } from "#/lan/validators/lan-updated-date.validator";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { UsersNotFoundError } from "#/users/users.errors";
@@ -155,7 +155,7 @@ describe("PUT /lan/events/:eventId", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateMapValidator.getMessages([
+      errorMessages: lanUniqueMapValidator.getMessages([
         {
           type: "soldier",
           duplicates: [testLanSoldierMap.name],
@@ -227,7 +227,7 @@ describe("PUT /lan/events/:eventId", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateParticipantValidator.getMessages([testUser1.id]),
+      errorMessages: lanUniqueParticipantValidator.getMessages([testUser1.id]),
     });
   });
 
@@ -263,7 +263,7 @@ describe("PUT /lan/events/:eventId", () => {
     assert.equal(res.statusCode, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: lanDuplicateParticipantAliasValidator.getMessages(["same alias"]),
+      errorMessages: lanUniqueParticipantAliasValidator.getMessages(["same alias"]),
     });
   });
 
