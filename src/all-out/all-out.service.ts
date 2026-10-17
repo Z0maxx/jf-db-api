@@ -1,4 +1,3 @@
-import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
 import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
@@ -35,7 +34,7 @@ import { allOutRepository } from "./all-out.repository";
 import { AllOutEventPreviewDto, CreateAllOutEventDto, AllOutEventValidator } from "./all-out.types";
 import { allOutCreatedDateValidator } from "./validators/all-out-created-date.validator";
 import { allOutScheduleValidator } from "./validators/all-out-schedule.validator";
-import { allOutUniqueMapValidatorMapValidator } from "./validators/all-out-unique-map.validator";
+import { allOutUniqueMapValidator } from "./validators/all-out-unique-map.validator";
 import { allOutUpdatedDateValidator } from "./validators/all-out-updated-date.validator";
 
 export const allOutService = {
@@ -196,7 +195,7 @@ export const allOutService = {
 
   async createEventAsync(event: CreateAllOutEventDto) {
     validate(
-      [allOutUniqueMapValidatorMapValidator, allOutCreatedDateValidator, allOutScheduleValidator],
+      [allOutUniqueMapValidator, allOutCreatedDateValidator, allOutScheduleValidator],
       event,
     );
 
@@ -208,7 +207,7 @@ export const allOutService = {
   async updateEventAsync(eventId: number, event: CreateAllOutEventDto) {
     const originalEvent = await getEventByIdAsync(eventId);
     validate(
-      [allOutUniqueMapValidatorMapValidator, allOutUpdatedDateValidator, allOutScheduleValidator],
+      [allOutUniqueMapValidator, allOutUpdatedDateValidator, allOutScheduleValidator],
       event,
       originalEvent,
     );

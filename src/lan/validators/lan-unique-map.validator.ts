@@ -8,7 +8,7 @@ type LanDuplicateMaps = {
   duplicates: string[];
 };
 
-export const lanDuplicateMapValidator: LanEventValidator<LanDuplicateMaps> = {
+export const lanUniqueMapValidator: LanEventValidator<LanDuplicateMaps> = {
   validate(errors: string[], event: CreateLanEventDto) {
     const soldierDuplicates = getDuplicates(event.maps.soldier, (m) => m);
     const demomanDuplicates = getDuplicates(event.maps.demoman, (m) => m);

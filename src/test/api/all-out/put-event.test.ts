@@ -1,5 +1,5 @@
 import { allOutScheduleValidator } from "#/all-out/validators/all-out-schedule.validator";
-import { allOutUniqueMapValidatorMapValidator } from "#/all-out/validators/all-out-unique-map.validator";
+import { allOutUniqueMapValidator } from "#/all-out/validators/all-out-unique-map.validator";
 import { allOutUpdatedDateValidator } from "#/all-out/validators/all-out-updated-date.validator";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
@@ -336,7 +336,7 @@ describe("PUT /all-out/events/:eventId", () => {
     assert.equal(res.status, 400);
     assert.deepStrictEqual(res.body, {
       errorCode: "ValidationError",
-      errorMessages: allOutUniqueMapValidatorMapValidator.getMessages([
+      errorMessages: allOutUniqueMapValidator.getMessages([
         { stage: 1, duplicates: [event.stage1.maps[0]] },
         { stage: 2, duplicates: [event.stage2.maps[0]] },
         { stage: 3, duplicates: [event.stage3.maps[0]] },
