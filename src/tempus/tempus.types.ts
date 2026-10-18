@@ -7,6 +7,11 @@ export type TempusIdVerificationResult = {
 
 export type TempusCompletionQuery = {
   mapName: string;
-  tempusId: string;
+  tempusId: number;
   type: "soldier" | "demoman";
 };
+
+export type TempusCompletionResult = {
+  prSeconds: number
+  prTimestamp: Date
+}

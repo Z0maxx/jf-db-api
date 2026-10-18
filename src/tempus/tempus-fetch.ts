@@ -1,6 +1,5 @@
-import { TempusIsDownError } from "./tempus.errors";
-
 const tempusApiTimeout = 1100;
+const maxTimeout = 60 * 30 * 1000
 
 type TempusQueueItem = {
   endpoint: string;
@@ -45,7 +44,7 @@ function processQueue() {
       item.resolve(res);
       queue.shift();
     } catch {
-      throw new TempusIsDownError();
+      timeout = Math.min(timeout * 2, maxTimeout)
     }
   }, timeout);
 }

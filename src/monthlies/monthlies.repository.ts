@@ -8,7 +8,7 @@ import { getLeaderboardFilter } from "#/mikro-filters";
 import { CreateDivisionMapDto, LeaderboardQuery, Registration } from "#/types";
 import { Loaded, wrap } from "@mikro-orm/core";
 
-import { CreateMonthlyEventDto } from "./monthlies.types";
+import { CreateMonthlyEventDto, MontlyLeaderboardItemDto } from "./monthlies.types";
 
 export const monthliesRepository = {
   async getAllEventsAsync() {
@@ -101,6 +101,18 @@ export const monthliesRepository = {
 
     this.setParticipantDivisionAsync(participant, division);
     await ctx.saveAsync();
+  },
+
+  async setLeaderboardItemAsync(item: MontlyLeaderboardItemDto) {
+    const originalItem = await ctx.monthlies.leaderboard.findOne({ map: item.map, participant: item.participant })
+    if (originalItem) {
+      wrap(originalItem).assign(item)
+    }
+    else {
+      ctx.monthlies.leaderboard.create(item)
+    }
+
+    await ctx.saveAsync()
   },
 
   async setParticipantDivisionAsync(participant: MonthlyParticipant, division: Division) {

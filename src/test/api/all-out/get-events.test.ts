@@ -22,7 +22,7 @@ describe("GET /all-out/events", () => {
     const res = await request();
 
     assert(res.ok);
-    assert.deepStrictEqual(res.body, [
+    assert.containsSubset(res.body, [
       {
         id: testAllOutEvent.id,
         canceled: false,

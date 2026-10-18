@@ -11,6 +11,7 @@ import {
   ValidationError,
 } from "#/errors";
 import { steamService } from "#/steam/steam.service";
+import { tempusService } from "#/tempus/tempus.service";
 import { LoadedUser, Registration, RegistrationDetails } from "#/types";
 
 import { monthliesRepository } from "./monthlies.repository";
@@ -20,6 +21,8 @@ import {
   MonthlyEventPreviewDto,
   MonthlyEventValidator,
   MonthlyParticipantDto,
+  MonthlyTimeSubmissionDto,
+  MonthlyTimeSubmissionResult,
 } from "./monthlies.types";
 import { monthlyCreatedDateValidator } from "./validators/monthly-created-date.validator";
 import { monthlyDivisionSingleMapValidator } from "./validators/monthly-division-single-map.validator";
@@ -111,11 +114,71 @@ export const monthliesService = {
     return await this.getEventDetailsAsync(eventId);
   },
 
-  async submitTimeAsync() {},
+  async submitTimeAsync(user: LoadedUser, submission: MonthlyTimeSubmissionDto): Promise<MonthlyTimeSubmissionResult> {
+    const event = await getEventByIdAsync(submission.eventId);
+    const participant = await getParticipantAsync({ eventId: submission.eventId, user })
+    const map = event.monthlyMapCollection.$.find(m => m.division.$.id === participant.division.id)!
+    const completion = await tempusService.getCompletionAsync({ type: event.type, tempusId: user.tempusId!, mapName: map.name })
+    if (!completion) {
+      return {
+        status: "rejected",
+        message: "Tempus record not found for map"
+      }
+    }
+
+    if (submission.time === undefined) {
+      if (completion.prTimestamp < event.start) {
+        return {
+          status: "rejected",
+          message: "Tempus record is older than event's start time"
+        }
+      }
+
+      if (completion.prTimestamp > event.end) {
+        return {
+          status: "rejected",
+          message: "Tempus record is after event's end time"
+        }
+      }
+
+      await monthliesRepository.setLeaderboardItemAsync({
+        verified: true,
+        map,
+        participant,
+        ...completion
+      })
+
+      return {
+        status: "verified",
+        message: "Tempus record successfully verified"
+      }
+    }
+    else {
+      if (completion.prSeconds > submission.time) {
+        return {
+          status: "rejected",
+          message: "Tempus record is slower than submitted time"
+        }
+      }
+
+      await monthliesRepository.setLeaderboardItemAsync({
+        verified: false,
+        map,
+        participant,
+        prSeconds: submission.time,
+        prTimestamp: new Date()
+      })
+
+      return {
+        status: "accepted",
+        message: "Accepted submitted time"
+      }
+    }
+  },
 
   async registerAsync(registration: Registration) {
     const event = await getEventByIdAsync(registration.eventId);
-    checkEventNotStartedInPast(event);
+    checkEventNotEnded(event)
     await checkUserHasEventDivisionsAsync(event, registration.user);
     await checkNotAlreadyRegisteredAsync(registration);
     await monthliesRepository.registerAsync(registration);
@@ -153,6 +216,15 @@ async function getEventByIdAsync(eventId: number) {
   }
 
   return event;
+}
+
+async function getParticipantAsync(registration: Registration) {
+  const participant = await monthliesRepository.getParticipantAsync(registration.eventId, registration.user)
+  if (!participant) {
+    throw new RegistrationNotFoundError(registration);
+  }
+
+  return participant
 }
 
 async function checkRegistrationExistsAsync(registration: Registration) {

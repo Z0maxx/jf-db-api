@@ -4,7 +4,9 @@ import { SteamUser } from "#/steam/steam.types";
 import { DivisionMapDto } from "#/types";
 import z from "zod";
 
-import { CreateMonthlyEventSchema } from "./monthlies.schemas";
+import { CreateMonthlyEventSchema, MonthlyTimeSubmissionSchema } from "./monthlies.schemas";
+import { MonthlyParticipant } from "#/db-entities/MonthlyParticipant";
+import { MonthlyMap } from "#/db-entities/MonthlyMap";
 
 export type CreateMonthlyEventDto = z.infer<typeof CreateMonthlyEventSchema>;
 
@@ -30,6 +32,21 @@ export type MonthlyParticipantDto = SteamUser & {
   resigned: boolean;
   division: DivisionDto;
 };
+
+export type MontlyLeaderboardItemDto = {
+  prTimestamp: Date;
+  prSeconds: number;
+  verified: boolean;
+  participant: MonthlyParticipant;
+  map: MonthlyMap;
+}
+
+export type MonthlyTimeSubmissionDto = z.infer<typeof MonthlyTimeSubmissionSchema>
+
+export type MonthlyTimeSubmissionResult = {
+  status: "verified" | "accepted" | "rejected"
+  message: string
+}
 
 export type MonthlyEventValidator<T> = {
   validate(errors: string[], event: CreateMonthlyEventDto, originalEvent?: MonthlyEvent): void;

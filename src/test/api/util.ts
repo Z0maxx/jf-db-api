@@ -8,16 +8,15 @@ import { BaseEntity } from "@mikro-orm/core";
 import request from "supertest";
 
 import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
-import { createLanEntitiesAsync } from "./lan/lan-test-entities";
+import { createLanTestEntitiesAsync } from "./lan/lan-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
 
 export async function setupApiTestSuiteAsync() {
   await initCtx();
   await seedEntitiesAsync();
-  ctx.orm.em = ctx.em.fork();
   await createTestEntitiesAsync();
   await createAllOutTestEntitiesAsync();
-  await createLanEntitiesAsync();
+  await createLanTestEntitiesAsync();
 }
 
 export async function teardownApiTestSuiteAsync(entitiesToDelete: BaseEntity[] = []) {

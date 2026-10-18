@@ -11,5 +11,6 @@ export const CreateMonthlyEventSchema = z.object({
 });
 
 export const MonthlyTimeSubmissionSchema = z.object({
-  time: z.coerce.date().optional(),
+  eventId: z.number().positive(),
+  time: z.number().optional(),
 });

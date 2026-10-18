@@ -10,7 +10,7 @@ export let testLanParticipant: LanParticipant = null!;
 export let testLanSoldierMap: LanMap = null!;
 export let testLanDemomanMap: LanMap = null!;
 
-export async function createLanEntitiesAsync() {
+export async function createLanTestEntitiesAsync() {
   testLanEvent = await ctx.lan.events.upsert({
     id: 100_000,
     name: "lan event",
