@@ -20,6 +20,7 @@ CORS_ALLOW_ORIGIN=*
 Get your Steam API key from [here](https://steamcommunity.com/dev/apikey), domain name can be anything
 ### Mikro debug
 Enable this option to log the mysql commands executed by Mikro ORM
+
 7. Run "npm run dev" command in the root folder to start the server
 ## Testing
 Run "npm run test:api" command in the root folder to execute tests
