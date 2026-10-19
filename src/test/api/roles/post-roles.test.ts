@@ -1,3 +1,7 @@
+import { BaseEntity } from "@mikro-orm/core";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { ClaimsNotFoundError } from "#/claims/claims.errors";
 import { ctx } from "#/db-context";
@@ -8,9 +12,6 @@ import {
 } from "#/roles/roles.errors";
 import { roleUniqueClaimValidator } from "#/roles/validators/role-unique-claim.validator";
 import { roleUniqueNameValidator } from "#/roles/validators/role-unique-name.validator";
-import { BaseEntity } from "@mikro-orm/core";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

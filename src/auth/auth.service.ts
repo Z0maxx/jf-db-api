@@ -1,10 +1,11 @@
+import jwt from "jsonwebtoken";
+
 import { envConfig } from "#/env-config";
 import { steamService } from "#/steam/steam.service";
 import { SteamUser } from "#/steam/steam.types";
 import { AppUser } from "#/types";
 import { usersRepository } from "#/users/users.repository";
 import { getAppUser } from "#/util";
-import jwt from "jsonwebtoken";
 
 import { AuthResponse, JwtUser } from "./auth.types";
 

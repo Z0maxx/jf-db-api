@@ -1,7 +1,8 @@
-import { app } from "#/app";
-import { headAdminRole, userRole } from "#/default-entities";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { app } from "#/app";
+import { headAdminRole, userRole } from "#/default-entities";
 
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 function request() {

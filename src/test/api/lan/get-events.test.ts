@@ -1,6 +1,7 @@
-import { app } from "#/app";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { app } from "#/app";
 
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
 import { testLanEvent } from "./lan-test-entities";

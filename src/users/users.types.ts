@@ -1,5 +1,6 @@
-import { Division } from "#/db-entities/Division";
 import z from "zod";
+
+import { Division } from "#/db-entities/Division";
 
 import { SetUserDivisionsSchema, SetUserRoleSchema } from "./users.schemas";
 

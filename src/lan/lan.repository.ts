@@ -1,8 +1,9 @@
+import { wrap } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { LanEvent } from "#/db-entities/LanEvent";
 import { LanMapType, TLanMapType } from "#/db-entities/LanMap";
 import { LanParticipant } from "#/db-entities/LanParticipant";
-import { wrap } from "@mikro-orm/core";
 
 import { CreateLanEventDto, CreateLanParticipantDto } from "./lan.types";
 
@@ -76,9 +77,7 @@ async function setParticipantsAsync(event: LanEvent, participants: CreateLanPart
   const participantsMap = new Map<number, CreateLanParticipantDto>(
     participants.map((p) => [p.userId, p]),
   );
-  console.log(participantsMap);
   const existing = await ctx.lan.participants.find({ event }, { populate: ["user"] });
-  console.log(existing.map((e) => e.user.id));
   const deleted = existing.filter((e) => !participantsMap.get(e.user.id));
   deleted.forEach((d) => ctx.em.remove(d));
   const updated = existing.filter((e) => !deleted.includes(e));

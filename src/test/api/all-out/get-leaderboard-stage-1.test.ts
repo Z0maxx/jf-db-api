@@ -1,9 +1,10 @@
-import { app } from "#/app";
-import { ctx } from "#/db-context";
-import { MapNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { app } from "#/app";
+import { ctx } from "#/db-context";
+import { MapNotFoundError } from "#/errors";
 
 import { testSoldierDivision, testUser1, testUser2 } from "../test-entities";
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

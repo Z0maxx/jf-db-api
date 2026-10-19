@@ -1,8 +1,9 @@
+import z from "zod";
+
 import { LanEvent } from "#/db-entities/LanEvent";
 import { DivisionDto } from "#/divisions/divisions.types";
 import { SteamUser } from "#/steam/steam.types";
 import { MapsDto } from "#/types";
-import z from "zod";
 
 import { CreateLanEventSchema, CreateLanParticipantSchema } from "./lan.schemas";
 

@@ -1,8 +1,9 @@
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { DivisionType } from "#/db-entities/Division";
 import { EventNotFoundError } from "#/errors";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testDemomanDivision, testSoldierDivision } from "../test-entities";
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

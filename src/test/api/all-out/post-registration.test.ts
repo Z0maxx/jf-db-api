@@ -1,3 +1,7 @@
+import { BaseEntity } from "@mikro-orm/core";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import {
@@ -7,9 +11,6 @@ import {
   NoMapsWithUserDivisionsError,
 } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
-import { BaseEntity } from "@mikro-orm/core";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

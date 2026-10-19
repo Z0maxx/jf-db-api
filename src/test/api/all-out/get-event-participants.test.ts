@@ -1,7 +1,8 @@
-import { app } from "#/app";
-import { EventNotFoundError } from "#/errors";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { app } from "#/app";
+import { EventNotFoundError } from "#/errors";
 
 import { testDemomanDivision, testSoldierDivision, testUser1, testUser2 } from "../test-entities";
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

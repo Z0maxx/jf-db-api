@@ -1,3 +1,7 @@
+import { BaseEntity } from "@mikro-orm/core";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { lanCreatedDateValidator } from "#/lan/validators/lan-created-date.validator";
@@ -6,9 +10,6 @@ import { lanUniqueParticipantAliasValidator } from "#/lan/validators/lan-unique-
 import { lanUniqueParticipantValidator } from "#/lan/validators/lan-unique-participant.validator";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { UsersNotFoundError } from "#/users/users.errors";
-import { BaseEntity } from "@mikro-orm/core";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testHeadAdmin, testUser1, testUser2 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

@@ -1,3 +1,7 @@
+import { BaseEntity } from "@mikro-orm/core";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { Division, DivisionType } from "#/db-entities/Division";
@@ -7,9 +11,6 @@ import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { UserNotFoundError } from "#/errors";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { divisionTypeValidator } from "#/users/validators/division-type.validator";
-import { BaseEntity } from "@mikro-orm/core";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import {
   testDemomanDivision,

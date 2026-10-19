@@ -1,5 +1,6 @@
-import { CreateDivisionMapSchema, CreateTimeLimitedDivisionMapSchema } from "#/schemas";
 import z from "zod";
+
+import { CreateDivisionMapSchema, CreateTimeLimitedDivisionMapSchema } from "#/schemas";
 
 function CreateAllOutEventStageSchema<T extends typeof CreateDivisionMapSchema>(map: T) {
   return z.object({

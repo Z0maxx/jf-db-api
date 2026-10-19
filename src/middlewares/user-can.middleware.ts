@@ -1,6 +1,7 @@
+import { NextFunction, Request, Response } from "express";
+
 import { claimNames } from "#/claim-names";
 import { ctx } from "#/db-context";
-import { NextFunction, Request, Response } from "express";
 
 export function userCan(claim: (typeof claimNames)[number]) {
   return async function (req: Request, res: Response, next: NextFunction) {

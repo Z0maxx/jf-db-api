@@ -1,8 +1,9 @@
+import { ref } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { Role } from "#/db-entities/Role";
 import { TUserTempusIdStatus, User, UserTempusIdStatus } from "#/db-entities/User";
 import { unassignedDemomanDivision, unassignedSoldierDivision, userRole } from "#/default-entities";
-import { ref } from "@mikro-orm/core";
 
 import { UserDivisions } from "./users.types";
 

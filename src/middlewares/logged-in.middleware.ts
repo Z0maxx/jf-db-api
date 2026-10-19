@@ -1,8 +1,9 @@
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+
 import { envConfig } from "#/env-config";
 import { AppUser } from "#/types";
 import { usersRepository } from "#/users/users.repository";
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
 
 export async function loggedIn(req: Request, res: Response, next: NextFunction) {
   try {

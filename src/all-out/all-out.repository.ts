@@ -1,3 +1,5 @@
+import { Loaded, wrap } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { AllOutParticipant } from "#/db-entities/AllOutParticipant";
@@ -11,7 +13,6 @@ import {
   CreateDivisionMapDto,
   CreateTimeLimitedDivisionMapDto,
 } from "#/types";
-import { Loaded, wrap } from "@mikro-orm/core";
 
 import { CreateAllOutEventDto } from "./all-out.types";
 

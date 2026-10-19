@@ -1,8 +1,9 @@
+import express from "express";
+
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { id } from "#/middlewares/id.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import express from "express";
 
 import { CreateLanEventSchema } from "./lan.schemas";
 import { lanService } from "./lan.service";

@@ -1,3 +1,5 @@
+import { Loaded, Collection } from "@mikro-orm/core";
+
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { AllOutStage1Map } from "#/db-entities/AllOutStage1Map";
 import { AllOutStage2Map } from "#/db-entities/AllOutStage2Map";
@@ -28,7 +30,6 @@ import {
   RegistrationDetails,
 } from "#/types";
 import { getUserDivisionDtos } from "#/util";
-import { Loaded, Collection } from "@mikro-orm/core";
 
 import { allOutRepository } from "./all-out.repository";
 import { AllOutEventPreviewDto, CreateAllOutEventDto, AllOutEventValidator } from "./all-out.types";

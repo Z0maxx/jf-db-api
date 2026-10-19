@@ -1,6 +1,7 @@
+import z from "zod";
+
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
 import { DivisionMapDto, MapsDto, TimeLimitedDivisionMapDto } from "#/types";
-import z from "zod";
 
 import { CreateAllOutEventSchema } from "./all-out.schemas";
 

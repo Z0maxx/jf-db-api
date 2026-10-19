@@ -1,13 +1,14 @@
+import { BaseEntity } from "@mikro-orm/core";
+import { Server } from "node:http";
+import supertest from "supertest";
+import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
 import { app } from "#/app";
 import { authService } from "#/auth/auth.service";
 import { ctx } from "#/db-context";
 import { UserTempusIdStatus } from "#/db-entities/User";
 import { userRole } from "#/default-entities";
 import { AlreadySetTempusIdError } from "#/users/users.errors";
-import { BaseEntity } from "@mikro-orm/core";
-import { Server } from "node:http";
-import supertest from "supertest";
-import { afterAll, assert, beforeAll, describe, it } from "vitest";
 
 import { testUser1 } from "../test-entities";
 import {

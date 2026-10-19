@@ -1,6 +1,7 @@
+import { wrap } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { Claim } from "#/db-entities/Claim";
-import { wrap } from "@mikro-orm/core";
 
 import { CreateRoleDto } from "./roles.types";
 

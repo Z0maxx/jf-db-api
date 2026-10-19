@@ -1,6 +1,7 @@
+import { wrap } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { DivisionType, TDivisionType } from "#/db-entities/Division";
-import { wrap } from "@mikro-orm/core";
 
 import { DivisionsListDto, DivisionDto } from "./divisions.types";
 

@@ -1,9 +1,10 @@
-import { app } from "#/app";
-import { ctx } from "#/db-context";
-import { ParticipantNotFoundError } from "#/errors";
 import { BaseEntity } from "@mikro-orm/core";
 import supertest from "supertest";
 import { afterAll, assert, beforeAll, describe, it } from "vitest";
+
+import { app } from "#/app";
+import { ctx } from "#/db-context";
+import { ParticipantNotFoundError } from "#/errors";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";

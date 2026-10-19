@@ -12,6 +12,6 @@ export type TempusCompletionQuery = {
 };
 
 export type TempusCompletionResult = {
-  prSeconds: number
-  prTimestamp: Date
-}
+  prSeconds: number;
+  prTimestamp: Date;
+};

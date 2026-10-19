@@ -1,7 +1,8 @@
+import express from "express";
+
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import express from "express";
 
 import { DivisionsListSchema } from "./divisions.schemas";
 import { divisionsService } from "./divisions.service";
