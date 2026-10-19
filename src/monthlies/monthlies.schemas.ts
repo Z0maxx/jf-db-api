@@ -1,6 +1,7 @@
+import z from "zod";
+
 import { MonthlyEventType } from "#/db-entities/MonthlyEvent";
 import { CreateDivisionMapSchema } from "#/schemas";
-import z from "zod";
 
 export const CreateMonthlyEventSchema = z.object({
   type: z.enum(Object.values(MonthlyEventType)),
@@ -11,6 +12,5 @@ export const CreateMonthlyEventSchema = z.object({
 });
 
 export const MonthlyTimeSubmissionSchema = z.object({
-  eventId: z.number().positive(),
-  time: z.number().optional(),
+  timeSeconds: z.number().optional(),
 });

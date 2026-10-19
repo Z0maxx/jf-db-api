@@ -1,12 +1,11 @@
+import z from "zod";
+
 import { MonthlyEvent, TMonthlyEventType } from "#/db-entities/MonthlyEvent";
 import { DivisionDto } from "#/divisions/divisions.types";
 import { SteamUser } from "#/steam/steam.types";
 import { DivisionMapDto } from "#/types";
-import z from "zod";
 
-import { CreateMonthlyEventSchema, MonthlyTimeSubmissionSchema } from "./monthlies.schemas";
-import { MonthlyParticipant } from "#/db-entities/MonthlyParticipant";
-import { MonthlyMap } from "#/db-entities/MonthlyMap";
+import { CreateMonthlyEventSchema } from "./monthlies.schemas";
 
 export type CreateMonthlyEventDto = z.infer<typeof CreateMonthlyEventSchema>;
 
@@ -33,20 +32,30 @@ export type MonthlyParticipantDto = SteamUser & {
   division: DivisionDto;
 };
 
-export type MontlyLeaderboardItemDto = {
-  prTimestamp: Date;
-  prSeconds: number;
-  verified: boolean;
-  participant: MonthlyParticipant;
-  map: MonthlyMap;
-}
+export type MonthlyLeaderboardItemDto = {
+  id: number;
+  user: SteamUser;
+  pr: {
+    verified: boolean;
+    timestamp: Date;
+    seconds: number;
+  };
+};
 
-export type MonthlyTimeSubmissionDto = z.infer<typeof MonthlyTimeSubmissionSchema>
+export type MonthlyTimeSubmissionDto = {
+  eventId: number;
+  timeSeconds?: number | undefined;
+};
 
 export type MonthlyTimeSubmissionResult = {
-  status: "verified" | "accepted" | "rejected"
-  message: string
-}
+  status: "verified" | "accepted" | "rejected";
+  message: string;
+};
+
+export type MonthlyLeaderboardSubscriber = {
+  id: string;
+  handler: (items: MonthlyLeaderboardItemDto[]) => void;
+};
 
 export type MonthlyEventValidator<T> = {
   validate(errors: string[], event: CreateMonthlyEventDto, originalEvent?: MonthlyEvent): void;
