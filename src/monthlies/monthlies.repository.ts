@@ -1,14 +1,15 @@
+import { Loaded, wrap } from "@mikro-orm/core";
+
 import { ctx } from "#/db-context";
 import { Division } from "#/db-entities/Division";
 import { MonthlyEvent } from "#/db-entities/MonthlyEvent";
+import { MonthlyMap } from "#/db-entities/MonthlyMap";
 import { MonthlyParticipant } from "#/db-entities/MonthlyParticipant";
 import { User } from "#/db-entities/User";
 import { setDivisionMapsAsync } from "#/helpers/division-map.helper";
-import { getLeaderboardFilter } from "#/mikro-filters";
-import { CreateDivisionMapDto, LeaderboardQuery, Registration } from "#/types";
-import { Loaded, wrap } from "@mikro-orm/core";
+import { CreateDivisionMapDto, Registration } from "#/types";
 
-import { CreateMonthlyEventDto, MontlyLeaderboardItemDto } from "./monthlies.types";
+import { CreateMonthlyEventDto } from "./monthlies.types";
 
 export const monthliesRepository = {
   async getAllEventsAsync() {
@@ -33,9 +34,15 @@ export const monthliesRepository = {
     );
   },
 
-  async getLeaderboardAsync(query: LeaderboardQuery) {
-    const filter = getLeaderboardFilter(query, { prSeconds: "ASC" });
-    const [items] = await ctx.monthlies.leaderboard.findAndCount(filter.query, filter.options);
+  async getLeaderboardAsync(mapId: number) {
+    const [items] = await ctx.monthlies.leaderboard.findAndCount(
+      { map: mapId, participant: { resigned: false } },
+      {
+        populate: ["participant.user.steam64Id"],
+        orderBy: { prSeconds: "ASC" },
+      },
+    );
+
     return items;
   },
 
@@ -103,16 +110,25 @@ export const monthliesRepository = {
     await ctx.saveAsync();
   },
 
-  async setLeaderboardItemAsync(item: MontlyLeaderboardItemDto) {
-    const originalItem = await ctx.monthlies.leaderboard.findOne({ map: item.map, participant: item.participant })
+  async setLeaderboardItemAsync(item: {
+    verified: boolean;
+    map: MonthlyMap;
+    participant: MonthlyParticipant;
+    prSeconds: number;
+    prTimestamp: Date;
+  }) {
+    const originalItem = await ctx.monthlies.leaderboard.findOne({
+      map: item.map,
+      participant: item.participant,
+    });
+
     if (originalItem) {
-      wrap(originalItem).assign(item)
-    }
-    else {
-      ctx.monthlies.leaderboard.create(item)
+      wrap(originalItem).assign(item);
+    } else {
+      ctx.monthlies.leaderboard.create(item);
     }
 
-    await ctx.saveAsync()
+    await ctx.saveAsync();
   },
 
   async setParticipantDivisionAsync(participant: MonthlyParticipant, division: Division) {
