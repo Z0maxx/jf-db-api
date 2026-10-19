@@ -1,6 +1,7 @@
 import { RequestContext } from "@mikro-orm/core";
 import express from "express";
 import "dotenv/config";
+
 import { allOutRouter } from "./all-out/all-out.router";
 import { authRouter } from "./auth/auth.router";
 import { claimsRouter } from "./claims/claims.router";
@@ -9,6 +10,7 @@ import { divisionsRouter } from "./divisions/divisions.router";
 import { envConfig } from "./env-config";
 import { lanRouter } from "./lan/lan.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
+import { monthliesRouter } from "./monthlies/monthlies.router";
 import { rolesRouter } from "./roles/roles.router";
 import { usersRouter } from "./users/users.router";
 
@@ -28,6 +30,7 @@ app.use((_, __, next) => {
   RequestContext.create(ctx.orm.em, next);
 });
 
+app.use("/monthlies", monthliesRouter);
 app.use("/lan", lanRouter);
 app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
