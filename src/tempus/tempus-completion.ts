@@ -19,6 +19,6 @@ export async function getCompletionAsync(query: TempusCompletionQuery) {
 
   return {
     prSeconds: result.duration,
-    prTimestamp: new Date(result.date),
+    prTimestamp: new Date(result.date * 1000),
   };
 }
