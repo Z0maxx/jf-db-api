@@ -65,7 +65,6 @@ export function convertToSteam64Id(steamId: string) {
 }
 
 export function getAppUser(user: LoadedUser, steamUser: SteamUser): AppUser {
-  console.log(user.serialize());
   const [soldierDivision, demomanDivision] = [DivisionType.SOLDIER, DivisionType.DEMOMAN]
     .map((t) => user.divisionCollection.$.find((d) => d.type === t)!)
     .map(({ name, color }) => ({ name, color }));
