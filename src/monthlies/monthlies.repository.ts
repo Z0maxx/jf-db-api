@@ -1,4 +1,4 @@
-import { Loaded, wrap } from "@mikro-orm/core";
+import { Loaded, Reference, wrap } from "@mikro-orm/core";
 
 import { ctx } from "#/db-context";
 import { Division } from "#/db-entities/Division";
@@ -132,12 +132,12 @@ export const monthliesRepository = {
   },
 
   async setParticipantDivisionAsync(participant: MonthlyParticipant, division: Division) {
-    participant.division.id = division.id;
+    participant.division = Reference.create(division);
     await ctx.saveAsync();
   },
 
   async deleteRegistrationAsync(registration: Registration) {
-    const participant = await ctx.allOut.participants.findOneOrFail({
+    const participant = await ctx.monthlies.participants.findOneOrFail({
       user: registration.user,
       event: registration.eventId,
     });
@@ -147,7 +147,7 @@ export const monthliesRepository = {
   },
 
   async resignAsync(registration: Registration) {
-    const participant = await ctx.allOut.participants.findOneOrFail({
+    const participant = await ctx.monthlies.participants.findOneOrFail({
       user: registration.user,
       event: registration.eventId,
     });
@@ -190,7 +190,7 @@ async function setMapsAsync(event: MonthlyEvent, maps: CreateDivisionMapDto[]) {
 }
 
 async function updateEventParticipantsAsync(event: MonthlyEvent) {
-  const participants = await ctx.allOut.participants.find(
+  const participants = await ctx.monthlies.participants.find(
     { event },
     { populate: ["user.divisionCollection"] },
   );
