@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 
+import { Division } from "#/db-entities/Division";
 import { MonthlyEvent } from "#/db-entities/MonthlyEvent";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { divisionsRepository } from "#/divisions/divisions.repository";
@@ -31,6 +32,7 @@ import {
 } from "./monthlies.types";
 import { monthlyCreatedDateValidator } from "./validators/monthly-created-date.validator";
 import { monthlyDivisionSingleMapValidator } from "./validators/monthly-division-single-map.validator";
+import { monthlyDivisionTypeValidator } from "./validators/monthly-division-type.validator";
 import { monthlyScheduleValidator } from "./validators/monthly-schedule.validator";
 import { monthlyUpdatedDateValidator } from "./validators/monthly-updated-date.validator";
 
@@ -132,25 +134,37 @@ export const monthliesService = {
   },
 
   async createEventAsync(event: CreateMonthlyEventDto) {
+    const divisions = await getDivisionsAsync(event);
     validate(
-      [monthlyDivisionSingleMapValidator, monthlyCreatedDateValidator, monthlyScheduleValidator],
+      [
+        monthlyDivisionSingleMapValidator,
+        monthlyCreatedDateValidator,
+        monthlyScheduleValidator,
+        monthlyDivisionTypeValidator,
+      ],
       event,
+      divisions,
     );
 
-    await checkEventDivisionsExistAsync(event);
     const id = await monthliesRepository.createEventAsync(event);
     return await this.getEventDetailsAsync(id);
   },
 
   async updateEventAsync(eventId: number, event: CreateMonthlyEventDto) {
     const originalEvent = await getEventByIdAsync(eventId);
+    const divisions = await getDivisionsAsync(event);
     validate(
-      [monthlyDivisionSingleMapValidator, monthlyUpdatedDateValidator, monthlyScheduleValidator],
+      [
+        monthlyDivisionSingleMapValidator,
+        monthlyUpdatedDateValidator,
+        monthlyScheduleValidator,
+        monthlyDivisionTypeValidator,
+      ],
       event,
+      divisions,
       originalEvent,
     );
 
-    await checkEventDivisionsExistAsync(event);
     await monthliesRepository.updateEventAsync(originalEvent, event);
     return await this.getEventDetailsAsync(eventId);
   },
@@ -164,11 +178,13 @@ export const monthliesService = {
     const map = event.monthlyMapCollection.$.find(
       (m) => m.division.$.id === participant.division.id,
     )!;
+
     const completion = await tempusService.getCompletionAsync({
       type: event.type,
       tempusId: user.tempusId!,
       mapName: map.name,
     });
+
     if (!completion) {
       return getTimeSubmissionResult("rejected", "Tempus record not found for map");
     }
@@ -213,8 +229,8 @@ export const monthliesService = {
   async registerAsync(registration: Registration) {
     const event = await getEventByIdAsync(registration.eventId);
     checkEventNotEnded(event);
-    await checkUserHasEventDivisionsAsync(event, registration.user);
     await checkNotAlreadyRegisteredAsync(registration);
+    await checkUserHasEventDivisionsAsync(event, registration.user);
     await monthliesRepository.registerAsync(registration);
   },
 
@@ -288,7 +304,7 @@ async function checkNotAlreadyRegisteredAsync(registration: Registration) {
   }
 }
 
-async function checkEventDivisionsExistAsync(event: CreateMonthlyEventDto) {
+async function getDivisionsAsync(event: CreateMonthlyEventDto) {
   const divisionIds = Array.from(new Set(event.maps.map((m) => m.divisionId)));
   const exisitingDivisions = await divisionsRepository.getDivisionsByIdsAsync(divisionIds);
   if (exisitingDivisions.length !== divisionIds.length) {
@@ -296,6 +312,8 @@ async function checkEventDivisionsExistAsync(event: CreateMonthlyEventDto) {
       divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
     );
   }
+
+  return exisitingDivisions;
 }
 
 function checkEventNotStartedInPast(event: MonthlyEvent) {
@@ -347,10 +365,11 @@ function getTimeSubmissionResult(status: MonthlyTimeSubmissionResult["status"], 
 function validate(
   validators: MonthlyEventValidator<any>[],
   event: CreateMonthlyEventDto,
+  divisions: Division[],
   originalEvent?: MonthlyEvent,
 ) {
   const errors: string[] = [];
-  validators.forEach((v) => v.validate(errors, event, originalEvent));
+  validators.forEach((v) => v.validate(errors, event, divisions, originalEvent));
   if (errors.length > 0) {
     throw new ValidationError(errors);
   }

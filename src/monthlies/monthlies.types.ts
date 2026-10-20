@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { Division } from "#/db-entities/Division";
 import { MonthlyEvent, TMonthlyEventType } from "#/db-entities/MonthlyEvent";
 import { DivisionDto } from "#/divisions/divisions.types";
 import { SteamUser } from "#/steam/steam.types";
@@ -58,6 +59,11 @@ export type MonthlyLeaderboardSubscriber = {
 };
 
 export type MonthlyEventValidator<T> = {
-  validate(errors: string[], event: CreateMonthlyEventDto, originalEvent?: MonthlyEvent): void;
+  validate(
+    errors: string[],
+    event: CreateMonthlyEventDto,
+    divisions: Division[],
+    originalEvent?: MonthlyEvent,
+  ): void;
   getMessages(items: T[]): string[];
 };

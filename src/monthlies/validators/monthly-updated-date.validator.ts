@@ -3,7 +3,7 @@ import { MonthlyEvent } from "#/db-entities/MonthlyEvent";
 import { MonthlyEventValidator, CreateMonthlyEventDto } from "../monthlies.types";
 
 export const monthlyUpdatedDateValidator: MonthlyEventValidator<string> = {
-  validate(errors: string[], event: CreateMonthlyEventDto, originalEvent: MonthlyEvent) {
+  validate(errors: string[], event: CreateMonthlyEventDto, _, originalEvent: MonthlyEvent) {
     const now = new Date();
     const fields = [
       {
