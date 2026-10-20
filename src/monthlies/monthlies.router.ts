@@ -105,7 +105,7 @@ monthliesRouter.post(
   id("eventId"),
   bodySchema(MonthlyTimeSubmissionSchema),
   async (req, res) => {
-    const sse = initSse(res)
+    const sse = initSse(res);
     const submission = {
       eventId: req.ids.eventId,
       timeSeconds: MonthlyTimeSubmissionSchema.parse(req.body).timeSeconds,
@@ -113,7 +113,7 @@ monthliesRouter.post(
 
     try {
       const result = await monthliesService.submitTimeAsync(req.user!, submission);
-      sse.send("Result", result)
+      sse.send("Result", result);
     } catch (err) {
       console.log(err);
       if (err instanceof AppError) {
@@ -123,7 +123,7 @@ monthliesRouter.post(
       }
     }
 
-    sse.close()
+    sse.close();
   },
 );
 
