@@ -101,15 +101,13 @@ export const monthliesService = {
   },
 
   async subscribeToLeaderboardAsync(
-    query: LeaderboardQuery,
+    mapId: number,
     callback: (items: MonthlyLeaderboardItemDto[]) => void,
   ) {
-    await checkMapExistsAsync(query.mapId);
+    await checkMapExistsAsync(mapId);
     const subscriberId = crypto.randomUUID();
     const handler = () => {
-      const start = (query.page - 1) * query.pageSize;
-      const end = query.page * query.pageSize;
-      callback(leaderboardCache.get(query.mapId)!.slice(start, end));
+      callback(leaderboardCache.get(mapId)!);
     };
 
     leaderboardSubscribers.push({
@@ -117,8 +115,8 @@ export const monthliesService = {
       handler,
     });
 
-    if (!leaderboardCache.has(query.mapId)) {
-      updateLeaderboardCacheAsync(query.mapId);
+    if (!leaderboardCache.has(mapId)) {
+      updateLeaderboardCacheAsync(mapId);
     } else {
       handler();
     }

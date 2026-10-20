@@ -36,11 +36,10 @@ monthliesRouter.get("/events/:eventId/registration", loggedIn, id("eventId"), as
   res.status(200).json(await monthliesService.getRegistrationDetailsAsync(registration));
 });
 
-monthliesRouter.get("/leaderboard", leaderboardQuery, async (req, res) => {
-  const query = LeaderboardQuerySchema.parse(req.query);
+monthliesRouter.get("/leaderboard/:mapId", id("mapId"), async (req, res) => {
   const sse = initSse(res);
   try {
-    const subscriberId = await monthliesService.subscribeToLeaderboardAsync(query, (items) => {
+    const subscriberId = await monthliesService.subscribeToLeaderboardAsync(req.ids.mapId, (items) => {
       sse.send("Items", items);
     });
 
