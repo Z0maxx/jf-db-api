@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { BaseEntity } from "@mikro-orm/core";
 import { Server } from "node:http";
 import { afterAll, assert, beforeAll, describe, it, vi } from "vitest";
@@ -19,6 +20,8 @@ import {
   setupApiTestSuiteAsync,
   teardownApiTestSuiteAsync,
 } from "../util";
+import supertest from "supertest";
+import { app } from "#/app";
 
 async function request({
   eventId,
@@ -280,4 +283,10 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
       getAppError(new RegistrationNotFoundError({ user: testUser1, eventId: event.id })),
     );
   });
+
+  it("returns unauthorized when user is not logged in", async () => {
+    const res = await supertest(app).post(`/monthlies/events/200000/submit-time`);
+    
+    assert.equal(res.statusCode, 401);
+  })
 });
