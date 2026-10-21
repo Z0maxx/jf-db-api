@@ -137,14 +137,9 @@ describe("POST /all-out/events/:eventId/resign", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.statusCode, 404);
-    const loadedTestUser = await ctx.users.findOneOrFail(
-      { id: testUser1.id },
-      { populate: ["role.claimCollection", "divisionCollection"] },
-    );
     assert.deepStrictEqual(res.body, {
       errorCode: "RegistrationNotFoundError",
-      errorMessage: new RegistrationNotFoundError({ user: loadedTestUser, eventId: event.id })
-        .message,
+      errorMessage: new RegistrationNotFoundError({ user: testUser1, eventId: event.id }).message,
     });
   });
 
