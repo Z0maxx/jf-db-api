@@ -137,6 +137,14 @@ export class EventEndedError extends ForbiddenError {
   }
 }
 
+export class EventNotStartedError extends ForbiddenError {
+  constructor(eventId: number, startsAt: Date) {
+    super();
+    this.message = `Event with id '${eventId}' will start at ${startsAt.toUTCString()}`;
+    this.name = "EventNotStartedError";
+  }
+}
+
 export class AlreadyRegisteredError extends ConflictError {
   constructor(registration: Registration) {
     super();
