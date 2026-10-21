@@ -54,7 +54,7 @@ describe("PUT /all-out/events/:eventId", () => {
       division: testSoldierDivision,
     });
     const event = {
-      description: "updated event description",
+      description: "updated description",
       stage1: {
         start: new Date(`${tomorrow} 16:00`),
         end: new Date(`${tomorrow} 17:00`),
@@ -146,12 +146,12 @@ describe("PUT /all-out/events/:eventId", () => {
     participant.divisionCollection.set([testSoldierDivision]);
     await ctx.saveAsync();
     const otherDivision = await ctx.divisions.upsert({
-      name: "other division",
+      name: "division for all out event",
       color: "000000",
     });
     entities.push(otherDivision);
     const event = {
-      description: "updated event description",
+      description: "description",
       stage1: {
         start: originalEvent.stage1Start,
         end: originalEvent.stage1End,
@@ -162,7 +162,7 @@ describe("PUT /all-out/events/:eventId", () => {
         end: originalEvent.stage2End,
         maps: [
           {
-            name: "updated stage 2 soldier map",
+            name: "stage 2 soldier map",
             divisionId: otherDivision.id,
           },
         ],
