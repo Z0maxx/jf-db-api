@@ -17,6 +17,7 @@ import {
 } from "#/errors";
 import { steamService } from "#/steam/steam.service";
 import { tempusService } from "#/tempus/tempus.service";
+import { TempusCompletionResult } from "#/tempus/tempus.types";
 import { LoadedUser, Registration, RegistrationDetails } from "#/types";
 
 import { monthliesRepository } from "./monthlies.repository";
@@ -41,6 +42,22 @@ const leaderboardSubscribers: MonthlyLeaderboardSubscriber[] = [];
 const leaderboardCache = new Map<number, MonthlyLeaderboardItemDto[]>();
 
 export const monthliesService = {
+  submissionAccepted: getTimeSubmissionResult("accepted", "Accepted submitted time"),
+  submissionVerified: getTimeSubmissionResult("verified", "Tempus record successfully verified"),
+  recordNotFound: getTimeSubmissionResult("rejected", "Tempus record not found for map"),
+  recordOlderThanEvent: getTimeSubmissionResult(
+    "rejected",
+    "Tempus record is older than event's start time",
+  ),
+  recordNewerThanEvent: getTimeSubmissionResult(
+    "rejected",
+    "Tempus record is after event's end time",
+  ),
+  recordSlowerThanSubmission: getTimeSubmissionResult(
+    "rejected",
+    "Tempus record is slower than submitted time",
+  ),
+
   async getEventDetailsAsync(eventId: number): Promise<MonthlyEventDetailsDto> {
     const event = await getEventByIdAsync(eventId);
     return {
@@ -173,7 +190,7 @@ export const monthliesService = {
     submission: MonthlyTimeSubmissionDto,
   ): Promise<MonthlyTimeSubmissionResult> {
     const event = await getEventByIdAsync(submission.eventId);
-    checkEventStarted(event)
+    checkEventStarted(event);
     const participant = await getParticipantAsync({ eventId: submission.eventId, user });
     const map = event.monthlyMapCollection.$.find(
       (m) => m.division.$.id === participant.division.id,
@@ -185,45 +202,32 @@ export const monthliesService = {
       mapName: map.name,
     });
 
-    if (!completion) {
-      return getTimeSubmissionResult("rejected", "Tempus record not found for map");
-    }
-
-    if (submission.timeSeconds === undefined) {
-      if (completion.prTimestamp < event.start) {
-        return getTimeSubmissionResult(
-          "rejected",
-          "Tempus record is older than event's start time",
-        );
-      } else if (completion.prTimestamp > event.end) {
-        return getTimeSubmissionResult("rejected", "Tempus record is after event's end time");
-      }
-
+    const result = verifyTimeSubmission(event, submission, completion);
+    let updateCache = false;
+    if (result.status === "verified") {
+      updateCache = true;
       await monthliesRepository.setLeaderboardItemAsync({
         verified: true,
         map,
         participant,
-        ...completion,
+        ...completion!,
       });
-
-      updateLeaderboardCacheAsync(map.id);
-      return getTimeSubmissionResult("verified", "Tempus record successfully verified");
-    } else {
-      if (completion.prSeconds > submission.timeSeconds) {
-        return getTimeSubmissionResult("rejected", "Tempus record is slower than submitted time");
-      }
-
+    } else if (result.status === "accepted") {
+      updateCache = true;
       await monthliesRepository.setLeaderboardItemAsync({
         verified: false,
         map,
         participant,
-        prSeconds: submission.timeSeconds,
+        prSeconds: submission.timeSeconds!,
         prTimestamp: new Date(),
       });
-
-      updateLeaderboardCacheAsync(map.id);
-      return getTimeSubmissionResult("accepted", "Accepted submitted time");
     }
+
+    if (updateCache) {
+      updateLeaderboardCacheAsync(map.id);
+    }
+
+    return result;
   },
 
   async registerAsync(registration: Registration) {
@@ -333,7 +337,7 @@ function checkEventNotEnded(event: MonthlyEvent) {
 function checkEventStarted(event: MonthlyEvent) {
   const now = new Date();
   if (event.start > now) {
-    throw new EventNotStartedError(event.id, event.start)
+    throw new EventNotStartedError(event.id, event.start);
   }
 }
 
@@ -362,11 +366,40 @@ async function updateLeaderboardCacheAsync(mapId: number) {
   leaderboardSubscribers.forEach((s) => s.handler(cacheItems));
 }
 
-function getTimeSubmissionResult(status: MonthlyTimeSubmissionResult["status"], message: string) {
+function verifyTimeSubmission(
+  event: MonthlyEvent,
+  submission: MonthlyTimeSubmissionDto,
+  completion: TempusCompletionResult | null,
+) {
+  if (!completion) {
+    return monthliesService.recordNotFound;
+  }
+
+  if (submission.timeSeconds === undefined) {
+    if (completion.prTimestamp < event.start) {
+      return monthliesService.recordOlderThanEvent;
+    } else if (completion.prTimestamp > event.end) {
+      return monthliesService.recordNewerThanEvent;
+    }
+
+    return monthliesService.submissionVerified;
+  } else {
+    if (completion.prSeconds > submission.timeSeconds) {
+      return monthliesService.recordSlowerThanSubmission;
+    }
+
+    return monthliesService.submissionAccepted;
+  }
+}
+
+function getTimeSubmissionResult<
+  Status extends MonthlyTimeSubmissionResult["status"],
+  Message extends string,
+>(status: Status, message: Message) {
   return {
     status,
     message,
-  };
+  } as const;
 }
 
 function validate(
