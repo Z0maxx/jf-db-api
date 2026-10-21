@@ -4,10 +4,8 @@ import { AppError } from "#/errors";
 import { bodySchema } from "#/middlewares/body-schema.middleware";
 import { getAppError } from "#/middlewares/error-handler.middleware";
 import { id } from "#/middlewares/id.middleware";
-import { leaderboardQuery } from "#/middlewares/leaderboard-query.middleware";
 import { loggedIn } from "#/middlewares/logged-in.middleware";
 import { userCan } from "#/middlewares/user-can.middleware";
-import { LeaderboardQuerySchema } from "#/schemas";
 import { initSse } from "#/sse";
 
 import { CreateMonthlyEventSchema, MonthlyTimeSubmissionSchema } from "./monthlies.schemas";
@@ -39,9 +37,12 @@ monthliesRouter.get("/events/:eventId/registration", loggedIn, id("eventId"), as
 monthliesRouter.get("/leaderboard/:mapId", id("mapId"), async (req, res) => {
   const sse = initSse(res);
   try {
-    const subscriberId = await monthliesService.subscribeToLeaderboardAsync(req.ids.mapId, (items) => {
-      sse.send("Items", items);
-    });
+    const subscriberId = await monthliesService.subscribeToLeaderboardAsync(
+      req.ids.mapId,
+      (items) => {
+        sse.send("Items", items);
+      },
+    );
 
     sse.onClose = () => monthliesService.unsubscribeFromLeaderboard(subscriberId);
   } catch (err) {
