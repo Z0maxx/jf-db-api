@@ -3,6 +3,7 @@ import { seedEntitiesAsync } from "#/default-entities";
 
 import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { createLanTestEntitiesAsync } from "./lan/lan-test-entities";
+import { createMonthlyTestEntitiesAsync } from "./monthlies/monthly-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
 
 export async function setup() {
@@ -11,4 +12,5 @@ export async function setup() {
   await createTestEntitiesAsync();
   await createAllOutTestEntitiesAsync();
   await createLanTestEntitiesAsync();
+  await createMonthlyTestEntitiesAsync();
 }
