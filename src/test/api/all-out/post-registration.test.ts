@@ -57,7 +57,6 @@ describe("POST /all-out/events/:eventId/registration", () => {
       { user: testUser1.id, event },
       { populate: ["divisionCollection"] },
     );
-    entities.push(participant!);
     assert.isNotNull(participant);
     assert.deepStrictEqual(
       participant!.divisionCollection.$.map((d) => d.id),
