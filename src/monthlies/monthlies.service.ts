@@ -8,6 +8,7 @@ import {
   AlreadyRegisteredError,
   EventEndedError,
   EventNotFoundError,
+  EventNotStartedError,
   EventStartedInPastError,
   MapNotFoundError,
   NoMapsWithUserDivisionsError,
@@ -16,7 +17,7 @@ import {
 } from "#/errors";
 import { steamService } from "#/steam/steam.service";
 import { tempusService } from "#/tempus/tempus.service";
-import { LeaderboardQuery, LoadedUser, Registration, RegistrationDetails } from "#/types";
+import { LoadedUser, Registration, RegistrationDetails } from "#/types";
 
 import { monthliesRepository } from "./monthlies.repository";
 import {
@@ -172,6 +173,7 @@ export const monthliesService = {
     submission: MonthlyTimeSubmissionDto,
   ): Promise<MonthlyTimeSubmissionResult> {
     const event = await getEventByIdAsync(submission.eventId);
+    checkEventStarted(event)
     const participant = await getParticipantAsync({ eventId: submission.eventId, user });
     const map = event.monthlyMapCollection.$.find(
       (m) => m.division.$.id === participant.division.id,
@@ -325,6 +327,13 @@ function checkEventNotEnded(event: MonthlyEvent) {
   const now = new Date();
   if (event.end <= now) {
     throw new EventEndedError(event.id, event.end);
+  }
+}
+
+function checkEventStarted(event: MonthlyEvent) {
+  const now = new Date();
+  if (event.start > now) {
+    throw new EventNotStartedError(event.id, event.start)
   }
 }
 
