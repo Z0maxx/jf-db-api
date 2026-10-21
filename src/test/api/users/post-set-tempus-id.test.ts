@@ -12,6 +12,7 @@ import { AlreadySetTempusIdError } from "#/users/users.errors";
 
 import { testUser1 } from "../test-entities";
 import {
+  createServerAsync,
   getSingleSseResponseAsync,
   setupApiTestSuiteAsync,
   teardownApiTestSuiteAsync,
@@ -22,12 +23,7 @@ let server: Server;
 const entities: BaseEntity[] = [];
 describe("POST /users/set-tempus-id", () => {
   beforeAll(async () => {
-    server = await new Promise<Server>((res) => {
-      const s = app.listen(4000, () => {
-        res(s);
-      });
-    });
-
+    server = await createServerAsync(4000);
     await setupApiTestSuiteAsync();
   });
 
