@@ -1,13 +1,14 @@
 import { ctx } from "#/db-context";
 import { Division, DivisionType } from "#/db-entities/Division";
-import { User, UserTempusIdStatus } from "#/db-entities/User";
+import { UserTempusIdStatus } from "#/db-entities/User";
 import { headAdminRole, userRole } from "#/default-entities";
+import { LoadedUser } from "#/types";
 
 export let testSoldierDivision: Division;
 export let testDemomanDivision: Division;
-export let testUser1: User;
-export let testUser2: User;
-export let testHeadAdmin: User;
+export let testUser1: LoadedUser;
+export let testUser2: LoadedUser;
+export let testHeadAdmin: LoadedUser;
 
 export async function createTestEntitiesAsync() {
   [testSoldierDivision, testDemomanDivision] = await ctx.divisions.upsertMany([
@@ -25,11 +26,11 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  [testUser1, testUser2, testHeadAdmin] = await ctx.users.upsertMany([
+  const [user1, user2, headAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
       steam64Id: "76561198167723343",
-      tempusId: 107696,
+      tempusId: 47849,
       tempusIdStatus: UserTempusIdStatus.VERIFIED,
       role: userRole,
     },
@@ -49,8 +50,14 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  testUser1.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
-  testUser2.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
-  testHeadAdmin.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  user1.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  user2.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+  headAdmin.divisionCollection.set([testSoldierDivision, testDemomanDivision]);
+
   await ctx.saveAsync();
+
+  [testUser1, testUser2, testHeadAdmin] = await ctx.users.find(
+    { id: { $in: [user1.id, user2.id, headAdmin.id] } },
+    { populate: ["divisionCollection", "role.claimCollection"] },
+  );
 }
