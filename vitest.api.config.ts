@@ -9,6 +9,7 @@ export default defineConfig({
     extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
   },
   test: {
+    mockReset: true,
     globalSetup: ['./src/test/api/api-global-setup.ts'],
     globals: true,
     environment: "jsdom",
