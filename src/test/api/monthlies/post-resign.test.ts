@@ -87,10 +87,7 @@ describe("POST /monthlies/events/:eventId/resign", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventEndedError",
-      errorMessage: new EventEndedError(event.id, event.end).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventEndedError(event.id, event.end)));
   });
 
   it("returns event not found error when event doesn't exist", async () => {

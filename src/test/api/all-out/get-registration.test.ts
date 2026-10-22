@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { EventNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 
 import { testUser1, testUser2 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
@@ -60,10 +61,7 @@ describe("GET /all-out/events/:eventId/registration", () => {
     const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventNotFoundError",
-      errorMessage: new EventNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventNotFoundError(200_000)));
   });
 
   it("returns unauthorized when not logged in", async () => {

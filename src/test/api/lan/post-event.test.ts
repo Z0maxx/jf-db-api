@@ -8,6 +8,7 @@ import { lanCreatedDateValidator } from "#/lan/validators/lan-created-date.valid
 import { lanUniqueMapValidator } from "#/lan/validators/lan-unique-map.validator";
 import { lanUniqueParticipantAliasValidator } from "#/lan/validators/lan-unique-participant-alias.validator";
 import { lanUniqueParticipantValidator } from "#/lan/validators/lan-unique-participant.validator";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { UsersNotFoundError } from "#/users/users.errors";
 
@@ -216,10 +217,7 @@ describe("POST /lan/events", () => {
     const res = await loginAs(testHeadAdmin, request(event));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "UsersNotFoundError",
-      errorMessages: new UsersNotFoundError([200_000]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new UsersNotFoundError([200_000])));
   });
 
   it("returns unauthorized when user is not logged in", async () => {

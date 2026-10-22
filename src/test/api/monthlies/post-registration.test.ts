@@ -79,13 +79,15 @@ describe("POST /monthlies/events/:eventId/registration", () => {
       { id: testUser1.id },
       { populate: ["role.claimCollection", "divisionCollection"] },
     );
-    assert.deepStrictEqual(res.body, {
-      errorCode: "AlreadyRegisteredError",
-      errorMessage: new AlreadyRegisteredError({
-        eventId: event.id,
-        user: loadedTestUser,
-      }).message,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(
+        new AlreadyRegisteredError({
+          eventId: event.id,
+          user: loadedTestUser,
+        }),
+      ),
+    );
   });
 
   it("returns event ended error when trying to register to an event that has ended", async () => {
@@ -100,10 +102,7 @@ describe("POST /monthlies/events/:eventId/registration", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventEndedError",
-      errorMessage: new EventEndedError(event.id, event.end).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventEndedError(event.id, event.end)));
   });
 
   it("returns event not found error when event doesn't exist", async () => {
@@ -141,9 +140,9 @@ describe("POST /monthlies/events/:eventId/registration", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "NoMapsWithUserDivisionsError",
-      errorMessage: new NoMapsWithUserDivisionsError(event.id, testUser1.id).message,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new NoMapsWithUserDivisionsError(event.id, testUser1.id)),
+    );
   });
 });

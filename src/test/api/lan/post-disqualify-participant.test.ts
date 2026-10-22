@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { ParticipantNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
@@ -46,10 +47,7 @@ describe("POST /lan/participants/:participantId/disqualify", () => {
     const res = await loginAs(testHeadAdmin, request(200_000));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "ParticipantNotFoundError",
-      errorMessage: new ParticipantNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new ParticipantNotFoundError(200_000)));
   });
 
   it("returns unauthorized when user is not logged in", async () => {

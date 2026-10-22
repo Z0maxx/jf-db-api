@@ -10,6 +10,7 @@ import { lanUniqueMapValidator } from "#/lan/validators/lan-unique-map.validator
 import { lanUniqueParticipantAliasValidator } from "#/lan/validators/lan-unique-participant-alias.validator";
 import { lanUniqueParticipantValidator } from "#/lan/validators/lan-unique-participant.validator";
 import { lanUpdatedDateValidator } from "#/lan/validators/lan-updated-date.validator";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { UsersNotFoundError } from "#/users/users.errors";
 
@@ -293,10 +294,7 @@ describe("PUT /lan/events/:eventId", () => {
     const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "UsersNotFoundError",
-      errorMessages: new UsersNotFoundError([200_000]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new UsersNotFoundError([200_000])));
   });
 
   it("returns not found error when event doesn't exist", async () => {
@@ -318,10 +316,7 @@ describe("PUT /lan/events/:eventId", () => {
     const res = await loginAs(testHeadAdmin, request(200000, event));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventNotFoundError",
-      errorMessage: new EventNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventNotFoundError(200_000)));
   });
 
   it("returns bad request when body is incorrect", async () => {

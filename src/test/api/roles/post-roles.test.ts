@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { app } from "#/app";
 import { ClaimsNotFoundError } from "#/claims/claims.errors";
 import { ctx } from "#/db-context";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import {
   DefaultRolesDeletedError,
   DefaultRolesModifiedError,
@@ -114,10 +115,10 @@ describe("POST /roles", () => {
     const res = await loginAs(testHeadAdmin, request([]));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "DefaultRolesDeletedError",
-      errorMessages: new DefaultRolesDeletedError(["user", "head admin"]).messages,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new DefaultRolesDeletedError(["user", "head admin"])),
+    );
   });
 
   it("returns default roles modified error when trying to modify default roles", async () => {
@@ -136,10 +137,10 @@ describe("POST /roles", () => {
     const res = await loginAs(testHeadAdmin, request(roles));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "DefaultRolesModifiedError",
-      errorMessages: new DefaultRolesModifiedError(["user", "head admin"]).messages,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new DefaultRolesModifiedError(["user", "head admin"])),
+    );
   });
 
   it("returns roles have users error when trying to delete a role with users", async () => {
@@ -154,10 +155,7 @@ describe("POST /roles", () => {
     const res = await loginAs(testHeadAdmin, request(otherRoles));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "RolesHaveUsersError",
-      errorMessages: new RolesHaveUsersError([role.name]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new RolesHaveUsersError([role.name])));
   });
 
   it("returns claims not found error when a role has not existing claim ids", async () => {
@@ -166,10 +164,7 @@ describe("POST /roles", () => {
     const res = await loginAs(testHeadAdmin, request([role]));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "ClaimsNotFoundError",
-      errorMessages: new ClaimsNotFoundError([200_000]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new ClaimsNotFoundError([200_000])));
   });
 
   it("returns bad request when body in incorrect", async () => {

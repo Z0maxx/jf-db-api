@@ -10,6 +10,7 @@ import {
   EventStartedInPastError,
   NoMapsWithUserDivisionsError,
 } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 
 import { testDemomanDivision, testSoldierDivision, testUser1 } from "../test-entities";
@@ -96,10 +97,10 @@ describe("POST /all-out/events/:eventId/registration", () => {
       { id: testUser1.id },
       { populate: ["role.claimCollection", "divisionCollection"] },
     );
-    assert.deepStrictEqual(res.body, {
-      errorCode: "AlreadyRegisteredError",
-      errorMessage: new AlreadyRegisteredError({ user: loadedTestUser, eventId: event.id }).message,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new AlreadyRegisteredError({ user: loadedTestUser, eventId: event.id })),
+    );
   });
 
   it("returns event started in past error when trying to register to an event that started in the past", async () => {
@@ -120,20 +121,17 @@ describe("POST /all-out/events/:eventId/registration", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventStartedInPastError",
-      errorMessage: new EventStartedInPastError(event.id, event.stage1Start).message,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new EventStartedInPastError(event.id, event.stage1Start)),
+    );
   });
 
   it("returns event not found error when event doesn't exist", async () => {
     const res = await loginAs(testUser1, request(200000));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventNotFoundError",
-      errorMessage: new EventNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventNotFoundError(200_000)));
   });
 
   it("returns unauthorized when not logged in", async () => {
@@ -183,9 +181,9 @@ describe("POST /all-out/events/:eventId/registration", () => {
     const res = await loginAs(testUser1, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "NoMapsWithUserDivisionsError",
-      errorMessage: new NoMapsWithUserDivisionsError(event.id, testUser1.id).message,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(new NoMapsWithUserDivisionsError(event.id, testUser1.id)),
+    );
   });
 });

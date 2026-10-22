@@ -6,6 +6,7 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { UserTempusIdStatus } from "#/db-entities/User";
 import { headAdminRole, userRole } from "#/default-entities";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { CannotSetOwnRoleError, CannotSetRoleWithLevelError } from "#/users/users.errors";
 
 import { testHeadAdmin } from "../test-entities";
@@ -57,10 +58,7 @@ describe("POST /users/set-role", () => {
     const res = await loginAs(testHeadAdmin, request(setUserRole));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "CannotSetOwnRoleError",
-      errorMessage: new CannotSetOwnRoleError().message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new CannotSetOwnRoleError()));
   });
 
   it("returns cannot set role with level error when admin tries to set a user's role to one with same level as theirs", async () => {
@@ -78,9 +76,6 @@ describe("POST /users/set-role", () => {
     const res = await loginAs(testHeadAdmin, request(setUserRole));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "CannotSetRoleWithLevelError",
-      errorMessage: new CannotSetRoleWithLevelError().message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new CannotSetRoleWithLevelError()));
   });
 });

@@ -9,6 +9,7 @@ import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { EventNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 
 import { testHeadAdmin, testSoldierDivision, testUser1 } from "../test-entities";
@@ -368,10 +369,7 @@ describe("PUT /all-out/events/:eventId", () => {
     const res = await loginAs(testHeadAdmin, request(200000, event));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventNotFoundError",
-      errorMessage: new EventNotFoundError(200000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventNotFoundError(200000)));
   });
 
   it("returns divisions not found error when divisions don't exist", async () => {
@@ -421,10 +419,7 @@ describe("PUT /all-out/events/:eventId", () => {
     const res = await loginAs(testHeadAdmin, request(originalEvent.id, event));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "DivisionsNotFoundError",
-      errorMessages: new DivisionsNotFoundError([200_001, 200_002]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new DivisionsNotFoundError([200_001, 200_002])));
   });
 
   it("returns bad request when body is incorrect", async () => {

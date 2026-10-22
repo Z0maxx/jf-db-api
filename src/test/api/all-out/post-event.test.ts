@@ -8,6 +8,7 @@ import { allOutUniqueMapValidator } from "#/all-out/validators/all-out-unique-ma
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 
 import {
@@ -325,10 +326,7 @@ describe("POST /all-out/events", () => {
     const res = await loginAs(testHeadAdmin, request(event));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "DivisionsNotFoundError",
-      errorMessages: new DivisionsNotFoundError([200_001, 200_002]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new DivisionsNotFoundError([200_001, 200_002])));
   });
 
   it("returns unauthorized when user is not logged in", async () => {

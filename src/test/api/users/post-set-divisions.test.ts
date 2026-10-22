@@ -9,6 +9,7 @@ import { UserTempusIdStatus } from "#/db-entities/User";
 import { userRole } from "#/default-entities";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { UserNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 import { divisionTypeValidator } from "#/users/validators/division-type.validator";
 
@@ -208,10 +209,7 @@ describe("POST /users/set-divisions", () => {
     const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "UserNotFoundError",
-      errorMessage: new UserNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new UserNotFoundError(200_000)));
   });
 
   it("returns divisions not found error when divisions don't exist", async () => {
@@ -224,10 +222,7 @@ describe("POST /users/set-divisions", () => {
     const res = await loginAs(testHeadAdmin, request(userDivisions));
 
     assert.equal(res.status, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "DivisionsNotFoundError",
-      errorMessages: new DivisionsNotFoundError([200_001, 200_002]).messages,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new DivisionsNotFoundError([200_001, 200_002])));
   });
 
   it("returns unauthorized when user is not logged in", async () => {

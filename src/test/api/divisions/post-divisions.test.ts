@@ -7,6 +7,7 @@ import { ctx } from "#/db-context";
 import { DivisionType } from "#/db-entities/Division";
 import { UnassignedDivisionsDeletedError } from "#/divisions/divisions.errors";
 import { divisionUniqueNameValidator } from "#/divisions/validators/division-unique-name.validator";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
 import { loginAs, setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
@@ -107,13 +108,12 @@ describe("POST /divisions", () => {
     );
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "UnassignedDivisionsDeletedError",
-      errorMessages: new UnassignedDivisionsDeletedError([
-        "Unassigned Soldier",
-        "Unassigned Demoman",
-      ]).messages,
-    });
+    assert.deepStrictEqual(
+      res.body,
+      getAppError(
+        new UnassignedDivisionsDeletedError(["Unassigned Soldier", "Unassigned Demoman"]),
+      ),
+    );
   });
 
   it("returns bad request when body is incorrect", async () => {

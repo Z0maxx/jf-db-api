@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { EventEndedError, EventNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 import { tomorrow, yesterday } from "#/test/test-dates";
 
 import { testHeadAdmin, testUser1 } from "../test-entities";
@@ -59,20 +60,14 @@ describe("POST /events/:eventId/cancel", () => {
     const res = await loginAs(testHeadAdmin, request(event.id));
 
     assert.equal(res.status, 403);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventEndedError",
-      errorMessage: new EventEndedError(event.id, event.stage3End).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventEndedError(event.id, event.stage3End)));
   });
 
   it("returns event not found error when event doesn't exist", async () => {
     const res = await loginAs(testHeadAdmin, request(200000));
 
     assert.equal(res.statusCode, 404);
-    assert.deepStrictEqual(res.body, {
-      errorCode: "EventNotFoundError",
-      errorMessage: new EventNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new EventNotFoundError(200_000)));
   });
 
   it("returns unauthorized when user is not logged in", async () => {
