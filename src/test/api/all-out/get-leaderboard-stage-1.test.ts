@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, describe, it } from "vitest";
 import { app } from "#/app";
 import { ctx } from "#/db-context";
 import { MapNotFoundError } from "#/errors";
+import { getAppError } from "#/middlewares/error-handler.middleware";
 
 import { testSoldierDivision, testUser1, testUser2 } from "../test-entities";
 import { setupApiTestSuiteAsync, teardownApiTestSuiteAsync } from "../util";
@@ -115,10 +116,7 @@ describe("GET /all-out/leaderboard/stage-1", () => {
     const res = await request(queryParams);
 
     assert.equal(res.statusCode, 404);
-    assert.deepEqual(res.body, {
-      errorCode: "MapNotFoundError",
-      errorMessage: new MapNotFoundError(200_000).message,
-    });
+    assert.deepStrictEqual(res.body, getAppError(new MapNotFoundError(200_000)));
   });
 
   it("returns bad request when params are incorrect", async () => {
