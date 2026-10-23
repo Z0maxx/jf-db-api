@@ -3,7 +3,8 @@ import { Role } from "#/db-entities/Role";
 import { User, UserTempusIdStatus } from "#/db-entities/User";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { divisionsRepository } from "#/divisions/divisions.repository";
-import { UserNotFoundError, ValidationError } from "#/errors";
+import { EventNotFoundError, UserNotFoundError, ValidationError } from "#/errors";
+import { monthliesRepository } from "#/monthlies/monthlies.repository";
 import { RoleNotFoundError } from "#/roles/roles.errors";
 import { rolesRepository } from "#/roles/roles.repository";
 import { steamService } from "#/steam/steam.service";
@@ -141,13 +142,16 @@ function validateDivisionTypes(divisions: UserDivisions) {
 
 async function updateUserParticipationsAsync(user: LoadedUser) {
   const now = new Date();
-  //when monthlies is complete update them too
   const upcomingAllOutParticipations = await user.allOutParticipantCollection.loadItems({
     where: { event: { stage1Start: { $gt: now } } },
   });
 
-  await Promise.all(
-    upcomingAllOutParticipations.map(async (p) => {
+  const upcomingMonthlyParticipations = await user.monthlyParticipantCollection.loadItems({
+    where: { event: { start: { $gt: now } } },
+  })
+
+  await Promise.all([
+    ...upcomingAllOutParticipations.map(async (p) => {
       if (!(await allOutRepository.userHasEventDivisionsAsync(p.event.id, user))) {
         return allOutRepository.deleteRegistrationAsync({ user, eventId: p.event.id });
       } else {
@@ -157,5 +161,21 @@ async function updateUserParticipationsAsync(user: LoadedUser) {
         );
       }
     }),
-  );
+    ...upcomingMonthlyParticipations.map(async (p) => {
+      const event = await p.event.load({ populate: ["type"] })
+      if (!event) {
+        throw new EventNotFoundError(p.event.id)
+      }
+
+      const division = user.divisionCollection.$.find(d => d.type === event.type)!
+      if (!(await monthliesRepository.userHasEventDivisionsAsync(p.event.id, user))) {
+        return monthliesRepository.deleteRegistrationAsync({ user, eventId: p.event.id });
+      } else {
+        return monthliesRepository.setParticipantDivisionAsync(
+          p,
+          division,
+        );
+      }
+    }),
+  ]);
 }
