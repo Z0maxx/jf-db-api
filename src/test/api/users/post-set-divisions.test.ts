@@ -106,25 +106,25 @@ describe("POST /users/set-divisions", () => {
       description: "description",
       start: new Date(`${tomorrow} 10:00`),
       end: new Date(`${tomorrow} 16:00`),
-    })
-    entities.push(monthlyEvent)
+    });
+    entities.push(monthlyEvent);
     await ctx.monthlies.maps.upsertMany([
       {
         name: "solider map",
         event: monthlyEvent,
-        division: testSoldierDivision
+        division: testSoldierDivision,
       },
       {
         name: "other solider map",
         event: monthlyEvent,
-        division: otherSoldierDivision
-      }
-    ])
+        division: otherSoldierDivision,
+      },
+    ]);
     const monthlyParticipant = await ctx.monthlies.participants.upsert({
       event: monthlyEvent,
       division: testSoldierDivision,
-      user
-    })
+      user,
+    });
     entities.push(user);
 
     const userDivisions = {
@@ -137,7 +137,7 @@ describe("POST /users/set-divisions", () => {
     assert(res.ok);
     await user.divisionCollection.load({ refresh: true });
     await allOutParticipant.divisionCollection.load({ refresh: true });
-    await monthlyParticipant.division.load({ refresh: true })
+    await monthlyParticipant.division.load({ refresh: true });
     assert.deepStrictEqual(
       user.divisionCollection.map((d) => d.id),
       [otherSoldierDivision.id, otherDemomanDivision.id],
@@ -146,7 +146,7 @@ describe("POST /users/set-divisions", () => {
       allOutParticipant.divisionCollection.map((d) => d.id),
       [otherSoldierDivision.id, otherDemomanDivision.id],
     );
-    assert.equal(monthlyParticipant.division.id, otherSoldierDivision.id)
+    assert.equal(monthlyParticipant.division.id, otherSoldierDivision.id);
   });
 
   it("doesn't set past participation divisions", async () => {
@@ -191,20 +191,20 @@ describe("POST /users/set-divisions", () => {
       description: "description",
       start: new Date(`${yesterday} 10:00`),
       end: new Date(`${yesterday} 16:00`),
-    })
-    entities.push(monthlyEvent)
+    });
+    entities.push(monthlyEvent);
     await ctx.monthlies.maps.upsertMany([
       {
         name: "soldier map",
         event: monthlyEvent,
-        division: testSoldierDivision
-      }
-    ])
+        division: testSoldierDivision,
+      },
+    ]);
     const monthlyParticipant = await ctx.monthlies.participants.upsert({
       event: monthlyEvent,
       division: testSoldierDivision,
-      user
-    })
+      user,
+    });
     entities.push(user);
 
     const userDivisions = {
@@ -217,7 +217,7 @@ describe("POST /users/set-divisions", () => {
     assert(res.ok);
     await user.divisionCollection.load({ refresh: true });
     await allOutParticipant.divisionCollection.load({ refresh: true });
-    await monthlyParticipant.division.load({ refresh: true })
+    await monthlyParticipant.division.load({ refresh: true });
     assert.deepStrictEqual(
       user.divisionCollection.map((d) => d.id),
       [otherSoldierDivision.id, otherDemomanDivision.id],
@@ -226,7 +226,7 @@ describe("POST /users/set-divisions", () => {
       allOutParticipant.divisionCollection.map((d) => d.id),
       [testSoldierDivision.id, testDemomanDivision.id],
     );
-    assert.equal(monthlyParticipant.division.id, testSoldierDivision.id)
+    assert.equal(monthlyParticipant.division.id, testSoldierDivision.id);
   });
 
   it("returns validation error when divisions are not correct type", async () => {
