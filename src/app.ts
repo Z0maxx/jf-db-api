@@ -14,6 +14,8 @@ import { monthliesRouter } from "./monthlies/monthlies.router";
 import { rolesRouter } from "./roles/roles.router";
 import { usersRouter } from "./users/users.router";
 
+process.env.TZ = "UTC"
+
 export const app = express();
 app.use(express.json());
 app.use((_, res, next) => {
