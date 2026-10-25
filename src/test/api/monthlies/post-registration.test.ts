@@ -47,7 +47,6 @@ describe("POST /monthlies/events/:eventId/registration", () => {
 
     const res = await loginAs(testUser1, request(event.id));
 
-    console.log(res.text);
     assert.equal(res.status, 204);
     const participant = await ctx.monthlies.participants.findOne(
       { user: testUser1.id, event },

@@ -109,7 +109,6 @@ describe("GET /monthlies/leaderboard/:mapId", () => {
     );
 
     assert.equal(submitResponse.status, "accepted");
-    console.log(submitResponse);
     const res = await leaderboardResponses;
     assert.lengthOf(res, 2);
     assert.lengthOf(res[0], 0);
