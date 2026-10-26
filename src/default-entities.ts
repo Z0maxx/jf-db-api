@@ -15,7 +15,7 @@ export let unassignedDemomanDivision: Division = null!;
 export async function seedEntitiesAsync() {
   ctx.orm.em = ctx.orm.em.fork();
   const claims: Claim[] = await ctx.claims.findAll();
-  const missingClaims = claimNames.filter((cn) => !claims.some((c) => c.name !== cn));
+  const missingClaims = claimNames.filter((cn) => !claims.some((c) => c.name === cn));
   if (missingClaims.length > 0) {
     claims.push(...missingClaims.map((name) => ctx.claims.create({ name })));
   }
@@ -37,6 +37,7 @@ export async function seedEntitiesAsync() {
   }
 
   headAdminRole.claimCollection.set(claims);
+  await ctx.saveAsync();
 
   unassignedSoldierDivision = (await ctx.divisions.findOne({ name: "Unassigned Soldier" }))!;
   if (!unassignedSoldierDivision) {
