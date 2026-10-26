@@ -15,7 +15,6 @@ describe("seedEntitiesAsync", () => {
 
   afterAll(async () => {
     await seedEntitiesAsync();
-    await ctx.orm.close(true);
   });
 
   it("inserts only missing claims and flushes role links when defaults already exist", async () => {
