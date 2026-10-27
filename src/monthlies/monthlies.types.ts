@@ -45,7 +45,12 @@ export type MonthlyLeaderboardItemDto = {
 
 export type MonthlyTimeSubmissionDto = {
   eventId: number;
-  timeSeconds?: number | undefined;
+  details?:
+    | {
+        timeSeconds: number;
+        tempusServerId: number;
+      }
+    | undefined;
 };
 
 export type MonthlyLeaderboardSubmissionDto = {
@@ -71,6 +76,7 @@ export type MonthlyTimeSubmissionResult = {
 
 export type MonthlyLeaderboardSubscriber = {
   id: string;
+  mapId: number;
   handler: (items: MonthlyLeaderboardItemDto[]) => void;
 };
 

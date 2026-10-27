@@ -12,5 +12,10 @@ export const CreateMonthlyEventSchema = z.object({
 });
 
 export const MonthlyTimeSubmissionSchema = z.object({
-  timeSeconds: z.number().optional(),
+  details: z
+    .object({
+      timeSeconds: z.number().positive(),
+      tempusServerId: z.number().positive(),
+    })
+    .optional(),
 });

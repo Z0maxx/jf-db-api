@@ -3,6 +3,8 @@ import { Loaded, Reference, wrap } from "@mikro-orm/core";
 import { ctx } from "#/db-context";
 import { Division } from "#/db-entities/Division";
 import { MonthlyEvent } from "#/db-entities/MonthlyEvent";
+import { MonthlyLeaderboardItem } from "#/db-entities/MonthlyLeaderboardItem";
+import { MonthlyLeaderboardSubmission } from "#/db-entities/MonthlyLeaderboardSubmission";
 import { MonthlyMap } from "#/db-entities/MonthlyMap";
 import { MonthlyParticipant } from "#/db-entities/MonthlyParticipant";
 import { User } from "#/db-entities/User";
@@ -44,6 +46,24 @@ export const monthliesRepository = {
     );
 
     return items;
+  },
+
+  async getLeaderboardItemsAsync(itemIds: number[]) {
+    return await ctx.monthlies.leaderboard.find({ id: { $in: itemIds } });
+  },
+
+  async getLeaderboardItemAsync(itemId: number) {
+    return await ctx.monthlies.leaderboard.findOne({ id: itemId });
+  },
+
+  async getAllLeaderboardSubmissionsAsync() {
+    return await ctx.monthlies.leaderboardSubmissions.findAll({
+      populate: ["leaderboardItem.map.name", "leaderboardItem.participant.user.steam64Id", "event"],
+    });
+  },
+
+  async getLeaderboardSubmissionsByIdsAsync(submissionIds: number[]) {
+    return await ctx.monthlies.leaderboardSubmissions.find({ id: { $in: submissionIds } });
   },
 
   async mapExistsAsync(mapId: number) {
@@ -122,11 +142,47 @@ export const monthliesRepository = {
       participant: item.participant,
     });
 
+    let createdItem;
     if (originalItem) {
       wrap(originalItem).assign(item);
     } else {
-      ctx.monthlies.leaderboard.create(item);
+      createdItem = ctx.monthlies.leaderboard.create(item);
     }
+
+    await ctx.saveAsync();
+    return originalItem ?? createdItem!;
+  },
+
+  async setLeaderboardSubmission(submission: {
+    submissionTimestamp: Date;
+    tempusServerId: number;
+    leaderboardItem: MonthlyLeaderboardItem;
+    event: MonthlyEvent;
+  }) {
+    const originalSubmission = await ctx.monthlies.leaderboardSubmissions.findOne({
+      event: submission.event,
+      leaderboardItem: submission.leaderboardItem,
+    });
+
+    if (originalSubmission) {
+      wrap(originalSubmission).assign(submission);
+    } else {
+      ctx.monthlies.leaderboardSubmissions.create(submission);
+    }
+
+    await ctx.saveAsync();
+  },
+
+  async verifyLeaderboardItemsAsync(
+    items: {
+      leaderboardItem: MonthlyLeaderboardItem;
+      prTimestamp: Date;
+    }[],
+  ) {
+    items.forEach((i) => {
+      i.leaderboardItem.verified = true;
+      i.leaderboardItem.prTimestamp = i.prTimestamp;
+    });
 
     await ctx.saveAsync();
   },
@@ -163,6 +219,16 @@ export const monthliesRepository = {
 
   async cancelEventAsync(event: MonthlyEvent) {
     event.canceled = true;
+    await ctx.saveAsync();
+  },
+
+  async deleteLeaderboardItemsAsync(items: MonthlyLeaderboardItem[]) {
+    items.forEach((i) => ctx.em.remove(i));
+    await ctx.saveAsync();
+  },
+
+  async deleteLeaderboardSubmissionsAsync(submissions: MonthlyLeaderboardSubmission[]) {
+    submissions.forEach((s) => ctx.em.remove(s));
     await ctx.saveAsync();
   },
 };

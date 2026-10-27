@@ -1,3 +1,24 @@
+const { workerMock } = vi.hoisted(() => ({
+  workerMock: {
+    on: vi.fn(),
+    postMessage: vi.fn(),
+  },
+}));
+
+vi.mock("node:worker_threads", () => ({
+  parentPort: null,
+  Worker: class {
+    on(event: string, listener: unknown) {
+      workerMock.on(event, listener);
+      return this;
+    }
+
+    postMessage(message: unknown) {
+      workerMock.postMessage(message);
+    }
+  },
+}));
+
 import "dotenv/config";
 import { BaseEntity } from "@mikro-orm/core";
 import { Server } from "node:http";
@@ -9,7 +30,14 @@ import { authService } from "#/auth/auth.service";
 import { ctx } from "#/db-context";
 import { MonthlyEventType } from "#/db-entities/MonthlyEvent";
 import { User } from "#/db-entities/User";
-import { EventNotFoundError, EventNotStartedError, RegistrationNotFoundError } from "#/errors";
+import { envConfig } from "#/env-config";
+import {
+  EventEndedError,
+  EventNotFoundError,
+  EventNotStartedError,
+  RegistrationNotFoundError,
+  TempusServerNotFoundError,
+} from "#/errors";
 import { getAppError } from "#/middlewares/error-handler.middleware";
 import { monthliesService } from "#/monthlies/monthlies.service";
 import { tempusService } from "#/tempus/tempus.service";
@@ -26,11 +54,14 @@ import {
 async function request({
   eventId,
   asUser,
-  timeSeconds,
+  details,
 }: {
   eventId: number;
   asUser?: User | undefined;
-  timeSeconds?: number | undefined;
+  details?: {
+    timeSeconds: number;
+    tempusServerId: number;
+  };
 }) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -44,9 +75,9 @@ async function request({
     `http://localhost:4002/monthlies/events/${eventId}/submit-time`,
     {
       method: "POST",
-      body: timeSeconds
+      body: details
         ? {
-            timeSeconds,
+            details,
           }
         : undefined,
       headers,
@@ -102,7 +133,36 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     });
   });
 
-  it("accepts submission with time when tempus map record is faster than submitted time", async () => {
+  it("doesn't reject submission after event ended but extra minutes haven't passed yet", async () => {
+    const oneMinuteBeforeExtraMinutesInThePast = new Date(
+      new Date().getTime() - (envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES - 1) * 1000 * 60,
+    );
+    const event = await ctx.monthlies.events.upsert({
+      type: MonthlyEventType.SOLDIER,
+      description: "description",
+      start: new Date(`${yesterday} 10:00`),
+      end: oneMinuteBeforeExtraMinutesInThePast,
+    });
+    entities.push(event);
+    await ctx.monthlies.maps.upsert({
+      name: "soldier map",
+      division: testSoldierDivision,
+      event,
+    });
+    await ctx.monthlies.participants.upsert({
+      user: testUser1,
+      division: testSoldierDivision,
+      event,
+    });
+    const completion = { prSeconds: 100, prTimestamp: new Date(`${yesterday} 11:00`) };
+    vi.spyOn(tempusService, "getCompletionAsync").mockResolvedValue(completion);
+
+    const res = await request({ eventId: event.id, asUser: testUser1 });
+
+    assert.deepStrictEqual(res, monthliesService.submissionVerified);
+  });
+
+  it("accepts submission with details when tempus map record is faster than submitted time", async () => {
     const event = await ctx.monthlies.events.upsert({
       type: MonthlyEventType.SOLDIER,
       description: "description",
@@ -124,7 +184,12 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     const completion = { prSeconds: 100, prTimestamp: now };
     vi.spyOn(tempusService, "getCompletionAsync").mockResolvedValue(completion);
 
-    const res = await request({ eventId: event.id, asUser: testUser1, timeSeconds: 110 });
+    const tempusServerId = 62;
+    const res = await request({
+      eventId: event.id,
+      asUser: testUser1,
+      details: { timeSeconds: 110, tempusServerId },
+    });
 
     assert.deepStrictEqual(res, monthliesService.submissionAccepted);
     const leaderboardItem = await ctx.monthlies.leaderboard.findOne({ map });
@@ -133,6 +198,14 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
       participant: participant.id,
       verified: false,
       prSeconds: 110,
+    });
+    const leaderSubmission = await ctx.monthlies.leaderboardSubmissions.findOne({
+      leaderboardItem,
+    });
+    assert.isNotNull(leaderSubmission);
+    assert.containsSubset(leaderSubmission.serialize(), {
+      event: event.id,
+      tempusServerId,
     });
   });
 
@@ -163,7 +236,7 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     assert.notExists(leaderboardItem?.id);
   });
 
-  it("rejects submisison when tempus map record happened before event", async () => {
+  it("rejects submisison when tempus map record happened before event started", async () => {
     const event = await ctx.monthlies.events.upsert({
       type: MonthlyEventType.SOLDIER,
       description: "description",
@@ -191,12 +264,12 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     assert.notExists(leaderboardItem?.id);
   });
 
-  it("rejects submisison when tempus map record happened after event", async () => {
+  it("rejects submisison when tempus map record happened after event ended", async () => {
     const event = await ctx.monthlies.events.upsert({
       type: MonthlyEventType.SOLDIER,
       description: "description",
       start: new Date(`${yesterday} 10:00`),
-      end: new Date(`${yesterday} 16:00`),
+      end: new Date(),
     });
     entities.push(event);
     const map = await ctx.monthlies.maps.upsert({
@@ -209,7 +282,7 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
       division: testSoldierDivision,
       event,
     });
-    const completion = { prSeconds: 100, prTimestamp: new Date() };
+    const completion = { prSeconds: 100, prTimestamp: new Date(event.end.getTime() + 1) };
     vi.spyOn(tempusService, "getCompletionAsync").mockResolvedValue(completion);
 
     const res = await request({ eventId: event.id, asUser: testUser1 });
@@ -219,7 +292,7 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     assert.notExists(leaderboardItem?.id);
   });
 
-  it("rejects submission with time when tempus map record is slower than submitted time", async () => {
+  it("rejects submission with details when tempus map record is slower than submitted time", async () => {
     const event = await ctx.monthlies.events.upsert({
       type: MonthlyEventType.SOLDIER,
       description: "description",
@@ -240,11 +313,32 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
     const completion = { prSeconds: 100, prTimestamp: new Date() };
     vi.spyOn(tempusService, "getCompletionAsync").mockResolvedValue(completion);
 
-    const res = await request({ eventId: event.id, asUser: testUser1, timeSeconds: 99 });
+    const res = await request({
+      eventId: event.id,
+      asUser: testUser1,
+      details: { timeSeconds: 99, tempusServerId: 62 },
+    });
 
     assert.deepStrictEqual(res, monthliesService.recordSlowerThanSubmission);
     const leaderboardItem = await ctx.monthlies.leaderboard.findOne({ map });
     assert.notExists(leaderboardItem?.id);
+  });
+
+  it("returns event ended error when trying to submit to an event that ended and extra minutes passed", async () => {
+    const extraMinutesInThePast = new Date(
+      new Date().getTime() - envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES * 1000 * 60,
+    );
+    const event = await ctx.monthlies.events.upsert({
+      type: MonthlyEventType.SOLDIER,
+      description: "description",
+      start: new Date(`${yesterday} 10:00`),
+      end: extraMinutesInThePast,
+    });
+    entities.push(event);
+
+    const res = await request({ eventId: event.id, asUser: testUser1 });
+
+    assert.deepStrictEqual(res, getAppError(new EventEndedError(event.id, extraMinutesInThePast)));
   });
 
   it("returns event not found error when event doesn't exist", async () => {
@@ -282,6 +376,36 @@ describe("POST /monthlies/events/:eventId/submit-time", () => {
       res,
       getAppError(new RegistrationNotFoundError({ user: testUser1, eventId: event.id })),
     );
+  });
+
+  it("returns tempus server not found error when tempus server doesn't exist", async () => {
+    const event = await ctx.monthlies.events.upsert({
+      type: MonthlyEventType.SOLDIER,
+      description: "description",
+      start: new Date(`${yesterday} 10:00`),
+      end: new Date(`${tomorrow} 16:00`),
+    });
+    entities.push(event);
+    await ctx.monthlies.maps.upsert({
+      name: "soldier map",
+      division: testSoldierDivision,
+      event,
+    });
+    await ctx.monthlies.participants.upsert({
+      user: testUser1,
+      division: testSoldierDivision,
+      event,
+    });
+    const completion = { prSeconds: 100, prTimestamp: new Date() };
+    vi.spyOn(tempusService, "getCompletionAsync").mockResolvedValue(completion);
+
+    const res = await request({
+      eventId: event.id,
+      asUser: testUser1,
+      details: { timeSeconds: 110, tempusServerId: 200_000 },
+    });
+
+    assert.deepStrictEqual(res, getAppError(new TempusServerNotFoundError(200_000)));
   });
 
   it("returns unauthorized when user is not logged in", async () => {
