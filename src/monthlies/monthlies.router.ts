@@ -108,7 +108,7 @@ monthliesRouter.post(
     const sse = initSse(res);
     const submission = {
       eventId: req.ids.eventId,
-      timeSeconds: MonthlyTimeSubmissionSchema.parse(req.body).timeSeconds,
+      details: MonthlyTimeSubmissionSchema.parse(req.body).details,
     };
 
     try {
