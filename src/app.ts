@@ -11,6 +11,7 @@ import { envConfig } from "./env-config";
 import { lanRouter } from "./lan/lan.router";
 import { errorHandler } from "./middlewares/error-handler.middleware";
 import { monthliesRouter } from "./monthlies/monthlies.router";
+import { openApiDocument } from "./openapi/document";
 import { rolesRouter } from "./roles/roles.router";
 import { usersRouter } from "./users/users.router";
 
@@ -26,6 +27,10 @@ app.use((_, res, next) => {
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
+});
+
+app.get("/openapi.json", (_, res) => {
+  res.status(200).json(openApiDocument);
 });
 
 app.use((_, __, next) => {
