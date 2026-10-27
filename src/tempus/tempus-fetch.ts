@@ -66,7 +66,7 @@ async function processQueue() {
       }
 
       try {
-        const res = await fetch(item.endpoint, {
+        const res = await fetch("https://tempus2.xyz/api/v0" + item.endpoint, {
           signal: AbortSignal.timeout(5000),
         });
 

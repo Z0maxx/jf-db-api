@@ -10,7 +10,7 @@ type CompletionResponse = {
 
 export async function getCompletionAsync(query: TempusCompletionQuery) {
   const response = await fetchTempusApiAsync(
-    `https://tempus2.xyz/api/v0/maps/name/${query.mapName}/zones/typeindex/map/1/records/player/${query.tempusId}/${query.type === "soldier" ? 3 : 4}`,
+    `/maps/name/${query.mapName}/zones/typeindex/map/1/records/player/${query.tempusId}/${query.type === "soldier" ? 3 : 4}`,
   );
   const result = ((await response.json()) as CompletionResponse).result;
   if (!result) {
