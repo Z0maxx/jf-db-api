@@ -206,6 +206,7 @@ export const monthliesService = {
     const now = new Date();
     const event = await getEventByIdAsync(submission.eventId);
     checkEventStarted(event);
+    checkCanSubmitTimeToEvent(event);
     const participant = await getParticipantAsync({ eventId: submission.eventId, user });
     const map = event.monthlyMapCollection.$.find(
       (m) => m.division.$.id === participant.division.id,
@@ -395,6 +396,12 @@ function checkEventStarted(event: MonthlyEvent) {
   const now = new Date();
   if (event.start > now) {
     throw new EventNotStartedError(event.id, event.start);
+  }
+}
+
+function checkCanSubmitTimeToEvent(event: MonthlyEvent) {
+  if (getMinutesAfterEventEnded(event) > envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES) {
+    throw new EventEndedError(event.id, event.end);
   }
 }
 
