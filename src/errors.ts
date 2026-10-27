@@ -97,6 +97,20 @@ export class RegistrationNotFoundError extends NotFoundError {
   }
 }
 
+export class LeaderboardItemNotFoundError extends NotFoundByIdError {
+  constructor(itemId: number) {
+    super("Leaderboard item", itemId);
+    this.name = "LeaderboardItemNotFoundError";
+  }
+}
+
+export class TempusServerNotFoundError extends NotFoundByIdError {
+  constructor(serverId: number) {
+    super("Tempus server", serverId);
+    this.name = "TempusServerNotFoundError";
+  }
+}
+
 export class DefaultEntitiesModifiedError extends ForbiddenError {
   constructor(entity: string, names: string[]) {
     super();
