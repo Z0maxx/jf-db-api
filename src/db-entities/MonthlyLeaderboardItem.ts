@@ -1,5 +1,6 @@
-import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
 
+import { MonthlyLeaderboardSubmission } from "./MonthlyLeaderboardSubmission";
 import { MonthlyMap } from "./MonthlyMap";
 import { MonthlyParticipant } from "./MonthlyParticipant";
 
@@ -10,6 +11,7 @@ export class MonthlyLeaderboardItem extends BaseEntity {
   verified!: boolean;
   participant!: Ref<MonthlyParticipant>;
   map!: Ref<MonthlyMap>;
+  monthlyLeaderboardSubmissionCollection = new Collection<MonthlyLeaderboardSubmission>(this);
 }
 
 export const MonthlyLeaderboardItemSchema = defineEntity({
@@ -35,5 +37,7 @@ export const MonthlyLeaderboardItemSchema = defineEntity({
         .updateRule("restrict")
         .deleteRule("cascade")
         .index("idx_monthly_leaderboard"),
+    monthlyLeaderboardSubmissionCollection: () =>
+      p.oneToMany(MonthlyLeaderboardSubmission).mappedBy("leaderboardItem"),
   },
 });
