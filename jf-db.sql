@@ -392,6 +392,24 @@ CREATE TABLE monthly_leaderboard (
 
 ALTER TABLE monthly_leaderboard ADD INDEX idx_monthly_leaderboard (map_id);
 
+CREATE TABLE monthly_leaderboard_submission (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  submission_timestamp DATETIME NOT NULL,
+  tempus_server_id INT UNSIGNED NOT NULL,
+  leaderboard_item_id INT UNSIGNED NOT NULL,
+  event_id INT UNSIGNED NOT NULL,
+  CONSTRAINT fk_monthly_leaderboard_submissions_leaderboard_item_id
+    FOREIGN KEY (leaderboard_item_id)
+    REFERENCES monthly_leaderboard(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_monthly_leaderboard_submissions_event_id
+    FOREIGN KEY (event_id)
+    REFERENCES monthly_event(id)
+    ON DELETE CASCADE,
+  CONSTRAINT unq_monthly_leaderboard_submissions
+    UNIQUE (event_id, leaderboard_item_id)
+);
+
 CREATE TABLE tournament_event (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   canceled BOOLEAN NOT NULL DEFAULT 0,
