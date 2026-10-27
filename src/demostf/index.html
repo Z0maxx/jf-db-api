@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>tf-demo-parser WASM</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 72rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      label {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.75rem 0;
+      }
+      pre {
+        background: #111;
+        color: #eee;
+        padding: 1rem;
+        overflow: auto;
+        max-height: 70vh;
+      }
+      .error {
+        color: #b00020;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>TF demo parser</h1>
+    <p>Choose a <code>.dem</code> file. Parsing runs in WebAssembly in this page.</p>
+    <input id="file" type="file" accept=".dem,application/octet-stream" />
+    <label>
+      <input id="all" type="checkbox" />
+      Parse all messages
+    </label>
+    <p id="status"></p>
+    <pre id="out"></pre>
+    <script type="module">
+      import init, { parseDemo } from "./tf_demo_parser.js";
+
+      const status = document.getElementById("status");
+      const out = document.getElementById("out");
+      const fileInput = document.getElementById("file");
+      const allInput = document.getElementById("all");
+
+      status.textContent = "Loading WebAssembly…";
+      await init();
+      status.textContent = "Ready.";
+
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+          return;
+        }
+        status.textContent = `Parsing ${file.name} (${file.size} bytes)…`;
+        out.textContent = "";
+        out.classList.remove("error");
+        try {
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const json = parseDemo(bytes, allInput.checked);
+          out.textContent = JSON.stringify(JSON.parse(json), null, 2);
+          status.textContent = "Done.";
+        } catch (err) {
+          out.classList.add("error");
+          out.textContent = String(err);
+          status.textContent = "Parse failed.";
+        }
+      });
+    </script>
+  </body>
+</html>
