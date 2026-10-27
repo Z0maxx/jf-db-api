@@ -48,6 +48,22 @@ export type MonthlyTimeSubmissionDto = {
   timeSeconds?: number | undefined;
 };
 
+export type MonthlyLeaderboardSubmissionDto = {
+  id: number;
+  mapId: number;
+  mapName: string;
+  steam64Id: string;
+  leaderboardItemId: number;
+  seconds: number;
+  tempusServerId: number;
+  submissionTimestamp: Date;
+  prTimestamp?: Date | undefined;
+  event: {
+    type: TMonthlyEventType;
+    end: Date;
+  };
+};
+
 export type MonthlyTimeSubmissionResult = {
   status: "verified" | "accepted" | "rejected";
   message: string;
@@ -66,4 +82,14 @@ export type MonthlyEventValidator<T> = {
     originalEvent?: MonthlyEvent,
   ): void;
   getMessages(items: T[]): string[];
+};
+
+export type MonthlyLeaderboardVerificationWorkerMessage = {
+  type: "submissions" | "cleanup";
+  submissions?: MonthlyLeaderboardSubmissionDto[] | undefined;
+};
+
+export type MonthlyLeaderboardVerificationWorkerResult = {
+  verifiedSubmissions: MonthlyLeaderboardSubmissionDto[];
+  rejectedSubmissions: MonthlyLeaderboardSubmissionDto[];
 };
