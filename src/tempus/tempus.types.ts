@@ -15,3 +15,15 @@ export type TempusCompletionResult = {
   prSeconds: number;
   prTimestamp: Date;
 };
+
+export type TempusServer = {
+  id: number;
+  name: string;
+};
+
+export type TempusDemo = {
+  start: Date;
+  mapName: string;
+  url: string | null;
+  fileName: string;
+};
