@@ -13,7 +13,7 @@ export default defineConfig({
     globalSetup: ['./src/test/api/api-global-setup.ts'],
     globals: true,
     environment: "jsdom",
-    include: ["src/test/**/*.test.ts"],
+    include: ["src/test/api/**/*.test.ts"],
     server: {
       deps: {
         inline: true,
