@@ -84,3 +84,21 @@ export type Schedule = {
 };
 
 export type LoadedUser = Loaded<User, "role.claimCollection" | "divisionCollection">;
+
+export type DemoChatMessage = {
+  kind: string;
+  from: string;
+  text: string;
+  tick: number;
+};
+
+export type DemoUser = {
+  name: string;
+  steamId: string;
+};
+
+export type DemoContent = {
+  chat: DemoChatMessage[];
+  users: Record<string, DemoUser>;
+  intervalPerTick: number;
+};
