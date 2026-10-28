@@ -15,9 +15,9 @@ export class AllOutEvent extends BaseEntity {
   stage1End!: Date;
   stage2End!: Date;
   stage3End!: Date;
-  stage1Description: string & Opt = "\\'\\'";
-  stage2Description: string & Opt = "\\'\\'";
-  stage3Description: string & Opt = "\\'\\'";
+  stage1Description: string & Opt = "";
+  stage2Description: string & Opt = "";
+  stage3Description: string & Opt = "";
   allOutParticipantCollection = new Collection<AllOutParticipant>(this);
   allOutStage1MapCollection = new Collection<AllOutStage1Map>(this);
   allOutStage2MapCollection = new Collection<AllOutStage2Map>(this);
@@ -42,9 +42,9 @@ export const AllOutEventSchema = defineEntity({
     stage1End: p.datetime().name("stage_1_end"),
     stage2End: p.datetime().name("stage_2_end"),
     stage3End: p.datetime().name("stage_3_end"),
-    stage1Description: p.text().name("stage_1_description").length(65535).defaultRaw(`'\\'\\''`),
-    stage2Description: p.text().name("stage_2_description").length(65535).defaultRaw(`'\\'\\''`),
-    stage3Description: p.text().name("stage_3_description").length(65535).defaultRaw(`'\\'\\''`),
+    stage1Description: p.text().name("stage_1_description").length(65535).defaultRaw(`""`),
+    stage2Description: p.text().name("stage_2_description").length(65535).defaultRaw(`""`),
+    stage3Description: p.text().name("stage_3_description").length(65535).defaultRaw(`""`),
     allOutParticipantCollection: () => p.oneToMany(AllOutParticipant).mappedBy("event"),
     allOutStage1MapCollection: () => p.oneToMany(AllOutStage1Map).mappedBy("event"),
     allOutStage2MapCollection: () => p.oneToMany(AllOutStage2Map).mappedBy("event"),
