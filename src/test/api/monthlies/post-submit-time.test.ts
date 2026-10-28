@@ -5,8 +5,7 @@ vi.mock("node:worker_threads", () => ({
       return this;
     }
 
-    postMessage() {
-    }
+    postMessage() {}
   },
 }));
 
