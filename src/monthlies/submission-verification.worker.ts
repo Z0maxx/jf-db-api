@@ -13,7 +13,7 @@ import {
   MonthlyLeaderboardVerificationWorkerMessage,
 } from "./monthlies.types";
 
-export const workerFileName = __filename;
+export const submissionVerificationWorkerFileName = __filename;
 
 type DemoDetails = {
   fileName: string;

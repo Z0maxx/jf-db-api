@@ -3,12 +3,12 @@ import { Worker } from "node:worker_threads";
 import { assert, describe, it, vi } from "vitest";
 
 import { MonthlyEventType } from "#/db-entities/MonthlyEvent";
+import { MonthlyLeaderboardSubmissionDto } from "#/monthlies/monthlies.types";
 import {
   clearCache,
   verifyLeaderboardSubmissionsAsync,
-  workerFileName,
+  submissionVerificationWorkerFileName,
 } from "#/monthlies/submission-verification.worker";
-import { MonthlyLeaderboardSubmissionDto } from "#/monthlies/monthlies.types";
 import { tempusService } from "#/tempus/tempus.service";
 import { convertToSteam64Id } from "#/util";
 /*
@@ -167,7 +167,7 @@ describe("verifies leaderboard submissions", () => {
   }, 100_000);
 
   it("works as a worker", async () => {
-    const worker = new Worker(workerFileName, {
+    const worker = new Worker(submissionVerificationWorkerFileName, {
       execArgv: ["--import", "tsx"],
     });
 

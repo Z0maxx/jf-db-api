@@ -24,7 +24,6 @@ import { tempusService } from "#/tempus/tempus.service";
 import { TempusCompletionResult } from "#/tempus/tempus.types";
 import { LoadedUser, Registration, RegistrationDetails } from "#/types";
 
-import { workerFileName } from "./submission-verification.worker";
 import { monthliesRepository } from "./monthlies.repository";
 import {
   CreateMonthlyEventDto,
@@ -39,6 +38,7 @@ import {
   MonthlyLeaderboardSubmissionDto,
   MonthlyLeaderboardVerificationWorkerResult,
 } from "./monthlies.types";
+import { submissionVerificationWorkerFileName } from "./submission-verification.worker";
 import { monthlyCreatedDateValidator } from "./validators/monthly-created-date.validator";
 import { monthlyDivisionSingleMapValidator } from "./validators/monthly-division-single-map.validator";
 import { monthlyDivisionTypeValidator } from "./validators/monthly-division-type.validator";
@@ -48,7 +48,7 @@ import { monthlyUpdatedDateValidator } from "./validators/monthly-updated-date.v
 const tempusServerIdCache = new Set<number>();
 const leaderboardSubscribers: MonthlyLeaderboardSubscriber[] = [];
 const leaderboardCache = new Map<number, MonthlyLeaderboardItemDto[]>();
-const verificationWorker = new Worker(workerFileName, {
+const verificationWorker = new Worker(submissionVerificationWorkerFileName, {
   execArgv: ["--import", "tsx"],
 });
 
@@ -506,7 +506,6 @@ function processLeaderboardSubmissions(event: MonthlyEvent) {
   verificationTimer = setInterval(
     async () => {
       const submissions = await getAllLeaderboardSubmissionsAsync();
-      
       if (
         submissions.length === 0 &&
         getMinutesAfterEventEnded(event) > envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES
@@ -517,7 +516,6 @@ function processLeaderboardSubmissions(event: MonthlyEvent) {
       }
 
       if (submissions.length > 0) {
-        console.log("called worker")
         verificationWorker.postMessage({
           type: "submissions",
           submissions,
