@@ -35,15 +35,15 @@ describe("fetchTempusApiAsync", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const first = fetchTempusApiAsync("https://tempus2.xyz/a");
-    const second = fetchTempusApiAsync("https://tempus2.xyz/b");
+    const first = fetchTempusApiAsync("/a");
+    const second = fetchTempusApiAsync("/b");
 
     await vi.advanceTimersByTimeAsync(1099);
     assert.equal(fetchMock.mock.calls.length, 0);
 
     await vi.advanceTimersByTimeAsync(1);
     assert.equal(fetchMock.mock.calls.length, 1);
-    assert.equal(String(fetchMock.mock.calls[0]?.[0]), "https://tempus2.xyz/a");
+    assert.equal(String(fetchMock.mock.calls[0]?.[0]), "https://tempus2.xyz/api/v0/a");
 
     await vi.advanceTimersByTimeAsync(10_000);
     assert.equal(fetchMock.mock.calls.length, 1);
@@ -55,7 +55,7 @@ describe("fetchTempusApiAsync", () => {
     assert.equal(await first, firstResponse);
     assert.equal(await second, secondResponse);
     assert.equal(fetchMock.mock.calls.length, 2);
-    assert.equal(String(fetchMock.mock.calls[1]?.[0]), "https://tempus2.xyz/b");
+    assert.equal(String(fetchMock.mock.calls[1]?.[0]), "https://tempus2.xyz/api/v0/b");
   });
 
   it("waits for Retry-After plus a cushion before retrying the same caller", async () => {
@@ -68,7 +68,7 @@ describe("fetchTempusApiAsync", () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(limited).mockResolvedValueOnce(ok);
     vi.stubGlobal("fetch", fetchMock);
 
-    const pending = fetchTempusApiAsync("https://tempus2.xyz/a");
+    const pending = fetchTempusApiAsync("/a");
     await vi.advanceTimersByTimeAsync(1100);
     assert.equal(fetchMock.mock.calls.length, 1);
 
@@ -90,7 +90,7 @@ describe("fetchTempusApiAsync", () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(limited).mockResolvedValueOnce(ok);
     vi.stubGlobal("fetch", fetchMock);
 
-    const pending = fetchTempusApiAsync("https://tempus2.xyz/a");
+    const pending = fetchTempusApiAsync("/a");
     await vi.advanceTimersByTimeAsync(1100);
     assert.equal(fetchMock.mock.calls.length, 1);
 
@@ -112,7 +112,7 @@ describe("fetchTempusApiAsync", () => {
       .mockResolvedValueOnce(ok);
     vi.stubGlobal("fetch", fetchMock);
 
-    const pending = fetchTempusApiAsync("https://tempus2.xyz/a");
+    const pending = fetchTempusApiAsync("/a");
 
     await vi.advanceTimersByTimeAsync(1100);
     assert.equal(fetchMock.mock.calls.length, 1);
@@ -142,8 +142,8 @@ describe("fetchTempusApiAsync", () => {
       .mockResolvedValueOnce(ok);
     vi.stubGlobal("fetch", fetchMock);
 
-    const first = fetchTempusApiAsync("https://tempus2.xyz/a");
-    const second = fetchTempusApiAsync("https://tempus2.xyz/b");
+    const first = fetchTempusApiAsync("/a");
+    const second = fetchTempusApiAsync("/b");
     const firstResult = first.then(
       () => "resolved" as const,
       (error: unknown) => error,
@@ -156,7 +156,7 @@ describe("fetchTempusApiAsync", () => {
 
     await vi.advanceTimersByTimeAsync(1100);
     assert.equal(await second, ok);
-    assert.equal(String(fetchMock.mock.calls[5]?.[0]), "https://tempus2.xyz/b");
+    assert.equal(String(fetchMock.mock.calls[5]?.[0]), "https://tempus2.xyz/api/v0/b");
   });
 
   it("rejects after repeated 429 responses and continues the queue", async () => {
@@ -176,8 +176,8 @@ describe("fetchTempusApiAsync", () => {
       .mockResolvedValueOnce(ok);
     vi.stubGlobal("fetch", fetchMock);
 
-    const first = fetchTempusApiAsync("https://tempus2.xyz/a");
-    const second = fetchTempusApiAsync("https://tempus2.xyz/b");
+    const first = fetchTempusApiAsync("/a");
+    const second = fetchTempusApiAsync("/b");
     const firstResult = first.then(
       () => "resolved" as const,
       (error: unknown) => error,
@@ -190,6 +190,6 @@ describe("fetchTempusApiAsync", () => {
 
     await vi.advanceTimersByTimeAsync(1100);
     assert.equal(await second, ok);
-    assert.equal(String(fetchMock.mock.calls[5]?.[0]), "https://tempus2.xyz/b");
+    assert.equal(String(fetchMock.mock.calls[5]?.[0]), "https://tempus2.xyz/api/v0/b");
   });
 });

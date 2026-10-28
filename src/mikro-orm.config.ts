@@ -48,5 +48,15 @@ export default defineConfig({
     outputPurePivotTables: false,
     bidirectionalRelations: true,
     useCoreBaseEntity: true,
+    onProcessedMetadata(metadata) {
+      for (const entity of metadata) {
+        for (const property of Object.values(entity.properties)) {
+          if (property.default === "\\'\\'") {
+            property.default = "";
+            property.defaultRaw = '""';
+          }
+        }
+      }
+    },
   },
 });

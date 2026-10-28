@@ -10,6 +10,8 @@ const EnvConfigSchema = z.object({
   JWT_EXPIRES_IN: z.string(),
   STEAM_API_KEY: z.string(),
   CORS_ALLOW_ORIGIN: z.string(),
+  MONTHLY_VERIFICATION_LOOP_MINUTES: z.coerce.number(),
+  MONTHLY_SUBMISSION_EXTRA_MINUTES: z.coerce.number(),
 });
 
 export const envConfig = EnvConfigSchema.parse(process.env);

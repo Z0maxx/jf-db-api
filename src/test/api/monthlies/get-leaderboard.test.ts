@@ -99,7 +99,10 @@ describe("GET /monthlies/leaderboard/:mapId", () => {
       {
         method: "POST",
         body: {
-          timeSeconds: 300,
+          details: {
+            timeSeconds: 300,
+            tempusServerId: 62,
+          },
         },
         headers: {
           "Content-Type": "application/json",

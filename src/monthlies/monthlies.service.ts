@@ -1,18 +1,22 @@
 import crypto from "node:crypto";
+import { Worker } from "node:worker_threads";
 
 import { Division } from "#/db-entities/Division";
 import { MonthlyEvent } from "#/db-entities/MonthlyEvent";
 import { DivisionsNotFoundError } from "#/divisions/divisions.errors";
 import { divisionsRepository } from "#/divisions/divisions.repository";
+import { envConfig } from "#/env-config";
 import {
   AlreadyRegisteredError,
   EventEndedError,
   EventNotFoundError,
   EventNotStartedError,
   EventStartedInPastError,
+  LeaderboardItemNotFoundError,
   MapNotFoundError,
   NoMapsWithUserDivisionsError,
   RegistrationNotFoundError,
+  TempusServerNotFoundError,
   ValidationError,
 } from "#/errors";
 import { steamService } from "#/steam/steam.service";
@@ -31,15 +35,24 @@ import {
   MonthlyParticipantDto,
   MonthlyTimeSubmissionDto,
   MonthlyTimeSubmissionResult,
+  MonthlyLeaderboardSubmissionDto,
+  MonthlyLeaderboardVerificationWorkerResult,
 } from "./monthlies.types";
+import { submissionVerificationWorkerFileName } from "./submission-verification.worker";
 import { monthlyCreatedDateValidator } from "./validators/monthly-created-date.validator";
 import { monthlyDivisionSingleMapValidator } from "./validators/monthly-division-single-map.validator";
 import { monthlyDivisionTypeValidator } from "./validators/monthly-division-type.validator";
 import { monthlyScheduleValidator } from "./validators/monthly-schedule.validator";
 import { monthlyUpdatedDateValidator } from "./validators/monthly-updated-date.validator";
 
+const tempusServerIdCache = new Set<number>();
 const leaderboardSubscribers: MonthlyLeaderboardSubscriber[] = [];
 const leaderboardCache = new Map<number, MonthlyLeaderboardItemDto[]>();
+const verificationWorker = new Worker(submissionVerificationWorkerFileName, {
+  execArgv: ["--import", "tsx"],
+});
+
+let verificationTimer: NodeJS.Timeout | undefined;
 
 export const monthliesService = {
   submissionAccepted: getTimeSubmissionResult("accepted", "Accepted submitted time"),
@@ -130,6 +143,7 @@ export const monthliesService = {
 
     leaderboardSubscribers.push({
       id: subscriberId,
+      mapId,
       handler,
     });
 
@@ -189,8 +203,10 @@ export const monthliesService = {
     user: LoadedUser,
     submission: MonthlyTimeSubmissionDto,
   ): Promise<MonthlyTimeSubmissionResult> {
+    const now = new Date();
     const event = await getEventByIdAsync(submission.eventId);
     checkEventStarted(event);
+    checkCanSubmitTimeToEvent(event);
     const participant = await getParticipantAsync({ eventId: submission.eventId, user });
     const map = event.monthlyMapCollection.$.find(
       (m) => m.division.$.id === participant.division.id,
@@ -213,14 +229,24 @@ export const monthliesService = {
         ...completion!,
       });
     } else if (result.status === "accepted") {
+      await checkTempusServerExistsAsync(submission.details!.tempusServerId);
       updateCache = true;
-      await monthliesRepository.setLeaderboardItemAsync({
+      const leaderboardItem = await monthliesRepository.setLeaderboardItemAsync({
         verified: false,
         map,
         participant,
-        prSeconds: submission.timeSeconds!,
-        prTimestamp: new Date(),
+        prSeconds: submission.details!.timeSeconds!,
+        prTimestamp: now,
       });
+
+      await monthliesRepository.setLeaderboardSubmission({
+        submissionTimestamp: now,
+        tempusServerId: submission.details!.tempusServerId,
+        leaderboardItem,
+        event,
+      });
+
+      processLeaderboardSubmissions(event);
     }
 
     if (updateCache) {
@@ -261,6 +287,11 @@ export const monthliesService = {
     checkEventNotEnded(event);
     await monthliesRepository.cancelEventAsync(event);
   },
+
+  async deleteLeaderboardItemAsync(itemId: number) {
+    const item = await getLeaderboardItemAsync(itemId);
+    await monthliesRepository.deleteLeaderboardItemsAsync([item]);
+  },
 };
 
 async function getEventByIdAsync(eventId: number) {
@@ -282,6 +313,45 @@ async function getParticipantAsync(registration: Registration) {
   }
 
   return participant;
+}
+
+async function getDivisionsAsync(event: CreateMonthlyEventDto) {
+  const divisionIds = Array.from(new Set(event.maps.map((m) => m.divisionId)));
+  const exisitingDivisions = await divisionsRepository.getDivisionsByIdsAsync(divisionIds);
+  if (exisitingDivisions.length !== divisionIds.length) {
+    throw new DivisionsNotFoundError(
+      divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
+    );
+  }
+
+  return exisitingDivisions;
+}
+
+async function getAllLeaderboardSubmissionsAsync(): Promise<MonthlyLeaderboardSubmissionDto[]> {
+  const items = await monthliesRepository.getAllLeaderboardSubmissionsAsync();
+  return items.map((i) => ({
+    id: i.id,
+    mapId: i.leaderboardItem.$.map.id,
+    leaderboardItemId: i.leaderboardItem.id,
+    submissionTimestamp: i.submissionTimestamp,
+    seconds: i.leaderboardItem.$.prSeconds,
+    tempusServerId: i.tempusServerId,
+    mapName: i.leaderboardItem.$.map.$.name,
+    steam64Id: i.leaderboardItem.$.participant.$.user.$.steam64Id,
+    event: {
+      type: i.event.$.type,
+      end: i.event.$.end,
+    },
+  }));
+}
+
+async function getLeaderboardItemAsync(itemId: number) {
+  const item = await monthliesRepository.getLeaderboardItemAsync(itemId);
+  if (!item) {
+    throw new LeaderboardItemNotFoundError(itemId);
+  }
+
+  return item;
 }
 
 async function checkMapExistsAsync(mapId: number) {
@@ -308,18 +378,6 @@ async function checkNotAlreadyRegisteredAsync(registration: Registration) {
   }
 }
 
-async function getDivisionsAsync(event: CreateMonthlyEventDto) {
-  const divisionIds = Array.from(new Set(event.maps.map((m) => m.divisionId)));
-  const exisitingDivisions = await divisionsRepository.getDivisionsByIdsAsync(divisionIds);
-  if (exisitingDivisions.length !== divisionIds.length) {
-    throw new DivisionsNotFoundError(
-      divisionIds.filter((dId) => !exisitingDivisions.some((e) => e.id === dId)),
-    );
-  }
-
-  return exisitingDivisions;
-}
-
 function checkEventNotStartedInPast(event: MonthlyEvent) {
   const now = new Date();
   if (event.start <= now) {
@@ -341,29 +399,49 @@ function checkEventStarted(event: MonthlyEvent) {
   }
 }
 
-async function updateLeaderboardCacheAsync(mapId: number) {
-  const items = await monthliesRepository.getLeaderboardAsync(mapId);
-  const users = await steamService.getUsersAsync(
-    items.map((i) => i.participant.$.user.$.steam64Id),
-  );
-  const dtos = items.map((i) => ({
-    id: i.id,
-    user: users.get(i.participant.$.user.$.steam64Id)!,
-    pr: {
-      verified: i.verified,
-      seconds: i.prSeconds,
-      timestamp: i.prTimestamp,
-    },
-  }));
-
-  let cacheItems = leaderboardCache.get(mapId);
-  if (!cacheItems) {
-    cacheItems = [];
-    leaderboardCache.set(mapId, cacheItems);
+function checkCanSubmitTimeToEvent(event: MonthlyEvent) {
+  if (getMinutesAfterEventEnded(event) > envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES) {
+    throw new EventEndedError(event.id, event.end);
   }
+}
 
-  cacheItems.splice(0, cacheItems.length, ...dtos);
-  leaderboardSubscribers.forEach((s) => s.handler(cacheItems));
+async function checkTempusServerExistsAsync(serverId: number) {
+  if (!tempusServerIdCache.has(serverId)) {
+    const servers = await tempusService.getServersAsync();
+    servers.forEach((s) => tempusServerIdCache.add(s.id));
+    if (!tempusServerIdCache.has(serverId)) {
+      throw new TempusServerNotFoundError(serverId);
+    }
+  }
+}
+
+async function updateLeaderboardCacheAsync(...mapIds: number[]) {
+  return await Promise.all(
+    mapIds.map(async (mId) => {
+      const items = await monthliesRepository.getLeaderboardAsync(mId);
+      const users = await steamService.getUsersAsync(
+        items.map((i) => i.participant.$.user.$.steam64Id),
+      );
+      const dtos = items.map((i) => ({
+        id: i.id,
+        user: users.get(i.participant.$.user.$.steam64Id)!,
+        pr: {
+          verified: i.verified,
+          seconds: i.prSeconds,
+          timestamp: i.prTimestamp,
+        },
+      }));
+
+      let cacheItems = leaderboardCache.get(mId);
+      if (!cacheItems) {
+        cacheItems = [];
+        leaderboardCache.set(mId, cacheItems);
+      }
+
+      cacheItems.splice(0, cacheItems.length, ...dtos);
+      leaderboardSubscribers.filter((s) => s.mapId === mId).forEach((s) => s.handler(cacheItems));
+    }),
+  );
 }
 
 function verifyTimeSubmission(
@@ -375,7 +453,7 @@ function verifyTimeSubmission(
     return monthliesService.recordNotFound;
   }
 
-  if (submission.timeSeconds === undefined) {
+  if (!submission.details) {
     if (completion.prTimestamp < event.start) {
       return monthliesService.recordOlderThanEvent;
     } else if (completion.prTimestamp > event.end) {
@@ -384,7 +462,7 @@ function verifyTimeSubmission(
 
     return monthliesService.submissionVerified;
   } else {
-    if (completion.prSeconds > submission.timeSeconds) {
+    if (completion.prSeconds > submission.details.timeSeconds) {
       return monthliesService.recordSlowerThanSubmission;
     }
 
@@ -414,3 +492,85 @@ function validate(
     throw new ValidationError(errors);
   }
 }
+
+function getMinutesAfterEventEnded(event: MonthlyEvent) {
+  const now = new Date();
+  return (now.getTime() - event.end.getTime()) / 1000 / 60;
+}
+
+function processLeaderboardSubmissions(event: MonthlyEvent) {
+  if (verificationTimer) {
+    return;
+  }
+
+  verificationTimer = setInterval(
+    async () => {
+      const submissions = await getAllLeaderboardSubmissionsAsync();
+      if (
+        submissions.length === 0 &&
+        getMinutesAfterEventEnded(event) > envConfig.MONTHLY_SUBMISSION_EXTRA_MINUTES
+      ) {
+        verificationWorker.postMessage({ type: "cleanup" });
+        clearInterval(verificationTimer);
+        return;
+      }
+
+      if (submissions.length > 0) {
+        verificationWorker.postMessage({
+          type: "submissions",
+          submissions,
+        });
+      }
+    },
+    envConfig.MONTHLY_VERIFICATION_LOOP_MINUTES * 1000 * 60,
+  );
+}
+
+verificationWorker.on(
+  "message",
+  async ({
+    verifiedSubmissions,
+    rejectedSubmissions,
+  }: MonthlyLeaderboardVerificationWorkerResult) => {
+    if (verifiedSubmissions.length === 0 && rejectedSubmissions.length === 0) {
+      return;
+    }
+
+    const prTimestamps = new Map<number, Date>(
+      verifiedSubmissions.map((v) => [v.leaderboardItemId, v.prTimestamp!]),
+    );
+
+    const verifiedItems = await monthliesRepository.getLeaderboardItemsAsync(
+      verifiedSubmissions.map((v) => v.leaderboardItemId),
+    );
+
+    const rejectedItems = await monthliesRepository.getLeaderboardItemsAsync(
+      rejectedSubmissions.map((r) => r.leaderboardItemId),
+    );
+
+    const submissions = await monthliesRepository.getLeaderboardSubmissionsByIdsAsync([
+      ...verifiedSubmissions.map((v) => v.id),
+      ...rejectedSubmissions.map((r) => r.id),
+    ]);
+
+    await Promise.all([
+      monthliesRepository.deleteLeaderboardItemsAsync(rejectedItems),
+      monthliesRepository.deleteLeaderboardSubmissionsAsync(submissions),
+      monthliesRepository.verifyLeaderboardItemsAsync(
+        verifiedItems.map((i) => ({
+          leaderboardItem: i,
+          prTimestamp: prTimestamps.get(i.id)!,
+        })),
+      ),
+    ]);
+
+    const mapIds = Array.from(
+      new Set([
+        ...verifiedSubmissions.map((v) => v.mapId),
+        ...rejectedSubmissions.map((r) => r.mapId),
+      ]),
+    );
+
+    updateLeaderboardCacheAsync(...mapIds);
+  },
+);
