@@ -1,4 +1,4 @@
-import { MikroORM } from "@mikro-orm/sql";
+import { MikroORM } from "@mikro-orm/core";
 
 import { AllOutEvent } from "./db-entities/AllOutEvent";
 import { AllOutParticipant } from "./db-entities/AllOutParticipant";

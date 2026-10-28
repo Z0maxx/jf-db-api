@@ -5,8 +5,8 @@ import {
   RequiredEntityData,
   FilterQuery,
   wrap,
+  EntityRepository,
 } from "@mikro-orm/core";
-import { SqlEntityRepository } from "@mikro-orm/sql";
 
 import { ctx } from "#/db-context";
 import { AllOutEvent } from "#/db-entities/AllOutEvent";
@@ -21,7 +21,7 @@ export async function setDivisionMapsAsync<
   TCreateMap extends CreateDivisionMapDto,
   TDbMap extends AllOutStage1Map | AllOutStage2Map | AllOutStage3Map | MonthlyMap,
 >(
-  repository: SqlEntityRepository<TDbMap>,
+  repository: EntityRepository<TDbMap>,
   event: AllOutEvent | MonthlyEvent,
   maps: TCreateMap[],
   assignTransformFn: (map: TCreateMap) => EntityData<FromEntityType<Loaded<TDbMap>>>,
