@@ -1,27 +1,28 @@
-import { ctx } from "#/db-context";
-import { seedEntitiesAsync } from "#/default-entities";
 import { MikroORM } from "@mikro-orm/core";
 import { SqliteDriver, NodeSqliteDialect } from "@mikro-orm/mariadb";
 import path from "path";
 import { vi } from "vitest";
 
+import { ctx } from "#/db-context";
+import { seedEntitiesAsync } from "#/default-entities";
+
 export type WorkerMock = ReturnType<typeof createWorkerMock>;
 
 export async function setupInMemoryDbAsync(rootDir: string) {
   ctx.orm = await MikroORM.init({
-      driver: SqliteDriver,
-      driverOptions: new NodeSqliteDialect(":memory:"),
-      dbName: ":memory:",
-      entities: [path.join(rootDir, "dist", "db-entities", "*.js")],
-      entitiesTs: [path.join(rootDir, "src", "db-entities", "*.ts")],
-    });
+    driver: SqliteDriver,
+    driverOptions: new NodeSqliteDialect(":memory:"),
+    dbName: ":memory:",
+    entities: [path.join(rootDir, "dist", "db-entities", "*.js")],
+    entitiesTs: [path.join(rootDir, "src", "db-entities", "*.ts")],
+  });
 
-    for (const meta of ctx.orm.getMetadata().getAll().values()) {
-      meta.checks = [];
-    }
+  for (const meta of ctx.orm.getMetadata().getAll().values()) {
+    meta.checks = [];
+  }
 
-    await ctx.orm.schema.refresh();
-    await seedEntitiesAsync();
+  await ctx.orm.schema.refresh();
+  await seedEntitiesAsync();
 }
 
 export function mockWorkers(workerPaths: string[]) {

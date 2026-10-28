@@ -96,7 +96,7 @@ async function setupTestEntitesAsync() {
 
 describe("monthlies service communication with verification worker", async () => {
   beforeAll(async () => {
-    await setupInMemoryDbAsync(__dirname.split("src")[0])
+    await setupInMemoryDbAsync(__dirname.split("src")[0]);
     monthliesService = await getMonthliesServiceAsync();
   });
 
