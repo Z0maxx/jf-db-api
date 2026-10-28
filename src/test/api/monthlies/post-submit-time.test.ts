@@ -1,20 +1,11 @@
-const { workerMock } = vi.hoisted(() => ({
-  workerMock: {
-    on: vi.fn(),
-    postMessage: vi.fn(),
-  },
-}));
-
 vi.mock("node:worker_threads", () => ({
   parentPort: null,
   Worker: class {
-    on(event: string, listener: unknown) {
-      workerMock.on(event, listener);
+    on() {
       return this;
     }
 
-    postMessage(message: unknown) {
-      workerMock.postMessage(message);
+    postMessage() {
     }
   },
 }));
