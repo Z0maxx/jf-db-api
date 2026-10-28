@@ -1,13 +1,11 @@
 import "dotenv/config";
-import { MikroORM, NodeSqliteDialect, SqliteDriver } from "@mikro-orm/sql";
-import path from "node:path";
 import { afterAll, assert, beforeAll, describe, it, vi } from "vitest";
 
 import { ctx } from "#/db-context";
 import { DivisionType } from "#/db-entities/Division";
 import { MonthlyEventType } from "#/db-entities/MonthlyEvent";
 import { UserTempusIdStatus } from "#/db-entities/User";
-import { seedEntitiesAsync, userRole } from "#/default-entities";
+import { userRole } from "#/default-entities";
 import { envConfig } from "#/env-config";
 import { MonthlyLeaderboardVerificationWorkerResult } from "#/monthlies/monthlies.types";
 import { submissionVerificationWorkerFileName } from "#/monthlies/submission-verification.worker";
@@ -15,11 +13,10 @@ import { steamService } from "#/steam/steam.service";
 import { SteamUser } from "#/steam/steam.types";
 import { tempusService } from "#/tempus/tempus.service";
 import { tomorrow, yesterday } from "#/test/test-dates";
-import { mockWorkers } from "#/test/util";
+import { mockWorkers, setupInMemoryDbAsync } from "#/test/util";
 
 const mockedWorkers = mockWorkers([submissionVerificationWorkerFileName]);
 const verificationWorkerMock = mockedWorkers[submissionVerificationWorkerFileName];
-const rootDir = __dirname.split("src")[0];
 
 let monthliesService!: Awaited<ReturnType<typeof getMonthliesServiceAsync>>;
 
@@ -99,20 +96,7 @@ async function setupTestEntitesAsync() {
 
 describe("monthlies service communication with verification worker", async () => {
   beforeAll(async () => {
-    ctx.orm = await MikroORM.init({
-      driver: SqliteDriver,
-      driverOptions: new NodeSqliteDialect(":memory:"),
-      dbName: ":memory:",
-      entities: [path.join(rootDir, "dist", "db-entities", "*.js")],
-      entitiesTs: [path.join(rootDir, "src", "db-entities", "*.ts")],
-    });
-
-    for (const meta of ctx.orm.getMetadata().getAll().values()) {
-      meta.checks = [];
-    }
-
-    await ctx.orm.schema.refresh();
-    await seedEntitiesAsync();
+    await setupInMemoryDbAsync(__dirname.split("src")[0])
     monthliesService = await getMonthliesServiceAsync();
   });
 
