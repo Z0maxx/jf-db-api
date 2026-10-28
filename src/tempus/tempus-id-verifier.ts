@@ -14,7 +14,7 @@ type TempusPlayerInfo = {
 };
 
 export async function verifyTempusIdAsync(user: TempusUser) {
-  const response = await fetchTempusApiAsync(`/${user.tempusId}/info`);
+  const response = await fetchTempusApiAsync(`/players/${user.tempusId}/info`);
   if (response.status === 404) {
     return UserTempusIdStatus.FAILED;
   }
