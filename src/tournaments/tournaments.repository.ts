@@ -188,6 +188,8 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
           orderIndex: -1,
           matchupIndex: j,
           winnerIndex: null,
+          winnerNextMatchupParticipantIndex: null,
+          loserNextMatchupParticipantIndex: null,
           event,
         }),
       );
@@ -207,6 +209,7 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
           orderIndex: -1,
           matchupIndex: j,
           winnerIndex: null,
+          loserNextMatchupParticipantIndex: null,
           event,
         }),
       );
@@ -236,6 +239,9 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
         } else {
           matchup.loserNextMatchup = Reference.create(loserBrackets[i * 2 - 1][j]);
         }
+
+        matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup)
+        matchup.loserNextMatchupParticipantIndex = getLoserNextMatchupParticipantIndex(matchup)
       }
     }
   }
@@ -252,6 +258,8 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
       } else {
         matchup.winnerNextMatchup = Reference.create(loserBrackets[i + 1][Math.floor(j / 2)]);
       }
+
+      matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup)
     }
   }
 
@@ -387,8 +395,7 @@ async function addWinnerParticipantToNextMatchupAsync(
   winner: Ref<TournamentParticipant>,
 ) {
   const winnerNextMatchup = matchup.winnerNextMatchup!.$;
-  const nextPosition = getWinnerNextMatchupPosition(matchup);
-  if (nextPosition === 0) {
+  if (matchup.winnerNextMatchupParticipantIndex === 0) {
     winnerNextMatchup.participant1 = winner;
   } else {
     winnerNextMatchup.participant2 = winner;
@@ -400,8 +407,7 @@ async function addLoserParticipantToNextMatchupAsync(
   loser: Ref<TournamentParticipant>,
 ) {
   const loserNextMatchup = matchup.loserNextMatchup!.$;
-  const nextPosition = getLoserNextMatchupPosition(matchup);
-  if (nextPosition === 0) {
+  if (matchup.loserNextMatchupParticipantIndex === 0) {
     loserNextMatchup.participant1 = loser;
   } else {
     loserNextMatchup.participant2 = loser;
@@ -415,22 +421,22 @@ async function switchMatchupParticipantsAsync(
 ) {
   let current = matchup;
   while (current.winnerNextMatchup) {
-    const nextPosition = getWinnerNextMatchupPosition(current);
+    const nextIndex = current.winnerNextMatchupParticipantIndex!
     const next = await current.winnerNextMatchup.loadOrFail({
       populate: ["winnerNextMatchup"],
     });
 
     const nextParticipants = [next.participant1, next.participant2];
-    if (nextParticipants[nextPosition]?.id === participant1.id) {
-      if (nextPosition === 0) {
+    if (nextParticipants[nextIndex]?.id === participant1.id) {
+      if (nextIndex === 0) {
         next.participant1 = participant2;
       } else {
         next.participant2 = participant2;
       }
     }
 
-    if (nextParticipants[1 - nextPosition]?.id === participant2.id) {
-      if (nextPosition === 0) {
+    if (nextParticipants[1 - nextIndex]?.id === participant2.id) {
+      if (nextIndex === 0) {
         next.participant2 = participant1;
       } else {
         next.participant1 = participant1;
@@ -441,11 +447,11 @@ async function switchMatchupParticipantsAsync(
   }
 }
 
-function getWinnerNextMatchupPosition(matchup: Loaded<TournamentMatchup, "winnerNextMatchup">) {
+function getWinnerNextMatchupParticipantIndex(matchup: TournamentMatchup) {
   if (
     matchup.type === TournamentMatchupType.WINNER ||
     (matchup.bracketIndex % 2 === 1 &&
-      matchup.winnerNextMatchup?.$.type !== TournamentMatchupType.WINNER)
+      matchup.winnerNextMatchup?.getEntity().type !== TournamentMatchupType.WINNER)
   ) {
     return matchup.matchupIndex % 2 === 0 ? 0 : 1;
   }
@@ -453,7 +459,7 @@ function getWinnerNextMatchupPosition(matchup: Loaded<TournamentMatchup, "winner
   return 1;
 }
 
-function getLoserNextMatchupPosition(matchup: TournamentMatchup) {
+function getLoserNextMatchupParticipantIndex(matchup: TournamentMatchup) {
   if (matchup.bracketIndex === 0) {
     return matchup.matchupIndex % 2 === 0 ? 0 : 1;
   }

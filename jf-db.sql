@@ -446,6 +446,8 @@ CREATE TABLE tournament_matchup (
   matchup_index INT UNSIGNED NOT NULL,
   order_index INT UNSIGNED NOT NULL,
   winner_index INT UNSIGNED DEFAULT NULL,
+  winner_next_matchup_participant_index INT UNSIGNED DEFAULT NULL,
+  loser_next_matchup_participant_index INT UNSIGNED DEFAULT NULL,
   participant_1_id INT UNSIGNED DEFAULT NULL,
   participant_2_id INT UNSIGNED DEFAULT NULL,
   winner_next_matchup_id INT UNSIGNED DEFAULT NULL,
@@ -471,8 +473,10 @@ CREATE TABLE tournament_matchup (
     FOREIGN KEY (event_id)
     REFERENCES tournament_event(id)
     ON DELETE CASCADE,
-  CONSTRAINT chk_tournament_matchup_winner_index
-    CHECK (winner_index <= 1),
+  CONSTRAINT chk_tournament_matchup_winner_next_matchup_participant_index
+    CHECK (winner_next_matchup_participant_index <= 1),
+   CONSTRAINT chk_tournament_matchup_loser_next_matchup_participant_index
+    CHECK (loser_next_matchup_participant_index <= 1),
   CONSTRAINT unq_tournament_matchup_1
     UNIQUE (event_id, order_index),
   CONSTRAINT unq_tournament_matchup_2

@@ -1,4 +1,4 @@
-import { BaseEntity, type Ref, defineEntity, p } from "@mikro-orm/core";
+import { BaseEntity, Collection, type Ref, defineEntity, p } from "@mikro-orm/core";
 
 import { TournamentEvent } from "./TournamentEvent";
 import { TournamentParticipant } from "./TournamentParticipant";
@@ -10,6 +10,8 @@ export class TournamentMatchup extends BaseEntity {
   matchupIndex!: number;
   orderIndex!: number;
   winnerIndex?: number = NaN;
+  winnerNextMatchupParticipantIndex?: number = NaN;
+  loserNextMatchupParticipantIndex?: number = NaN;
   participant1?: Ref<TournamentParticipant>;
   participant2?: Ref<TournamentParticipant>;
   winnerNextMatchup?: Ref<TournamentMatchup>;
@@ -31,13 +33,17 @@ export const TournamentMatchupSchema = defineEntity({
     { name: "unq_tournament_matchup_1", properties: ["event", "orderIndex"] },
     {
       name: "unq_tournament_matchup_2",
-      properties: ["event", "bracketIndex", "matchupIndex", "type"],
+      properties: ["event", "type", "bracketIndex", "matchupIndex"],
     },
   ],
   checks: [
     {
-      name: "chk_tournament_matchup_winner_index",
-      expression: "`winner_index` <= 1",
+      name: "chk_tournament_matchup_loser_next_matchup_participant_index",
+      expression: "`loser_next_matchup_participant_index` <= 1",
+    },
+    {
+      name: "chk_tournament_matchup_winner_next_matchup_participant_index",
+      expression: "`winner_next_matchup_participant_index` <= 1",
     },
   ],
   properties: {
@@ -47,6 +53,8 @@ export const TournamentMatchupSchema = defineEntity({
     matchupIndex: p.integer().unsigned(),
     orderIndex: p.integer().unsigned(),
     winnerIndex: p.integer().unsigned().nullable().defaultRaw(`NULL`),
+    winnerNextMatchupParticipantIndex: p.integer().unsigned().nullable().defaultRaw(`NULL`),
+    loserNextMatchupParticipantIndex: p.integer().unsigned().nullable().defaultRaw(`NULL`),
     participant1: () =>
       p
         .manyToOne(TournamentParticipant)
