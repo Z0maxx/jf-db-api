@@ -397,13 +397,15 @@ CREATE TABLE tournament_event (
   canceled BOOLEAN NOT NULL DEFAULT 0,
   type ENUM('soldier', 'demoman') NOT NULL,
   description TEXT NOT NULL,
-  start DATETIME NOT NULL
+  start DATETIME NOT NULL,
+  end DATETIME DEFAULT NULL
 );
 
 CREATE TABLE tournament_participant (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   resigned BOOLEAN NOT NULL DEFAULT 0,
-  alias VARCHAR(30) NOT NULL,
+  disqualified BOOLEAN NOT NULL DEFAULT 0,
+  alias VARCHAR(30) NOT NULL DEFAULT "",
   user_id INT UNSIGNED NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   CONSTRAINT fk_tournament_participant
@@ -437,28 +439,68 @@ CREATE TABLE tournament_map (
 
 ALTER TABLE tournament_map ADD INDEX idx_tournament_map (event_id);
 
-CREATE TABLE tournament_leaderboard (
+CREATE TABLE tournament_matchup (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  pr_timestamp DATETIME NOT NULL,
-  pr_seconds FLOAT(2) UNSIGNED NOT NULL,
-  stage INT UNSIGNED NOT NULL,
-  participant_id INT UNSIGNED NOT NULL,
-  map_id INT UNSIGNED NOT NULL,
-  CONSTRAINT fk_tournament_leaderboard_participant_id
-    FOREIGN KEY (participant_id)
+  type ENUM("winner", "loser") NOT NULL,
+  bracket_index INT UNSIGNED NOT NULL,
+  matchup_index INT UNSIGNED NOT NULL,
+  order_index INT UNSIGNED NOT NULL,
+  winner_index INT UNSIGNED DEFAULT NULL,
+  participant_1_id INT UNSIGNED DEFAULT NULL,
+  participant_2_id INT UNSIGNED DEFAULT NULL,
+  winner_next_matchup_id INT UNSIGNED DEFAULT NULL,
+  loser_next_matchup_id INT UNSIGNED DEFAULT NULL,
+  event_id INT UNSIGNED NOT NULL,
+  CONSTRAINT fk_tournament_matchup_participant_1_id
+    FOREIGN KEY (participant_1_id)
     REFERENCES tournament_participant(id)
     ON DELETE CASCADE,
-  CONSTRAINT fk_tournament_leaderboard_map_id
-    FOREIGN KEY (map_id)
-    REFERENCES tournament_map(id)
+   CONSTRAINT fk_tournament_matchup_participant_2_id
+    FOREIGN KEY (participant_2_id)
+    REFERENCES tournament_participant(id)
     ON DELETE CASCADE,
-  CONSTRAINT chk_tournament_leaderboard_stage
-    CHECK (stage > 1),
-  CONSTRAINT unq_tournament_leaderboard
-    UNIQUE (map_id, participant_id)
+  CONSTRAINT fk_tournament_matchup_winner_next_matchup_id
+    FOREIGN KEY (winner_next_matchup_id)
+    REFERENCES tournament_matchup(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_tournament_matchup_loser_next_matchup_id
+    FOREIGN KEY (loser_next_matchup_id)
+    REFERENCES tournament_matchup(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_tournament_matchup_event_id
+    FOREIGN KEY (event_id)
+    REFERENCES tournament_event(id)
+    ON DELETE CASCADE,
+  CONSTRAINT chk_tournament_matchup_winner_index
+    CHECK (winner_index <= 1),
+  CONSTRAINT unq_tournament_matchup_1
+    UNIQUE (event_id, order_index),
+  CONSTRAINT unq_tournament_matchup_2
+    UNIQUE (event_id, type, bracket_index, matchup_index)
 );
 
-ALTER TABLE tournament_leaderboard ADD INDEX idx_tournament_leaderboard (map_id);
+ALTER TABLE tournament_matchup ADD INDEX idx_tournament_matchup (event_id);
+
+CREATE TRIGGER trg_tournament_matchup_end_event_after_insert
+AFTER INSERT ON tournament_matchup
+FOR EACH ROW
+UPDATE tournament_event
+SET `end` = CURRENT_TIMESTAMP
+WHERE id = NEW.event_id
+  AND NEW.winner_index IS NOT NULL
+  AND NEW.bracket_index = 0
+  AND NEW.type = 'winner';
+
+CREATE TRIGGER trg_tournament_matchup_end_event_after_update
+AFTER UPDATE ON tournament_matchup
+FOR EACH ROW
+UPDATE tournament_event
+SET `end` = CURRENT_TIMESTAMP
+WHERE id = NEW.event_id
+  AND NEW.winner_index IS NOT NULL
+  AND (OLD.winner_index IS NULL OR OLD.winner_index <> NEW.winner_index)
+  AND NEW.bracket_index = 0
+  AND NEW.type = 'winner';
 
 CREATE TABLE lan_event (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
