@@ -18,6 +18,10 @@ import { MonthlyLeaderboardItem } from "./db-entities/MonthlyLeaderboardItem";
 import { MonthlyMap } from "./db-entities/MonthlyMap";
 import { MonthlyParticipant } from "./db-entities/MonthlyParticipant";
 import { Role } from "./db-entities/Role";
+import { TournamentEvent } from "./db-entities/TournamentEvent";
+import { TournamentMap } from "./db-entities/TournamentMap";
+import { TournamentMatchup } from "./db-entities/TournamentMatchup";
+import { TournamentParticipant } from "./db-entities/TournamentParticipant";
 import { User } from "./db-entities/User";
 import mikroOrmConfig from "./mikro-orm.config";
 
@@ -64,6 +68,14 @@ export const ctx = {
       participants: this.em.getRepository(MonthlyParticipant),
       maps: this.em.getRepository(MonthlyMap),
       leaderboard: this.em.getRepository(MonthlyLeaderboardItem),
+    };
+  },
+  get tournaments() {
+    return {
+      events: this.em.getRepository(TournamentEvent),
+      participants: this.em.getRepository(TournamentParticipant),
+      maps: this.em.getRepository(TournamentMap),
+      matchups: this.em.getRepository(TournamentMatchup),
     };
   },
   async saveAsync() {
