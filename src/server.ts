@@ -4,8 +4,12 @@ import { initCtx } from "./db-context";
 import { seedEntitiesAsync } from "./default-entities";
 import { envConfig } from "./env-config";
 
-app.listen(envConfig.PORT, async (err) => {
+async function main() {
   await initCtx();
   await seedEntitiesAsync();
-  console.log(err ?? "Running");
-});
+  app.listen(envConfig.PORT, () => {
+    console.log(`Running on port ${envConfig.PORT}`);
+  });
+}
+
+void main();
