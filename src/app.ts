@@ -13,9 +13,10 @@ import { errorHandler } from "./middlewares/error-handler.middleware";
 import { monthliesRouter } from "./monthlies/monthlies.router";
 import { openApiDocument } from "./openapi/document";
 import { rolesRouter } from "./roles/roles.router";
+import { tournamentsRouter } from "./tournaments/tournaments.router";
 import { usersRouter } from "./users/users.router";
 
-process.env.TZ = "UTC"
+process.env.TZ = "UTC";
 
 export const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use((_, __, next) => {
 
 app.use("/monthlies", monthliesRouter);
 app.use("/lan", lanRouter);
+app.use("/tournaments", tournamentsRouter);
 app.use("/all-out", allOutRouter);
 app.use("/auth", authRouter);
 app.use("/divisions", divisionsRouter);
