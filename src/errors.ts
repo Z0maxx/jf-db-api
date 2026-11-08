@@ -97,6 +97,20 @@ export class RegistrationNotFoundError extends NotFoundError {
   }
 }
 
+export class MatchupNotFoundError extends NotFoundByIdError {
+  constructor(matchupId: number) {
+    super("Matchup", matchupId);
+    this.name = "MatchupNotFoundError";
+  }
+}
+
+export class MatchupParticpantNotFound extends NotFoundError {
+  constructor(matchupId: number, winnerIndex: number) {
+    super();
+    this.message = `Participant '${winnerIndex + 1}' is not set for matchup with id '${matchupId}'`;
+  }
+}
+
 export class DefaultEntitiesModifiedError extends ForbiddenError {
   constructor(entity: string, names: string[]) {
     super();
