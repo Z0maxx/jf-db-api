@@ -14,6 +14,7 @@ import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { createLanTestEntitiesAsync } from "./lan/lan-test-entities";
 import { createMonthlyTestEntitiesAsync } from "./monthlies/monthly-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
+import { createTournamentTestEntitiesAsync } from "./tournaments/tournament-test-entities";
 
 export async function setupApiTestSuiteAsync() {
   await initCtx();
@@ -22,6 +23,7 @@ export async function setupApiTestSuiteAsync() {
   await createAllOutTestEntitiesAsync();
   await createLanTestEntitiesAsync();
   await createMonthlyTestEntitiesAsync();
+  await createTournamentTestEntitiesAsync();
 }
 
 export async function teardownApiTestSuiteAsync(entitiesToDelete: BaseEntity[] = []) {

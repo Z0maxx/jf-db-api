@@ -5,6 +5,7 @@ import { createAllOutTestEntitiesAsync } from "./all-out/all-out-test-entities";
 import { createLanTestEntitiesAsync } from "./lan/lan-test-entities";
 import { createMonthlyTestEntitiesAsync } from "./monthlies/monthly-test-entities";
 import { createTestEntitiesAsync } from "./test-entities";
+import { createTournamentTestEntitiesAsync } from "./tournaments/tournament-test-entities";
 
 export async function setup() {
   await initCtx();
@@ -13,4 +14,5 @@ export async function setup() {
   await createAllOutTestEntitiesAsync();
   await createLanTestEntitiesAsync();
   await createMonthlyTestEntitiesAsync();
+  await createTournamentTestEntitiesAsync();
 }
