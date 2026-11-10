@@ -8,6 +8,8 @@ export let testSoldierDivision: Division;
 export let testDemomanDivision: Division;
 export let testUser1: LoadedUser;
 export let testUser2: LoadedUser;
+export let testUser3: LoadedUser;
+export let testUser4: LoadedUser;
 export let testHeadAdmin: LoadedUser;
 
 export async function createTestEntitiesAsync() {
@@ -26,7 +28,7 @@ export async function createTestEntitiesAsync() {
     },
   ]);
 
-  const [user1, user2, headAdmin] = await ctx.users.upsertMany([
+  const [user1, user2, user3, user4, headAdmin] = await ctx.users.upsertMany([
     {
       id: 100_001,
       steam64Id: "76561198167723343",
@@ -43,6 +45,18 @@ export async function createTestEntitiesAsync() {
     },
     {
       id: 100_003,
+      steam64Id: "76561198067761368",
+      tempusIdStatus: UserTempusIdStatus.UNSET,
+      role: userRole,
+    },
+    {
+      id: 100_004,
+      steam64Id: "76561197992634049",
+      tempusIdStatus: UserTempusIdStatus.UNSET,
+      role: userRole,
+    },
+    {
+      id: 100_005,
       steam64Id: "76561198049588377",
       tempusId: 0,
       tempusIdStatus: UserTempusIdStatus.UNSET,
@@ -56,8 +70,8 @@ export async function createTestEntitiesAsync() {
 
   await ctx.saveAsync();
 
-  [testUser1, testUser2, testHeadAdmin] = await ctx.users.find(
-    { id: { $in: [user1.id, user2.id, headAdmin.id] } },
+  [testUser1, testUser2, testUser3, testUser4, testHeadAdmin] = await ctx.users.find(
+    { id: { $in: [user1.id, user2.id, user3.id, user4.id, headAdmin.id] } },
     { populate: ["divisionCollection", "role.claimCollection"] },
   );
 }
