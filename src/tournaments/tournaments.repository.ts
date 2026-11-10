@@ -96,14 +96,17 @@ export const tournamentsRepository = {
     if (matchup.winnerNextMatchup) {
       await addWinnerParticipantToNextMatchupAsync(matchup, winner);
       if (loser) {
-        await switchMatchupParticipantsAsync(matchup, loser, winner);
+        const matchups = await ctx.tournaments.matchups.find(
+          { event: matchup.event },
+          { populate: ["winnerNextMatchup"] },
+        );
+
+        const matchupsMap = new Map(matchups.map((m) => [m.id, m]));
+        await switchMatchupParticipantsAsync(matchupsMap, matchup, loser, winner);
         if (matchup.loserNextMatchup) {
           await addLoserParticipantToNextMatchupAsync(matchup, loser);
-          const loserNextMatchup = await matchup.loserNextMatchup.loadOrFail({
-            populate: ["winnerNextMatchup"],
-          });
-
-          await switchMatchupParticipantsAsync(loserNextMatchup, winner, loser);
+          const loserNextMatchup = matchupsMap.get(matchup.loserNextMatchup.id)!;
+          await switchMatchupParticipantsAsync(matchupsMap, loserNextMatchup, winner, loser);
         }
       }
     }
@@ -240,8 +243,8 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
           matchup.loserNextMatchup = Reference.create(loserBrackets[i * 2 - 1][j]);
         }
 
-        matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup)
-        matchup.loserNextMatchupParticipantIndex = getLoserNextMatchupParticipantIndex(matchup)
+        matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup);
+        matchup.loserNextMatchupParticipantIndex = getLoserNextMatchupParticipantIndex(matchup);
       }
     }
   }
@@ -259,7 +262,7 @@ function createBrackets(event: TournamentEvent, setMatchups: SetTournamentMatchu
         matchup.winnerNextMatchup = Reference.create(loserBrackets[i + 1][Math.floor(j / 2)]);
       }
 
-      matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup)
+      matchup.winnerNextMatchupParticipantIndex = getWinnerNextMatchupParticipantIndex(matchup);
     }
   }
 
@@ -415,17 +418,15 @@ async function addLoserParticipantToNextMatchupAsync(
 }
 
 async function switchMatchupParticipantsAsync(
+  matchups: Map<number, Loaded<TournamentMatchup, "winnerNextMatchup">>,
   matchup: Loaded<TournamentMatchup, "winnerNextMatchup">,
   participant1: Ref<TournamentParticipant>,
   participant2: Ref<TournamentParticipant>,
 ) {
   let current = matchup;
   while (current.winnerNextMatchup) {
-    const nextIndex = current.winnerNextMatchupParticipantIndex!
-    const next = await current.winnerNextMatchup.loadOrFail({
-      populate: ["winnerNextMatchup"],
-    });
-
+    const nextIndex = current.winnerNextMatchupParticipantIndex!;
+    const next = matchups.get(current.winnerNextMatchup.id)!;
     const nextParticipants = [next.participant1, next.participant2];
     if (nextParticipants[nextIndex]?.id === participant1.id) {
       if (nextIndex === 0) {
